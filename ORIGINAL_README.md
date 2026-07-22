@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AR Oversight Platform — CCS · Comprehensive Compliance Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* CCS brand palette — charcoal / electric teal / lime */
+    --char:#1F2937; --char2:#0F172A;
+    --teal:#06B6D4; --teal2:#0891B2; --teal3:#155E75; --teal-bright:#22D3EE;
+    --lime:#84CC16; --lime-bright:#A3E635;
+    --slate:#475569;
+    /* dark UI surfaces */
+    --bg:#090E18; --bg2:#0F172A; --bg3:#18222F; --bg4:#21303f;
+    --border:rgba(148,163,184,.14); --border-2:rgba(148,163,184,.22); --border-teal:rgba(6,182,212,.32);
+    --text:#E8EDF4; --text2:#95A3B8; --text3:#647488;
+    /* status (tuned for dark) */
+    --green:#34D399; --green-bg:rgba(52,211,153,.12);
+    --amber:#FBBF24; --amber-bg:rgba(251,191,36,.12);
+    --red:#F87171; --red-bg:rgba(248,113,113,.12);
+    --blue:#60A5FA; --blue-bg:rgba(96,165,250,.1);
+    --purple:#C084FC; --purple-bg:rgba(192,132,252,.1);
+    --shadow:0 6px 28px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.35);
+    --glow-teal:0 0 0 1px var(--border-teal),0 6px 22px rgba(6,182,212,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;
+    background-image:radial-gradient(circle at 88% -5%,rgba(6,182,212,.10),transparent 45%),radial-gradient(circle at 0% 100%,rgba(132,204,22,.05),transparent 40%);
+    background-attachment:fixed;}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(148,163,184,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.025) 1px,transparent 1px);
+    background-size:44px 44px;}
+  .app{position:relative;z-index:1}
+
+  /* ── SHARD MARK ── */
+  .shard{display:block}
+  .shard-glow{filter:drop-shadow(0 0 5px rgba(163,230,53,.55))}
+
+  /* ── HEADER ── */
+  header{position:sticky;top:0;z-index:100;background:rgba(11,17,28,.86);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);padding:0 26px;display:flex;align-items:center;justify-content:space-between;height:62px}
+  .hl{display:flex;align-items:center;gap:13px}
+  .logo-lockup{display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);padding-right:18px;margin-right:4px}
+  .wordmark{display:flex;flex-direction:column;line-height:1}
+  .wm-ccs{font-family:'Sora',sans-serif;font-weight:700;font-size:21px;letter-spacing:5px;color:var(--text);padding-left:2px}
+  .wm-tag{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:2.4px;color:var(--text3);text-transform:uppercase;margin-top:3px}
+  .wm-tag b{color:var(--teal-bright);font-weight:500}
+  .portal-label{display:flex;flex-direction:column}
+  .pl-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1}
+  .pl-sub{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:var(--text3);text-transform:uppercase;margin-top:3px}
+  .pl-sub b{color:var(--teal-bright);font-weight:500}
+  .hr{display:flex;align-items:center;gap:13px}
+  .ai-badge{display:flex;align-items:center;gap:6px;background:rgba(6,182,212,.08);border:1px solid var(--border-teal);
+    padding:5px 11px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--teal-bright);letter-spacing:1.3px;text-transform:uppercase}
+  .ai-dot{width:5px;height:5px;border-radius:50%;background:var(--lime-bright);box-shadow:0 0 6px var(--lime);animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.78)}}
+  .ver-pill{background:linear-gradient(180deg,var(--teal2),var(--teal3));color:#fff;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;padding:6px 12px;border:1px solid var(--border-teal)}
+
+  /* ── LAYOUT ── */
+  .layout{display:grid;grid-template-columns:238px 1fr;min-height:calc(100vh - 62px)}
+  .sidebar{background:rgba(15,23,42,.5);border-right:1px solid var(--border);padding:22px 0;overflow-y:auto;max-height:calc(100vh - 62px);position:sticky;top:62px}
+  .sidebar::-webkit-scrollbar{width:6px} .sidebar::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}
+  .nav-sec{margin-bottom:18px}
+  .nav-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:0 22px;margin-bottom:6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 22px;font-size:12.5px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;transition:all .15s;user-select:none}
+  .nav-item:hover{color:var(--text);background:rgba(6,182,212,.05)}
+  .nav-item.active{color:var(--teal-bright);border-left-color:var(--teal);background:linear-gradient(90deg,rgba(6,182,212,.1),transparent);font-weight:600}
+  .nav-item svg{flex-shrink:0;opacity:.9}
+  .nav-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;background:var(--red-bg);color:var(--red);padding:1px 6px;border-radius:9px;border:1px solid rgba(248,113,113,.3)}
+  .sb-div{height:1px;background:var(--border);margin:2px 22px 16px}
+
+  main{padding:30px 34px;overflow-y:auto;position:relative}
+  /* faint shard watermark on dashboard hero */
+  .hero-watermark{position:absolute;top:-26px;right:8px;opacity:.05;pointer-events:none;z-index:0}
+
+  /* ── PAGE HEADER ── */
+  .page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;position:relative;z-index:1;animation:fadeDown .4s ease both}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+  .page-title{font-family:'Sora',sans-serif;font-size:27px;font-weight:600;color:var(--text);line-height:1.05;margin-bottom:7px;letter-spacing:-.3px}
+  .page-meta{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);letter-spacing:1px}
+  .head-actions{display:flex;gap:9px}
+  .btn-primary{background:linear-gradient(180deg,var(--teal),var(--teal2));color:#04181c;border:none;padding:10px 17px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;box-shadow:0 2px 12px rgba(6,182,212,.25)}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-teal{background:var(--lime);color:#10210a;border:none;padding:10px 17px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s;box-shadow:0 2px 12px rgba(132,204,22,.22)}
+  .btn-teal:hover{background:var(--lime-bright)}
+  .btn-ghost{background:rgba(33,48,63,.5);color:var(--text);border:1px solid var(--border-2);padding:9px 15px;font-family:'Manrope',sans-serif;font-size:12.5px;cursor:pointer;transition:.15s}
+  .btn-ghost:hover{border-color:var(--border-teal);color:var(--teal-bright)}
+
+  /* ── STATS ── */
+  .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;position:relative;z-index:1;animation:fadeDown .4s .05s ease both}
+  .stat-card{background:linear-gradient(160deg,var(--bg3),var(--bg2));border:1px solid var(--border);padding:16px 18px;position:relative;overflow:hidden;transition:.2s}
+  .stat-card:hover{border-color:var(--border-teal)}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--teal)}
+  .stat-card.s-green::after{background:var(--green)} .stat-card.s-amber::after{background:var(--amber)} .stat-card.s-red::after{background:var(--red)} .stat-card.s-blue::after{background:var(--lime)}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+  .stat-value{font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:var(--text);line-height:1;margin-bottom:4px;letter-spacing:-.5px}
+  .stat-delta{font-size:10.5px;color:var(--text2)}
+  .stat-delta.up{color:var(--green)} .stat-delta.dn{color:var(--red)}
+
+  /* ── CARD ── */
+  .card{background:linear-gradient(165deg,rgba(24,34,47,.7),rgba(15,23,42,.7));border:1px solid var(--border);margin-bottom:18px;position:relative;z-index:1;animation:fadeDown .4s .1s ease both}
+  .card-head{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border)}
+  .card-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:var(--text)}
+  .card-note{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.8px}
+
+  /* ── TABLE ── */
+  table{width:100%;border-collapse:collapse}
+  thead th{padding:10px 16px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.6px;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);background:rgba(9,14,24,.5);white-space:nowrap}
+  tbody tr{border-bottom:1px solid rgba(148,163,184,.07);transition:background .12s}
+  tbody tr:hover{background:rgba(6,182,212,.04)}
+  tbody tr:last-child{border-bottom:none}
+  td{padding:12px 16px;vertical-align:middle;font-size:12.5px;color:var(--text2)}
+  .cell-main{font-weight:600;color:var(--text)}
+  .cell-sub{font-size:10.5px;color:var(--text3);margin-top:2px}
+  .cell-ref{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal-bright);margin-bottom:2px;font-weight:500}
+  .cell-mono{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text)}
+  .cell-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);white-space:nowrap}
+
+  /* chips */
+  .chip{display:inline-block;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.8px;text-transform:uppercase;border:1px solid;white-space:nowrap}
+  .chip-teal{color:var(--teal-bright);border-color:var(--border-teal);background:rgba(34,211,238,.08)}
+  .chip-blue{color:var(--blue);border-color:rgba(96,165,250,.3);background:var(--blue-bg)}
+  .chip-purple{color:var(--purple);border-color:rgba(192,132,252,.3);background:var(--purple-bg)}
+  .chip-amber{color:var(--amber);border-color:rgba(251,191,36,.3);background:var(--amber-bg)}
+  .chip-slate{color:var(--text2);border-color:var(--border-2);background:rgba(148,163,184,.06)}
+
+  /* status badge */
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;font-size:11px;font-weight:600;white-space:nowrap}
+  .badge .d{width:5px;height:5px;border-radius:50%}
+  .b-green{background:var(--green-bg);color:var(--green)} .b-green .d{background:var(--green);box-shadow:0 0 5px rgba(52,211,153,.6)}
+  .b-amber{background:var(--amber-bg);color:var(--amber)} .b-amber .d{background:var(--amber);box-shadow:0 0 5px rgba(251,191,36,.6)}
+  .b-red{background:var(--red-bg);color:var(--red)} .b-red .d{background:var(--red);box-shadow:0 0 5px rgba(248,113,113,.6)}
+  .b-teal{background:rgba(34,211,238,.1);color:var(--teal-bright)} .b-teal .d{background:var(--teal-bright);box-shadow:0 0 5px rgba(34,211,238,.6)}
+  .b-slate{background:rgba(148,163,184,.1);color:var(--text2)} .b-slate .d{background:var(--text2)}
+
+  /* RAG */
+  .rag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text2)}
+  .rag-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .rag-g{background:var(--green)} .rag-a{background:var(--amber)} .rag-r{background:var(--red)} .rag-n{background:transparent;border:1px solid var(--border-2)}
+
+  /* risk */
+  .risk-wrap{display:flex;align-items:center;gap:7px}
+  .risk-bar{width:48px;height:3px;background:rgba(148,163,184,.15);overflow:hidden}
+  .risk-fill{height:100%} .rf-low{background:var(--green)} .rf-med{background:var(--amber)} .rf-high{background:var(--red)}
+  .risk-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)}
+
+  /* bool */
+  .bool-yes{color:var(--green);font-weight:600} .bool-no{color:var(--text3)} .bool-flag{color:var(--red);font-weight:600}
+
+  /* actions */
+  .acts{display:flex;gap:5px}
+  .abtn{padding:4px 10px;font-size:10.5px;font-family:'Manrope',sans-serif;font-weight:600;cursor:pointer;border:1px solid;transition:.15s;white-space:nowrap;background:transparent}
+  .a-approve{color:var(--green);border-color:rgba(52,211,153,.35)} .a-approve:hover{background:var(--green-bg)}
+  .a-reject{color:var(--red);border-color:rgba(248,113,113,.35)} .a-reject:hover{background:var(--red-bg)}
+  .a-ai{color:var(--lime-bright);border-color:rgba(132,204,22,.4)} .a-ai:hover{background:rgba(132,204,22,.12)}
+  .a-view{color:var(--text2);border-color:var(--border-2)} .a-view:hover{color:var(--text);border-color:var(--text2)}
+
+  /* MATRIX */
+  .matrix-wrap{overflow-x:auto}
+  .matrix{width:100%;border-collapse:collapse;min-width:760px}
+  .matrix th{padding:9px 8px;font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.8px;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:center}
+  .matrix th:first-child{text-align:left;padding-left:20px}
+  .matrix td{padding:11px 8px;text-align:center;border-bottom:1px solid rgba(148,163,184,.06)}
+  .matrix td:first-child{text-align:left;padding-left:20px;font-weight:600;color:var(--text);font-size:12.5px}
+  .matrix tr:hover{background:rgba(6,182,212,.04)}
+  .matrix tr:last-child td{border-bottom:none}
+  .m-ar-sub{font-size:10px;color:var(--text3);font-weight:400;margin-top:1px}
+  .mdot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .mdot-g{background:var(--green);box-shadow:0 0 6px rgba(52,211,153,.5)} .mdot-a{background:var(--amber);box-shadow:0 0 6px rgba(251,191,36,.5)} .mdot-r{background:var(--red);box-shadow:0 0 6px rgba(248,113,113,.5)} .mdot-n{background:transparent;border:1px solid var(--border-2)}
+
+  /* DASH GRID */
+  .dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+  @media(max-width:1200px){.dash-grid{grid-template-columns:1fr}.stats-row{grid-template-columns:repeat(3,1fr)}}
+
+  /* timeline */
+  .timeline-item{display:flex;gap:14px;padding:13px 20px;border-bottom:1px solid rgba(148,163,184,.06);align-items:flex-start}
+  .timeline-item:last-child{border-bottom:none}
+  .tl-bar{width:3px;align-self:stretch;border-radius:2px;flex-shrink:0}
+  .tlb-g{background:var(--green)} .tlb-a{background:var(--amber)} .tlb-r{background:var(--red)} .tlb-t{background:var(--teal)}
+  .tl-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text);width:78px;flex-shrink:0;line-height:1.4}
+  .tl-countdown{font-size:9px;color:var(--text3);margin-top:2px} .tl-countdown.soon{color:var(--red);font-weight:500}
+  .tl-body{flex:1} .tl-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:2px} .tl-sub{font-size:11px;color:var(--text3);line-height:1.4}
+
+  /* feed */
+  .feed-item{display:grid;grid-template-columns:108px 1fr;gap:12px;padding:11px 20px;border-bottom:1px solid rgba(148,163,184,.06);font-size:12px}
+  .feed-item:last-child{border-bottom:none}
+  .feed-time{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3)}
+  .feed-act{color:var(--text2);line-height:1.5} .feed-act strong{color:var(--text);font-weight:700} .feed-act .ref{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--teal-bright)}
+
+  /* attestations */
+  .att-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:1100px){.att-grid{grid-template-columns:repeat(2,1fr)}}
+  .att-card{background:linear-gradient(165deg,var(--bg3),var(--bg2));border:1px solid var(--border);padding:18px;position:relative;transition:.2s}
+  .att-card:hover{border-color:var(--border-teal)}
+  .att-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--teal)}
+  .att-card.done::before{background:var(--green)} .att-card.due::before{background:var(--amber)} .att-card.overdue::before{background:var(--red)}
+  .att-name{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:3px}
+  .att-ref{font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px}
+  .att-progress{height:6px;background:rgba(148,163,184,.14);margin-bottom:8px;overflow:hidden}
+  .att-progress-fill{height:100%;background:var(--green);transition:width .4s}
+  .att-stat{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:12px}
+  .att-stat strong{color:var(--text);font-weight:700}
+  .att-meta{font-size:10.5px;color:var(--text3);line-height:1.5;border-top:1px solid var(--border);padding-top:10px}
+  .att-cadence{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--teal-bright)}
+
+  /* AI panel */
+  .ai-panel{display:none;border:1px solid var(--border-teal);background:linear-gradient(135deg,rgba(6,182,212,.06),rgba(132,204,22,.03));margin:0 20px 16px;padding:18px;animation:fadeDown .3s ease both}
+  .ai-panel.open{display:block}
+  .ai-ph{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .ai-chip{background:var(--lime);color:#10210a;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;padding:3px 9px;font-weight:500}
+  .ai-by{font-size:11px;color:var(--text3)}
+  .ai-x{margin-left:auto;background:transparent;border:1px solid var(--border-2);color:var(--text2);cursor:pointer;font-size:12px;padding:2px 8px;transition:.15s}
+  .ai-x:hover{color:var(--text)}
+  .ai-body{font-size:12.5px;color:var(--text);line-height:1.7}
+  .ai-body.loading{color:var(--text2);font-style:italic;display:flex;align-items:center;gap:10px}
+  .spinner{width:14px;height:14px;border:2px solid rgba(6,182,212,.2);border-top-color:var(--teal-bright);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .ai-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:var(--teal-bright);text-transform:uppercase;margin-bottom:5px}
+  .ai-verdict{display:inline-flex;align-items:center;gap:6px;margin-top:13px;padding:8px 13px;font-weight:700;font-size:11.5px;border:1px solid}
+  .v-pass{background:var(--green-bg);color:var(--green);border-color:rgba(52,211,153,.35)} .v-rev{background:var(--amber-bg);color:var(--amber);border-color:rgba(251,191,36,.35)} .v-fail{background:var(--red-bg);color:var(--red);border-color:rgba(248,113,113,.35)}
+
+  /* MODAL */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(5,9,16,.72);backdrop-filter:blur(5px);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .overlay.open{display:flex}
+  .modal{background:var(--bg2);border:1px solid var(--border-2);box-shadow:var(--shadow);width:660px;max-height:90vh;overflow-y:auto;animation:modalIn .25s ease}
+  @keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:rgba(9,14,24,.5)}
+  .modal-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:600;color:var(--text)}
+  .modal-ref{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--teal-bright);margin-top:2px}
+  .modal-x{width:30px;height:30px;border:1px solid var(--border-2);background:transparent;color:var(--text2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .modal-x:hover{color:var(--text);border-color:var(--text2)}
+  .modal-body{padding:24px}
+  .fsl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--teal-bright);text-transform:uppercase;padding-bottom:9px;margin-bottom:15px;border-bottom:1px solid var(--border)}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:18px}
+  .fg{display:flex;flex-direction:column;gap:5px} .fg.full{grid-column:1/-1}
+  label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.4px;color:var(--text3);text-transform:uppercase}
+  input,select,textarea{background:rgba(9,14,24,.6);border:1px solid var(--border-2);color:var(--text);font-family:'Manrope',sans-serif;font-size:12.5px;padding:9px 11px;outline:none;transition:.15s;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+  input[readonly]{background:rgba(6,182,212,.06);color:var(--teal-bright);font-family:'JetBrains Mono',monospace;font-size:11.5px}
+  select option{background:var(--bg2)}
+  textarea{resize:vertical;min-height:80px}
+  .checklist{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+  .ci{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--text2);cursor:pointer;line-height:1.4}
+  .ci input{width:14px;height:14px;padding:0;accent-color:var(--teal);margin-top:1px;flex-shrink:0}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--border);background:rgba(9,14,24,.5)}
+
+  /* reg intro */
+  .reg-intro{background:rgba(15,23,42,.55);border:1px solid var(--border);border-left:3px solid var(--teal);padding:13px 16px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:18px;position:relative;z-index:1}
+  .reg-intro strong{color:var(--text)}
+  .reg-intro .basis{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal-bright);letter-spacing:.5px;display:block;margin-top:6px}
+
+  /* FOOTER */
+  .footer{background:rgba(11,17,28,.86);border-top:1px solid var(--border);padding:11px 34px;display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.9px;text-transform:uppercase;position:relative;z-index:1}
+  .footer .t{color:var(--teal-bright);font-weight:500}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:26px;right:26px;background:var(--bg2);border:1px solid var(--border-2);border-left:3px solid var(--teal);box-shadow:var(--shadow);padding:13px 17px;font-size:12.5px;color:var(--text);z-index:300;display:none;min-width:270px;animation:toastIn .25s ease}
+  .toast.show{display:block}
+  .toast.t-error{border-left-color:var(--red)} .toast.t-success{border-left-color:var(--green)}
+  @keyframes toastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+  .toast-title{font-weight:700;color:var(--text);margin-bottom:2px}
+  .toast-sub{font-size:10.5px;color:var(--text3)}
+</style>
+<style>
+/* ════════ v3 PREMIUM LAYER ════════ */
+:root{--ring-track:#1a2433}
+/* topbar: single, quiet FRN */
+.pl-sub{opacity:.62;font-weight:500}
+/* Cleaner home: greeting + breathing room */
+.home-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin:4px 2px 22px}
+.home-hi{font-family:'Sora',sans-serif;font-size:27px;font-weight:600;letter-spacing:-.4px;color:var(--text);line-height:1.15}
+.home-hi span{color:var(--teal-bright)}
+.home-sub{font-size:13px;color:var(--text2);margin-top:7px;max-width:560px;line-height:1.55}
+.home-actions{display:flex;gap:9px;flex-shrink:0}
+/* Score ring + KPI hero band */
+.hero-band{display:grid;grid-template-columns:248px 1fr;gap:16px;margin-bottom:18px}
+.score-card{background:linear-gradient(160deg,#10192b,#0b1322);border:1px solid var(--border-2);border-radius:16px;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.score-card::after{content:'';position:absolute;inset:0;background:radial-gradient(120px 120px at 50% 22%,rgba(34,211,238,.13),transparent 70%);pointer-events:none}
+.ring{position:relative;width:150px;height:150px}
+.ring svg{transform:rotate(-90deg)}
+.ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-num{font-family:'Sora',sans-serif;font-size:38px;font-weight:700;color:#fff;line-height:1}
+.ring-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.5px;color:var(--teal-bright);margin-top:3px;text-transform:uppercase}
+.score-cap{margin-top:14px;font-size:11px;color:var(--text2);text-align:center;letter-spacing:.3px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 17px;display:flex;flex-direction:column;justify-content:space-between;transition:.16s;cursor:default}
+.kpi:hover{border-color:var(--border-2);transform:translateY(-2px)}
+.kpi-top{display:flex;align-items:center;gap:8px}
+.kpi-ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kpi-num{font-family:'Sora',sans-serif;font-size:31px;font-weight:700;color:var(--text);line-height:1;margin:10px 0 5px}
+.kpi-lbl{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.kpi-g .kpi-ic{background:var(--green-bg);color:var(--green)} .kpi-a .kpi-ic{background:var(--amber-bg);color:var(--amber)}
+.kpi-r .kpi-ic{background:var(--red-bg);color:var(--red)} .kpi-t .kpi-ic{background:rgba(6,182,212,.12);color:var(--teal-bright)}
+/* Priority list (replaces verbose feed) */
+.prio{display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:.13s}
+.prio:hover{background:rgba(34,211,238,.04)}
+.prio:last-child{border-bottom:none}
+.prio-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.prio-dot.r{background:var(--red);box-shadow:0 0 8px rgba(248,113,113,.5)} .prio-dot.a{background:var(--amber)}
+.prio-t{font-size:13px;color:var(--text);font-weight:600}
+.prio-m{font-size:11.5px;color:var(--text2);margin-top:2px}
+.prio-go{margin-left:auto;color:var(--text3);font-size:15px;align-self:center}
+/* Segmented NIL toggle for the digital return */
+.ret-grid{display:flex;flex-direction:column;gap:9px}
+.ret-row{display:flex;align-items:center;gap:14px;padding:12px 15px;background:var(--bg3);border:1px solid var(--border);border-radius:11px}
+.ret-name{font-size:12.5px;color:var(--text);font-weight:500;flex:1}
+.seg{display:inline-flex;background:#0a1120;border:1px solid var(--border-2);border-radius:9px;padding:2px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--text2);font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;padding:5px 13px;border-radius:7px;cursor:pointer;transition:.12s;letter-spacing:.3px}
+.seg button.on-nil{background:var(--teal);color:#04181c}
+.seg button.on-rep{background:var(--amber);color:#1c1402}
+.ret-banner{display:flex;align-items:center;gap:12px;padding:13px 16px;background:linear-gradient(100deg,rgba(6,182,212,.1),transparent);border:1px solid var(--border-2);border-radius:12px;margin-bottom:16px}
+.ret-banner b{color:var(--teal-bright)}
+.nil-all{margin-left:auto}
+/* Risk scorer */
+.rs-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.rs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.rs-ar{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:var(--text)}
+.rs-factor{display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:center;padding:9px 0;border-top:1px solid var(--border)}
+.rs-flabel{font-size:12.5px;color:var(--text2)}
+.rs-seg{display:inline-flex;background:#0a1120;border:1px solid var(--border-2);border-radius:9px;padding:2px;gap:2px}
+.rs-seg button{border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:700;padding:6px 16px;border-radius:7px;cursor:pointer;transition:.12s;font-family:'Manrope',sans-serif}
+.rs-seg button.on1{background:var(--green);color:#04140b} .rs-seg button.on2{background:var(--amber);color:#1c1402} .rs-seg button.on3{background:var(--red);color:#fff}
+.rs-total{display:flex;align-items:center;gap:16px;padding-top:14px;margin-top:6px;border-top:1px solid var(--border-2)}
+.rs-score{font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:var(--text)}
+.rs-meta{font-size:12px;color:var(--text2)}
+/* Module programme grid */
+.mod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.mod-card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:16px 17px;display:flex;gap:13px;align-items:flex-start;transition:.16s}
+.mod-card:hover{border-color:var(--border-2);transform:translateY(-2px)}
+.mod-n{width:30px;height:30px;border-radius:9px;background:rgba(132,204,22,.13);color:var(--lime-bright);font-family:'Sora',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mod-t{font-size:13px;font-weight:600;color:var(--text)}
+.mod-d{font-size:11.5px;color:var(--text2);margin-top:3px;line-height:1.5}
+/* Info panels (adoption / prohibitions) */
+.panel-list{display:flex;flex-direction:column;gap:0}
+.pl-row{display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--border)}
+.pl-row:first-child{border-top:none}
+.pl-no{width:22px;height:22px;border-radius:7px;background:var(--red-bg);color:var(--red);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pl-step{width:22px;height:22px;border-radius:50%;background:rgba(6,182,212,.13);color:var(--teal-bright);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pl-txt{font-size:12.5px;color:var(--text);line-height:1.5}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin:24px 2px 11px;font-weight:600}
+@media(max-width:900px){.hero-band,.kpi-grid,.mod-grid{grid-template-columns:1fr}.rs-factor{grid-template-columns:1fr}}
+</style>
+<style>
+/* ════════ v4 REFINEMENT LAYER — quieter, consistent geometry ════════ */
+body::before{opacity:.22}
+.card{border-radius:12px;overflow:hidden}
+.stat-card,.att-card,.kpi{border-radius:12px}
+.btn-primary,.btn-teal,.btn-ghost{border-radius:9px}
+.chip{border-radius:5px}
+.badge{border-radius:7px}
+.abtn{border-radius:7px}
+.modal{border-radius:14px;overflow:hidden}
+.ai-badge{border-radius:99px}
+.ver-pill{border-radius:8px}
+.toast{border-radius:10px}
+.reg-intro{border-radius:0 10px 10px 0}
+input,select,textarea{border-radius:8px}
+thead th{font-size:9px;letter-spacing:1.2px}
+.nav-label{font-size:8.5px}
+.shard-glow{filter:drop-shadow(0 0 3px rgba(163,230,53,.35))}
+.ai-panel{border-radius:12px}
+.score-card{border-radius:12px}
+</style>
+<style>
+/* ════════ v5 FP SUBMISSION LAYER ════════ */
+.ftabs{display:flex;gap:4px;flex-wrap:wrap}
+.ftab{background:transparent;border:1px solid var(--border-2);color:var(--text2);font:600 10.5px 'Manrope',sans-serif;padding:5px 12px;border-radius:8px;cursor:pointer;transition:.13s}
+.ftab:hover{color:var(--text)}
+.ftab.on{background:var(--teal);color:#04181c;border-color:var(--teal)}
+.dropzone{border:1.5px dashed var(--border-2);border-radius:10px;padding:16px;text-align:center;color:var(--text3);font-size:12px;cursor:pointer;transition:.15s;background:rgba(9,14,24,.4);line-height:1.7}
+.dropzone:hover,.dropzone.drag{border-color:var(--teal);color:var(--teal-bright)}
+.file-pill{display:flex;align-items:center;gap:9px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:11.5px;color:var(--text);margin-top:7px}
+.file-pill .fp-hash{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal-bright)}
+.file-pill .fp-x{margin-left:auto;cursor:pointer;color:var(--text3);padding:0 3px}
+.file-pill .fp-x:hover{color:var(--red)}
+.doc-chip{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text2);background:rgba(148,163,184,.08);border:1px solid var(--border);border-radius:6px;padding:3px 9px;white-space:nowrap}
+.audit-item{display:grid;grid-template-columns:118px 1fr;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(148,163,184,.06);font-size:12px}
+.audit-item:last-child{border-bottom:none}
+.audit-time{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3)}
+.audit-act{color:var(--text2);line-height:1.55}
+.audit-act strong{color:var(--teal-bright);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px}
+.audit-act .ref{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="hl">
+    <div class="logo-lockup">
+      <!-- CCS Shard 3D mark (reconstructed to brand spec: faceted spire, teal glass, lime apex) -->
+      <svg class="shard shard-glow" width="30" height="38" viewBox="0 0 64 84" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CCS Shard">
+        <defs>
+          <linearGradient id="sFaceL" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#155E75"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0.92"/>
+          </linearGradient>
+          <linearGradient id="sFaceR" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#0891B2"/><stop offset="1" stop-color="#0F172A"/>
+          </linearGradient>
+          <linearGradient id="sApex" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#A3E635"/><stop offset="1" stop-color="#84CC16"/>
+          </linearGradient>
+        </defs>
+        <!-- left glass face -->
+        <polygon points="32,12 32,74 15,74" fill="url(#sFaceL)"/>
+        <!-- right glass face (darker) -->
+        <polygon points="32,12 49,74 32,74" fill="url(#sFaceR)"/>
+        <!-- fragmented shard tips -->
+        <polygon points="32,2 35,15 29,15" fill="url(#sApex)"/>
+        <polygon points="27,9 30,20 23,20" fill="#0891B2"/>
+        <polygon points="37,7 40,22 34,22" fill="#155E75"/>
+        <!-- central ridge -->
+        <line x1="32" y1="12" x2="32" y2="74" stroke="#22D3EE" stroke-width="0.9" opacity="0.85"/>
+        <!-- base edges -->
+        <line x1="32" y1="74" x2="15" y2="74" stroke="#22D3EE" stroke-width="0.8" opacity="0.5"/>
+        <line x1="32" y1="74" x2="49" y2="74" stroke="#22D3EE" stroke-width="0.8" opacity="0.35"/>
+        <!-- window striations left face -->
+        <g stroke="#22D3EE" stroke-width="0.6" opacity="0.45">
+          <line x1="24" y1="34" x2="32" y2="34"/><line x1="22" y1="44" x2="32" y2="44"/>
+          <line x1="20" y1="54" x2="32" y2="54"/><line x1="18" y1="64" x2="32" y2="64"/>
+        </g>
+        <!-- window striations right face -->
+        <g stroke="#06B6D4" stroke-width="0.6" opacity="0.3">
+          <line x1="32" y1="34" x2="40" y2="34"/><line x1="32" y1="44" x2="42" y2="44"/>
+          <line x1="32" y1="54" x2="44" y2="54"/><line x1="32" y1="64" x2="46" y2="64"/>
+        </g>
+        <!-- apex beacon glow -->
+        <circle cx="32" cy="4" r="2.4" fill="#A3E635" opacity="0.9"/>
+      </svg>
+      <div class="wordmark">
+        <span class="wm-ccs">CCS</span>
+        <span class="wm-tag">Comprehensive Compliance Solutions · <b>London</b></span>
+      </div>
+    </div>
+    <div class="portal-label">
+      <span class="pl-name">AR Oversight Platform</span>
+      <span class="pl-sub">Razlin Ltd · FRN 730805</span>
+    </div>
+  </div>
+  <div class="hr">
+    <div class="ai-badge"><div class="ai-dot"></div>AI-Powered Review</div>
+    <div class="ver-pill">CCS Platform</div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="nav-sec">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" data-mod="dashboard" onclick="go(this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Oversight Dashboard
+      </div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">Compliance Manual</div>
+      <div class="nav-item" data-mod="manual-map" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Manual Control Map</div>
+      <div class="nav-item" data-mod="policy-reg" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Policy Register</div>
+      <div class="nav-item" data-mod="forms" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Forms & Declarations</div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">SUP 12 — AR Lifecycle</div>
+      <div class="nav-item" data-mod="ar-register" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>AR Register & Lifecycle</div>
+      <div class="nav-item" data-mod="ar-agreements" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6M9 17h4"/></svg>AR Agreements</div>
+      <div class="nav-item" data-mod="pipeline" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/><path d="M9 11v2a2 2 0 0 0 2 2h2"/></svg>Onboarding Pipeline<span class="nav-badge">4</span></div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">AR Self-Reporting</div>
+      <div class="nav-item" data-mod="cf30-returns" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>CF30 Returns<span class="nav-badge">2</span></div>
+      <div class="nav-item" data-mod="risk-scoring" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>AR Risk Scoring</div>
+      <div class="nav-item" data-mod="permissions" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Permissions & RAO Scope</div>
+      <div class="nav-item" data-mod="cmp" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Monitoring Programme</div>
+      <div class="nav-item" data-mod="annual-review" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>Annual Reviews (12.6A)</div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">Conduct Registers</div>
+      <div class="nav-item" data-mod="fin-proms" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Financial Promotions<span class="nav-badge">5</span></div>
+      <div class="nav-item" data-mod="research" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Research Distribution</div>
+      <div class="nav-item" data-mod="market-abuse" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>Market Abuse & STOR</div>
+      <div class="nav-item" data-mod="pad" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Personal Account Dealing</div>
+      <div class="nav-item" data-mod="gifts" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Gifts & Entertainment</div>
+      <div class="nav-item" data-mod="conflicts" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M12 12v9"/></svg>Conflicts of Interest</div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">People & Financial Crime</div>
+      <div class="nav-item" data-mod="tc-smcr" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>T&C / SM&CR Certification</div>
+      <div class="nav-item" data-mod="aml" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Financial Crime / AML<span class="nav-badge">1</span></div>
+      <div class="nav-item" data-mod="training" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Compliance Training<span class="nav-badge">1</span></div>
+      <div class="nav-item" data-mod="certification" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.9 7 22l5-3 5 3-1.2-8.1"/></svg>CF30 Certification</div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">Data Protection (UK GDPR)</div>
+      <div class="nav-item" data-mod="data-breach" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Data Breaches (ICO)</div>
+      <div class="nav-item" data-mod="sar" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="10" cy="13" r="2"/><path d="m13.5 16.5-1.5-1.5"/></svg>Subject Access Requests</div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="nav-sec">
+      <div class="nav-label">Risk & Reporting</div>
+      <div class="nav-item" data-mod="complaints" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Complaints (DISP)</div>
+      <div class="nav-item" data-mod="breaches" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Breaches & Incidents<span class="nav-badge">2</span></div>
+      <div class="nav-item" data-mod="whistleblowing" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11h3l4-4v10l-4-4H3z"/><path d="M14 7a5 5 0 0 1 0 10"/></svg>Whistleblowing</div>
+      <div class="nav-item" data-mod="real-time" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49M20.07 4.93a10 10 0 0 1 0 14.14M3.93 19.07a10 10 0 0 1 0-14.14"/></svg>Real-Time Monitoring</div>
+      <div class="nav-item" data-mod="attestations" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M22 12v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Attestations Hub</div>
+      <div class="nav-item" data-mod="reg-calendar" onclick="go(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Regulatory Calendar</div>
+    </div>
+  </aside>
+
+  <main id="view"></main>
+</div>
+
+<div class="footer">
+  <span>CCS · Comprehensive Compliance Solutions · London · Not FCA Authorised</span>
+  <span>Oversight platform for <span class="t">Razlin Ltd · FRN 730805 · SUP 12 Principal</span></span>
+  <span>FSMA s.39 · SUP 12 · COBS · SYSC · MLR 2017</span>
+</div>
+
+<!-- FP MODAL -->
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">New FP Submission</div>
+        <div class="modal-ref">Auto-ref: CCS-FP-2026-016 · Client: Razlin Ltd FRN 730805</div>
+      </div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fsl">01 — Identification & Originating AR</div>
+      <div class="fgrid">
+        <div class="fg"><label>Reference</label><input type="text" value="CCS-FP-2026-016" readonly></div>
+        <div class="fg"><label>Submission Date</label><input type="date" id="modalDate"></div>
+        <div class="fg full"><label>Promotion Title</label><input type="text" id="fpTitle" placeholder="e.g. Q2 2026 Research Note — FTSE Industrials"></div>
+        <div class="fg"><label>Appointed Representative</label><select id="fpAR"><option>Select AR…</option><option>SIX Financial Information UK</option><option>Drake Star UK Limited</option><option>Codrington Associates</option><option>Newbould & Co Solutions</option></select></div>
+        <div class="fg"><label>Promotion Type</label><select id="fpType"><option>Research / Commentary</option><option>Deal Teaser</option><option>Investor / Pitch Deck</option><option>Marketing Material</option><option>Corporate Introduction</option><option>Advisory / Term Sheet</option></select></div>
+      </div>
+      <div class="fsl">02 — Audience & Distribution</div>
+      <div class="fgrid">
+        <div class="fg"><label>Target Audience</label><select><option>Per se Professional (COBS 3.5)</option><option>Elective Professional (opt-up)</option><option>Eligible Counterparty (COBS 3.6)</option></select></div>
+        <div class="fg"><label>Channel</label><select><option>Email (direct)</option><option>Restricted portal</option><option>Event / Presentation</option></select></div>
+        <div class="fg full"><label>Geographic Scope</label><input type="text" placeholder="e.g. UK only / UK + EEA professionals"></div>
+      </div>
+      <div class="fsl">03 — COBS 4 Compliance Checklist</div>
+      <div class="checklist">
+        <label class="ci"><input type="checkbox"> Fair, clear and not misleading — COBS 4.2.1R</label>
+        <label class="ci"><input type="checkbox"> Risk warning adequacy — COBS 4.5 / 4.5A</label>
+        <label class="ci"><input type="checkbox"> Past performance handled — COBS 4.6</label>
+        <label class="ci"><input type="checkbox"> Restricted to professionals/ECPs — no retail (COBS 3.5 / 3.6)</label>
+        <label class="ci"><input type="checkbox"> s.21 FSMA exempt communication by AR of Razlin (Art 19 FPO)</label>
+        <label class="ci"><input type="checkbox"> Research independence / conflict disclosure — MAR 7 / COBS 12</label>
+        <label class="ci"><input type="checkbox"> Recipient log maintained — COBS 3.5.2R</label>
+      </div>
+      <div class="fsl">04 — Supporting Documents</div>
+      <div class="dropzone" onclick="document.getElementById('fpFiles').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="event.preventDefault();this.classList.remove('drag');filesPicked(event.dataTransfer.files)">📎 &nbsp;Drop files here or click to attach — the promotion itself, teaser, deck, KID, research note<br><span style="font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.6px">EACH FILE IS HASHED (SHA-256) AND WRITTEN TO THE IMMUTABLE AUDIT TRAIL</span></div>
+      <input type="file" id="fpFiles" multiple style="display:none" onchange="filesPicked(this.files);this.value=''">
+      <div id="fpFileList" style="margin:2px 0 18px"></div>
+      <div class="fsl">05 — Notes for CCS Reviewer</div>
+      <div class="fg"><label>Compliance Notes</label><textarea placeholder="Flag any COBS 4 concerns, precedents, or context for the CCS reviewer before recommendation to Razlin's SMF16…"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitFP()">Submit for CCS Review →</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="returnOverlay" onclick="if(event.target===this)closeReturn()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head"><div><div class="modal-title">CF30 Quarterly Return</div><div class="modal-ref">Q2 2026 · RAZ-FORM-CF30-RETURN-001 v2.0</div></div><button class="modal-x" onclick="closeReturn()">✕</button></div>
+    <div class="modal-body">
+      <div class="ret-banner"><div>Twelve sections default to <b>NIL</b>. Nothing to report? <b>Mark all NIL</b> and submit — two clicks.</div><button class="btn-teal nil-all" onclick="markAllNil()">Mark all NIL</button></div>
+      <div class="fg" style="margin-bottom:14px"><label>Appointed Representative</label><select id="retAR"></select></div>
+      <div class="ret-grid" id="retBody"></div>
+      <label class="ci" style="margin-top:16px;display:flex;gap:9px;align-items:flex-start"><input type="checkbox" id="retDecl"> <span>I declare the information in this return is accurate and complete for Q2 2026. I understand Razlin relies on it under SUP 12.7 and that a false declaration may breach the AR agreement and COCON 2.1.</span></label>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeReturn()">Cancel</button><button class="btn-primary" onclick="submitReturn()">Submit return →</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="addOverlay" onclick="if(event.target===this)closeAdd()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head"><div><div class="modal-title" id="addTitle">Add Entry</div><div class="modal-ref" id="addRef"></div></div><button class="modal-x" onclick="closeAdd()">✕</button></div>
+    <div class="modal-body"><div class="fgrid" id="addBody"></div></div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeAdd()">Cancel</button><button class="btn-primary" onclick="submitAdd()">Add Entry →</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="fpDetailOverlay" onclick="if(event.target===this)closeFPDetail()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head"><div><div class="modal-title" id="fpdTitle"></div><div class="modal-ref" id="fpdRef"></div></div><button class="modal-x" onclick="closeFPDetail()">✕</button></div>
+    <div class="modal-body" id="fpdBody"></div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeFPDetail()">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-sub" id="toastSub"></div></div>
+</div>
+
+<script>
+/* ════════ DATA ════════ */
+const MATRIX={cols:['Onboarding DD','Policies','Annual Review 12.6A','Fin. Proms','PAD','Gifts & Ent.','T&C / Cert','Training','AML','Data Prot.','Financial'],
+  rows:[
+    {ar:'SIX Financial Information UK',sub:'AR · Arranging',rag:['g','g','g','a','g','g','a','a','g','g','g']},
+    {ar:'Drake Star UK Limited',sub:'AR · Arranging/Advising',rag:['g','g','a','g','g','g','g','g','g','g','r']},
+    {ar:'Codrington Associates',sub:'AR · Research/Arranging',rag:['g','a','g','g','g','a','a','g','g','g','g']},
+    {ar:'Newbould & Co Solutions',sub:'Introducer AR',rag:['a','a','n','g','n','g','g','a','r','a','a']},
+  ]};
+
+const REG_AR={cols:[{h:'Appointed Representative',t:'main'},{h:'Type',t:'chip'},{h:'Status',t:'badge'},{h:'Appointed',t:'date'},{h:'SUP 12.7 Notif.',t:'badge'},{h:'Annual Review',t:'badge'},{h:'Records',t:'text'}],
+  rows:[
+    [{main:'SIX Financial Information UK',sub:'Arranging deals — professional/ECP'},{v:'AR',c:'chip-teal'},{v:'Active',c:'b-green'},{v:'14 Jan 2024'},{v:'Filed',c:'b-green'},{v:'Current',c:'b-green'},{v:'Complete'}],
+    [{main:'Drake Star UK Limited',sub:'Corporate finance / arranging'},{v:'AR',c:'chip-teal'},{v:'Active — under review',c:'b-amber'},{v:'02 Sep 2023'},{v:'Filed',c:'b-green'},{v:'In progress',c:'b-amber'},{v:'Complete'}],
+    [{main:'Codrington Associates',sub:'Research distribution + arranging'},{v:'AR',c:'chip-teal'},{v:'Active',c:'b-green'},{v:'05 Nov 2024'},{v:'Filed',c:'b-green'},{v:'Current',c:'b-green'},{v:'Complete'}],
+    [{main:'Newbould & Co Solutions',sub:'Effecting introductions only'},{v:'IAR',c:'chip-blue'},{v:'Active — AML DD open',c:'b-amber'},{v:'12 Jun 2026'},{v:'Filed',c:'b-green'},{v:'Not yet due',c:'b-slate'},{v:'Partial'}],
+    [{main:'NewCo (Chaitanya)',sub:'Onboarding — not approved'},{v:'Applicant',c:'chip-slate'},{v:'7 conditions outstanding',c:'b-red'},{v:'—'},{v:'Pre-notification',c:'b-slate'},{v:'n/a',c:'b-slate'},{v:'File note on record'}],
+    [{main:'Solistic',sub:'AR proposal issued (RAZ-AR-PROP-2026-SOL)'},{v:'Applicant',c:'chip-slate'},{v:'Proposal stage',c:'b-slate'},{v:'—'},{v:'Pre-notification',c:'b-slate'},{v:'n/a',c:'b-slate'},{v:'—'}],
+    [{main:'Tomlinson Family Office',sub:'AR proposal — AIFM/CIS opinion pending'},{v:'Applicant',c:'chip-slate'},{v:'CIS legal opinion required',c:'b-amber'},{v:'—'},{v:'Pre-notification',c:'b-slate'},{v:'n/a',c:'b-slate'},{v:'Facts memo on record'}],
+  ]};
+
+const REG_PERM={cols:[{h:'Appointed Representative',t:'main'},{h:'RAO Articles',t:'mono'},{h:'Regulated Activities',t:'text'},{h:'Client Types — s.39(3) limit',t:'text'},{h:'Within Principal Perm.',t:'badge'},{h:'Key Restriction',t:'text'}],
+  rows:[
+    [{main:'SIX Financial Information UK'},{v:'Art 25(1),(2)'},{v:'Arranging deals in investments'},{v:'Per se professional / ECP'},{v:'Yes',c:'b-green'},{v:'No retail; data services only'}],
+    [{main:'Drake Star UK Limited'},{v:'Art 25, Art 53'},{v:'Arranging & advising on investments'},{v:'Per se professional / ECP'},{v:'Yes',c:'b-green'},{v:'No retail; corporate finance scope'}],
+    [{main:'Codrington Associates'},{v:'Art 25, Art 53'},{v:'Arranging, advising, research distribution'},{v:'Per se professional / ECP'},{v:'Yes',c:'b-green'},{v:'Dual-stream RDP (AA Notes / CJP) info barrier'}],
+    [{main:'Newbould & Co Solutions'},{v:'Art 33 / IAR'},{v:'Effecting introductions; non-real-time FPs'},{v:'n/a — introductions only'},{v:'Yes',c:'b-green'},{v:'IAR limits — no arranging/advising'}],
+  ]};
+
+const REG_CMP={cols:[{h:'Monitoring Activity',t:'main'},{h:'Scope / AR',t:'text'},{h:'Type',t:'chip'},{h:'Frequency',t:'text'},{h:'Risk',t:'risk'},{h:'Status',t:'badge'},{h:'Findings',t:'text'}],
+  rows:[
+    [{main:'Financial promotions thematic review',sub:'18-tab compliance register, Q1 worked example'},{v:'SIX Financial'},{v:'Thematic',c:'chip-purple'},{v:'Quarterly'},{r:45},{v:'Complete',c:'b-green'},{v:'5 issues — Art 19/approval conflation'}],
+    [{main:'SUP 12.6A.2R annual financial review',sub:'Going-concern & intra-group funding'},{v:'Drake Star'},{v:'Desk',c:'chip-blue'},{v:'Annual'},{r:80},{v:'Complete',c:'b-green'},{v:'Balance-sheet insolvency flagged'}],
+    [{main:'CF30 / Customer-Dealing supervision check',sub:'Nick Cant certification & oversight'},{v:'Codrington'},{v:'Desk',c:'chip-blue'},{v:'Annual'},{r:30},{v:'In progress',c:'b-amber'},{v:'Pending evidence pack'}],
+    [{main:'Introducer AML file review',sub:'Post-execution CDD on introducer agreement'},{v:'Newbould & Co'},{v:'Desk',c:'chip-blue'},{v:'On appointment'},{r:75},{v:'Open',c:'b-red'},{v:'SmartSearch "Refer" — escalated'}],
+    [{main:'FP register & procedure cross-check',sub:'Financial Promotions Procedure vs register'},{v:'Codrington'},{v:'On-site',c:'chip-amber'},{v:'Annual'},{r:35},{v:'Scheduled',c:'b-slate'},{v:'Q3 2026'}],
+  ]};
+
+const REG_ANN={cols:[{h:'Appointed Representative',t:'main'},{h:'Review Period',t:'text'},{h:'Fitness & Propriety',t:'badge'},{h:'Financial Position',t:'badge'},{h:'Business Adequacy',t:'badge'},{h:'Outcome',t:'badge'},{h:'Sign-off',t:'text'}],
+  rows:[
+    [{main:'SIX Financial Information UK'},{v:'FY2025/26'},{v:'Satisfactory',c:'b-green'},{v:'Adequate',c:'b-green'},{v:'Adequate',c:'b-green'},{v:'Continue',c:'b-green'},{v:'SMF16 — pending'}],
+    [{main:'Drake Star UK Limited',sub:'Enhanced monitoring · neg. equity £1.85m · intercompany Redwood £2.54m / DS Partners £1.32m'},{v:'FY2025/26'},{v:'Satisfactory',c:'b-green'},{v:'Concern — going concern',c:'b-red'},{v:'Adequate',c:'b-green'},{v:'Continue w/ conditions',c:'b-amber'},{v:'Escalated to SMF16'}],
+    [{main:'Codrington Associates'},{v:'FY2025/26'},{v:'Satisfactory',c:'b-green'},{v:'Adequate',c:'b-green'},{v:'Adequate',c:'b-green'},{v:'Continue',c:'b-green'},{v:'Complete'}],
+    [{main:'Principal self-assessment',sub:'Razlin adequacy of resources to oversee network'},{v:'FY2025/26'},{v:'n/a',c:'b-slate'},{v:'n/a',c:'b-slate'},{v:'Adequate',c:'b-green'},{v:'Approved',c:'b-green'},{v:'Board — complete'}],
+  ]};
+
+const FP=[
+  {ref:'CCS-FP-2026-015',title:'Project Halcyon — Sale Teaser',ar:'Drake Star UK Limited',type:'teaser',status:'pending',risk:50,submitted:'19 Apr 2026',desc:'Two-page anonymised sale teaser for a UK industrials disposal; professional and ECP recipients only, wall-crossing controlled by the deal team.',docs:[{n:'Halcyon_Teaser_v3.pdf',s:'1.4 MB',h:'a41f09c2be77'},{n:'Halcyon_Recipient_List.xlsx',s:'96 KB',h:'0c7d5512f9ab'}]},
+  {ref:'CCS-FP-2026-014',title:'Project Atlas — Investor Roadshow Deck',ar:'Drake Star UK Limited',type:'deck',status:'review',risk:60,submitted:'18 Apr 2026',desc:'Management roadshow deck for a growth-capital raise; returned to the AR — target-market statement missing (MiFID product governance).',docs:[{n:'Atlas_Roadshow_Deck_v12.pptx',s:'7.2 MB',h:'55e2d90b13c4'}]},
+  {ref:'CCS-FP-2026-012',title:'Japan Q2 Research Note',ar:'Codrington Associates',type:'research',status:'approved',risk:20,submitted:'17 Apr 2026',desc:'Quarterly equity research on Japanese mid-cap industrials; professional clients and ECPs only, published on restricted investor portal.',docs:[{n:'Japan_Q2_Note_final.pdf',s:'2.1 MB',h:'9f31c2a4d7e0'}]},
+  {ref:'CCS-FP-2026-011',title:'Retail Distribution Flyer',ar:'SIX Financial Information UK',type:'marketing',status:'rejected',risk:85,submitted:'16 Apr 2026',desc:'Single-page flyer promoting a structured product for retail distribution; risk warning in 6pt on reverse, no balanced presentation of risk vs return.',docs:[{n:'Retail_Flyer_A4.pdf',s:'840 KB',h:'77b4e1d20c93'}]},
+  {ref:'CCS-FP-2026-010',title:'Introductory Deck — Target Market TBC',ar:'Drake Star UK Limited',type:'intro',status:'review',risk:55,submitted:'15 Apr 2026',desc:'Corporate introduction deck for an unspecified opportunity; target market classification incomplete, distribution scope unclear.',docs:[{n:'Intro_Deck_v4.pptx',s:'6.8 MB',h:'3d8ca61f5e02'}]},
+  {ref:'CCS-FP-2026-008',title:'Project Mercury Term Sheet',ar:'Drake Star UK Limited',type:'advisory',status:'pending',risk:60,submitted:'13 Apr 2026',desc:'Mailsuite / Project Mercury structured term sheet; professional client distribution only; KID attached.',docs:[{n:'Mercury_Term_Sheet.pdf',s:'420 KB',h:'be90441cd7a8'},{n:'Mercury_KID.pdf',s:'180 KB',h:'12f7ab03c655'}]},
+  {ref:'CCS-FP-2026-007',title:'AA Notes — Q1 Macro Recap',ar:'Codrington Associates',type:'research',status:'pending',risk:25,submitted:'12 Apr 2026',desc:'Retrospective macro research; no forward recommendations; distributed to AA Notes professional subscriber list.',docs:[{n:'AA_Q1_Macro_Recap.pdf',s:'1.1 MB',h:'e8d3007c41aa'}]},
+];
+
+const REG_PAD={cols:[{h:'Individual',t:'main'},{h:'AR',t:'text'},{h:'Request',t:'chip'},{h:'Instrument',t:'text'},{h:'Decision',t:'badge'},{h:'Restricted List',t:'bool'},{h:'Quarterly Attest.',t:'badge'}],
+  rows:[
+    [{main:'R. Haldane'},{v:'Codrington'},{v:'Pre-clearance',c:'chip-teal'},{v:'FTSE 100 ETF'},{v:'Approved',c:'b-green'},{v:'no'},{v:'Q1 complete',c:'b-green'}],
+    [{main:'T. Mensah'},{v:'Drake Star'},{v:'Pre-clearance',c:'chip-teal'},{v:'Issuer under mandate'},{v:'Declined',c:'b-red'},{v:'flag'},{v:'Q1 complete',c:'b-green'}],
+    [{main:'S. Whitfield'},{v:'SIX Financial'},{v:'Holdings disclosure',c:'chip-slate'},{v:'Mixed portfolio'},{v:'Logged',c:'b-slate'},{v:'no'},{v:'Q1 outstanding',c:'b-amber'}],
+    [{main:'N. Cant'},{v:'Codrington'},{v:'Pre-clearance',c:'chip-teal'},{v:'Investment trust'},{v:'Approved',c:'b-green'},{v:'no'},{v:'Q1 complete',c:'b-green'}],
+  ]};
+
+const REG_GE={cols:[{h:'Date',t:'date'},{h:'Individual / AR',t:'main'},{h:'Direction',t:'chip'},{h:'Counterparty',t:'text'},{h:'Description',t:'text'},{h:'Value',t:'mono'},{h:'Threshold',t:'badge'},{h:'Approval',t:'badge'}],
+  rows:[
+    [{v:'02 Apr 2026'},{main:'R. Haldane (Codrington)'},{v:'Received',c:'chip-amber'},{v:'Data vendor'},{v:'Conference hospitality'},{v:'£180'},{v:'Over threshold',c:'b-amber'},{v:'SMF16 approved',c:'b-green'}],
+    [{v:'28 Mar 2026'},{main:'SIX Financial (firm)'},{v:'Given',c:'chip-teal'},{v:'Client (professional)'},{v:'Branded desk item'},{v:'£30'},{v:'Under £75',c:'b-green'},{v:'Auto-logged',c:'b-green'}],
+    [{v:'20 Mar 2026'},{main:'T. Mensah (Drake Star)'},{v:'Received',c:'chip-amber'},{v:'Corporate client'},{v:'Sporting event invite'},{v:'£420'},{v:'Inducement review',c:'b-red'},{v:'Declined',c:'b-red'}],
+  ]};
+
+const REG_COI={cols:[{h:'Ref',t:'ref'},{h:'AR / Area',t:'main'},{h:'Conflict Description',t:'text'},{h:'Type',t:'chip'},{h:'Mitigation / Control',t:'text'},{h:'OBI Linked',t:'bool'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'COI-2026-004'},{main:'Codrington Associates'},{v:'Research independence vs corporate-finance stream'},{v:'Info barrier',c:'chip-purple'},{v:'Dual-stream RDP; physical & systems separation'},{v:'no'},{v:'Managed',c:'b-green'}],
+    [{ref:'COI-2026-003'},{main:'Drake Star UK'},{v:'Principal dependence on intra-group funding'},{v:'Financial',c:'chip-blue'},{v:'Disclosed; monitored under 12.6A'},{v:'no'},{v:'Monitored',c:'b-amber'}],
+    [{ref:'COI-2026-001'},{main:'Network-wide'},{v:'Razlin fee dependence on AR revenue concentration'},{v:'Structural',c:'chip-slate'},{v:'Resource adequacy assessed in self-assessment'},{v:'no'},{v:'Managed',c:'b-green'}],
+  ]};
+
+const REG_TC={cols:[{h:'Individual',t:'main'},{h:'AR',t:'text'},{h:'IRN',t:'mono'},{h:'Certification Function',t:'text'},{h:'Cert. Status',t:'badge'},{h:'F&P (FIT) Annual',t:'badge'},{h:'T&C Assessment',t:'badge'}],
+  rows:[
+    [{main:'Brendon Bambury'},{v:'SIX Financial'},{v:'BXB01362'},{v:'Customer-Dealing Function'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Pass',c:'b-green'}],
+    [{main:'Alexander Troy'},{v:'SIX Financial'},{v:'WXT00006'},{v:'Customer-Dealing Function'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Q1 attestation outstanding',c:'b-amber'}],
+    [{main:'Francesco Somma'},{v:'SIX Financial'},{v:'FXS01064'},{v:'Customer-Dealing Function'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Pass',c:'b-green'}],
+    [{main:'Lucia Novo'},{v:'SIX Financial'},{v:'LXN00166'},{v:'Customer-Dealing Function'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Pass',c:'b-green'}],
+    [{main:'Tamsin Hobley',sub:'CF1 + Country Head — concentration risk'},{v:'SIX Financial'},{v:'—'},{v:'Country Head / CF1'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Review — FP attestation',c:'b-amber'}],
+    [{main:'Nicholas Cant'},{v:'Codrington'},{v:'(notified)'},{v:'Customer-Dealing Function'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Pass',c:'b-green'}],
+    [{main:'Stephen Codrington'},{v:'Codrington'},{v:'(notified)'},{v:'CF1 — research producer'},{v:'Certified',c:'b-green'},{v:'Complete',c:'b-green'},{v:'Pass',c:'b-green'}],
+    [{main:'T. Mensah'},{v:'Drake Star'},{v:'(notified)'},{v:'Customer-Dealing Function'},{v:'Certified',c:'b-green'},{v:'Due 60 days',c:'b-amber'},{v:'Pass',c:'b-green'}],
+  ]};
+
+const REG_AML={cols:[{h:'Entity / AR',t:'main'},{h:'DD Type',t:'chip'},{h:'Screening',t:'text'},{h:'SmartSearch',t:'badge'},{h:'Risk',t:'risk'},{h:'SAR',t:'bool'},{h:'Ongoing Monitoring',t:'badge'}],
+  rows:[
+    [{main:'Newbould & Co Solutions',sub:'Introducer — post-execution DD'},{v:'CDD',c:'chip-teal'},{v:'Sanctions + PEP'},{v:'Refer — escalated',c:'b-red'},{r:75},{v:'no'},{v:'Pending',c:'b-amber'}],
+    [{main:'SIX Financial Information UK'},{v:'CDD',c:'chip-teal'},{v:'Sanctions + PEP'},{v:'Clear',c:'b-green'},{r:25},{v:'no'},{v:'Annual',c:'b-green'}],
+    [{main:'Drake Star UK Limited'},{v:'EDD',c:'chip-amber'},{v:'Sanctions + PEP + adverse media'},{v:'Clear',c:'b-green'},{r:55},{v:'no'},{v:'Enhanced',c:'b-amber'}],
+    [{main:'Codrington Associates'},{v:'CDD',c:'chip-teal'},{v:'Sanctions + PEP'},{v:'Clear',c:'b-green'},{r:30},{v:'no'},{v:'Annual',c:'b-green'}],
+  ]};
+
+const REG_COMP={cols:[{h:'Ref',t:'ref'},{h:'AR',t:'main'},{h:'Complainant',t:'text'},{h:'Nature',t:'text'},{h:'Received',t:'date'},{h:'Redress',t:'text'},{h:'DISP Reportable',t:'bool'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'CMP-2026-002'},{main:'Drake Star UK'},{v:'Professional client'},{v:'Service / timeliness'},{v:'04 Mar 2026'},{v:'Apology; process fix'},{v:'no'},{v:'Closed',c:'b-green'}],
+    [{ref:'CMP-2026-001'},{main:'SIX Financial'},{v:'Professional client'},{v:'Data accuracy query'},{v:'21 Feb 2026'},{v:'Correction issued'},{v:'no'},{v:'Closed',c:'b-green'}],
+  ]};
+
+const REG_BR={cols:[{h:'Ref',t:'ref'},{h:'AR / Area',t:'main'},{h:'Description',t:'text'},{h:'Severity',t:'badge'},{h:'SUP 15 Notifiable',t:'badge'},{h:'Remediation',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'BR-2026-003'},{main:'SIX Financial'},{v:'FP attested pre-approval before channel operational (Tamsin)'},{v:'Medium',c:'b-amber'},{v:'Assessed: not notifiable',c:'b-slate'},{v:'Attestation re-run; control added'},{v:'Open',c:'b-amber'}],
+    [{ref:'BR-2026-002'},{main:'Drake Star UK'},{v:'Balance-sheet insolvency / going-concern doc outstanding'},{v:'High',c:'b-red'},{v:'Under assessment',c:'b-amber'},{v:'Funding letter requested'},{v:'Open',c:'b-red'}],
+    [{ref:'BR-2026-001'},{main:'SIX Financial'},{v:'Article 19 / approval conflation in FP procedure'},{v:'Low',c:'b-slate'},{v:'Not notifiable',c:'b-slate'},{v:'Procedure rewritten v2.0'},{v:'Remediated',c:'b-green'}],
+  ]};
+
+const ATTEST=[
+  {name:'Quarterly AR Compliance Attestation',ref:'Manual §2.1 · SUP 12 — per AR (DropboxSign)',cadence:'Quarterly',done:2,total:3,due:'SIX Q1 outstanding',cls:'due'},
+  {name:'AR Staff Quarterly Declaration',ref:'Manual Staff Declaration — manual acknowledgement',cadence:'Quarterly',done:8,total:10,due:'2 CF30 sign-offs pending',cls:'due'},
+  {name:'Annual AR Self-Assessment',ref:'SUP 12.6A — Principal',cadence:'Annual',done:1,total:1,due:'Complete · Board-approved',cls:'done'},
+  {name:'Annual AR Review Attestation',ref:'SUP 12.6A.2R — per AR',cadence:'Annual',done:2,total:3,due:'Drake Star outstanding (conditions)',cls:'due'},
+  {name:'Financial Promotions Attestation',ref:'COBS 4 / Manual §2.3 — per AR',cadence:'Annual',done:2,total:3,due:'SIX under review (FP discrepancy)',cls:'due'},
+  {name:'Conduct Rules Attestation',ref:'COCON — certified persons',cadence:'Annual',done:8,total:9,due:'1 new joiner pending',cls:'due'},
+  {name:'PAD Quarterly Attestation',ref:'COBS 11.7A — staff & reps',cadence:'Quarterly',done:3,total:4,due:'Q1 — Whitfield outstanding',cls:'due'},
+  {name:'Anti-Bribery Compliance Statement',ref:'Bribery Act 2010 / Manual ABC — per AR',cadence:'Annual',done:3,total:4,due:'Newbould pending onboarding',cls:'due'},
+  {name:'Fit & Proper Declaration',ref:'FIT — certified persons',cadence:'Annual',done:8,total:9,due:'Mensah due in 60 days',cls:'due'},
+  {name:'AML / Financial Crime Declaration',ref:'MLR 2017 — MLRO oversight',cadence:'Annual',done:3,total:4,due:'Newbould DD outstanding',cls:'overdue'},
+  {name:'Conflicts of Interest Review',ref:'SYSC 10.1 — register sign-off',cadence:'Annual',done:1,total:1,due:'Complete',cls:'done'},
+  {name:'Gifts & Entertainment Nil/Return',ref:'COBS 2.3A / Manual G&H — per AR',cadence:'Quarterly',done:4,total:4,due:'Complete',cls:'done'},
+];
+
+const CAL=[
+  {date:'22 Jun 2026',title:'RegData — Client Categorisation Return',sub:'Filed for the AR network',bar:'tlb-g',cd:'Filed',soon:false},
+  {date:'31 Jul 2026',title:'REP025 — AR Annual Report',sub:'Annual AR data submission via RegData',bar:'tlb-a',cd:'In ~31 days',soon:false},
+  {date:'08 Aug 2026',title:'SUP 12.7 notification — Newbould IAR',sub:'Confirm details on FCA Connect post-DD',bar:'tlb-t',cd:'In ~39 days',soon:false},
+  {date:'30 Sep 2026',title:'Annual AR reviews — completion target',sub:'All SUP 12.6A reviews signed off (Drake Star conditional)',bar:'tlb-a',cd:'In ~92 days',soon:false},
+  {date:'31 Dec 2026',title:'Principal self-assessment — refresh',sub:'Annual adequacy-of-resources self-assessment',bar:'tlb-g',cd:'In ~184 days',soon:false},
+  {date:'Ongoing',title:'SUP 12.7 — change notifications',sub:'New/terminated ARs, scope or detail changes via Connect',bar:'tlb-t',cd:'As required',soon:false},
+];
+
+/* ════════ MANUAL-DERIVED DATA (Razlin AR Compliance Manual 2025 v1.0) ════════ */
+
+/* Manual Control Map — every manual requirement, its cadence, where it is tracked, retention, status */
+const MANUAL_MAP={cols:[
+    {h:'Manual §',t:'mono'},{h:'Requirement',t:'main'},{h:'Cadence',t:'chip'},{h:'Tracked In',t:'text'},{h:'Retention',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{v:'§1.2'},{main:'Permitted activities & prohibited business',sub:'Scope within Razlin Part 4A permission'},{v:'On change',c:'chip-slate'},{v:'Permissions & RAO Scope'},{v:'Life of AR'},{v:'Operational',c:'b-green'}],
+    [{v:'§1.3'},{main:'AR expectations & FCA Principles (1–12)',sub:'Operate in scope, cooperation, record-keeping'},{v:'Continuous',c:'chip-purple'},{v:'Onboarding pack · Manual ack'},{v:'—'},{v:'Operational',c:'b-green'}],
+    [{v:'§2.1'},{main:'Quarterly AR compliance attestation',sub:'DropboxSign questionnaire per AR'},{v:'Quarterly',c:'chip-teal'},{v:'Attestations Hub'},{v:'6 years'},{v:'1 outstanding',c:'b-amber'}],
+    [{v:'§2.1'},{main:'AR staff quarterly declaration',sub:'Manual read & acknowledged'},{v:'Quarterly',c:'chip-teal'},{v:'Forms & Declarations'},{v:'6 years'},{v:'2 pending',c:'b-amber'}],
+    [{v:'§2.2'},{main:'Risk-based compliance audit',sub:'Annual min · bi-annual med · quarterly high risk'},{v:'Risk-based',c:'chip-blue'},{v:'Monitoring Programme'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§2.2'},{main:'Real-time monitoring & alerts',sub:'Companies House, credit, adverse media, sanctions'},{v:'Continuous',c:'chip-purple'},{v:'Real-Time Monitoring'},{v:'Rolling'},{v:'Operational',c:'b-green'}],
+    [{v:'§2.2'},{main:'Risk & Audit Committee approval',sub:'Audit outcomes & CMP sign-off'},{v:'Quarterly',c:'chip-teal'},{v:'Monitoring Programme'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§2.3'},{main:'Financial promotions pre-approval',sub:'No FP without written Razlin approval'},{v:'Per item',c:'chip-amber'},{v:'Financial Promotions'},{v:'5 years (SYSC 9.1.1R)'},{v:'Operational',c:'b-green'}],
+    [{v:'§2.4'},{main:'Compliance training (Skillcast)',sub:'AML/CTF + GDPR core annual; 3-strike rule'},{v:'Annual',c:'chip-blue'},{v:'Compliance Training'},{v:'6 years'},{v:'1 escalation',c:'b-amber'}],
+    [{v:'§2.5'},{main:'Suspension & termination',sub:'Deed of Termination · exit audit · FCA notice'},{v:'As required',c:'chip-slate'},{v:'AR Register & Lifecycle'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Corporate Governance Policy',sub:'Adopt & acknowledge per AR'},{v:'Annual',c:'chip-blue'},{v:'Policy Register'},{v:'Current + 1 prior'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Data Protection Policy (UK GDPR)',sub:'DPA 2018 / UK GDPR'},{v:'Annual',c:'chip-blue'},{v:'Policy Register · Data Protection'},{v:'Current + 1 prior'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Personal data breach procedure',sub:'ICO notification within 72h'},{v:'On event',c:'chip-amber'},{v:'Data Breaches (ICO)'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Subject Access Request procedure',sub:'1-month response (extendable to 3)'},{v:'On request',c:'chip-amber'},{v:'Subject Access Requests'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Privacy & cookie · clear desk · IT · social media',sub:'Information-security policy suite'},{v:'Annual',c:'chip-blue'},{v:'Policy Register'},{v:'Current + 1 prior'},{v:'Review due',c:'b-amber'}],
+    [{v:'§3'},{main:'AML & CTF Policy',sub:'CDD/SDD/EDD · SAR · MLRO · sanctions/PEP'},{v:'Annual',c:'chip-blue'},{v:'Financial Crime / AML'},{v:'6 years (MLR 2017)'},{v:'1 open',c:'b-amber'}],
+    [{v:'§3'},{main:'Anti-Bribery & Corruption Policy',sub:'Bribery Act 2010 · annual ABC statement'},{v:'Annual',c:'chip-blue'},{v:'Gifts & Entertainment · Attestations'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Conflicts of Interest Policy',sub:'Register · info barriers · disclosure'},{v:'Continuous',c:'chip-purple'},{v:'Conflicts of Interest'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Personal Account Dealing Policy',sub:'Pre-clearance · restricted & insider lists (MAR)'},{v:'Continuous',c:'chip-purple'},{v:'Personal Account Dealing'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Whistleblowing Policy',sub:'Confidential channel · Champion annual report'},{v:'Continuous',c:'chip-purple'},{v:'Whistleblowing Register'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Gifts & Hospitality Policy',sub:'£100 reportable threshold · pre-approval'},{v:'Continuous',c:'chip-purple'},{v:'Gifts & Entertainment'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'§3'},{main:'Complaints Handling Policy',sub:'DISP · 8-week final · 4-week holding · FOS'},{v:'On event',c:'chip-amber'},{v:'Complaints (DISP)'},{v:'3 years (MiFID)'},{v:'Operational',c:'b-green'}],
+    [{v:'App.'},{main:'Appendix forms 1–6 & Staff Declaration',sub:'Declarations of interest, OBI, PAD, G&H'},{v:'On event',c:'chip-amber'},{v:'Forms & Declarations'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'Agr §3'},{main:'Minimum term & notice',sub:'12-month minimum · 3-month notice'},{v:'On change',c:'chip-slate'},{v:'AR Agreements'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'Agr Sch 2'},{main:'Compliance & CF fees',sub:'£5,000+VAT/mo · £250+VAT per add-l CF'},{v:'Monthly',c:'chip-teal'},{v:'AR Agreements'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'Agr Sch 3'},{main:'Notification of changes',sub:'25 notifiable events — control, insolvency, breach'},{v:'On event',c:'chip-amber'},{v:'Real-Time Monitoring · Breaches'},{v:'6 years'},{v:'Operational',c:'b-green'}],
+    [{v:'Agr Sch 3'},{main:'Professional indemnity insurance',sub:'Not less than £2,000,000'},{v:'Annual',c:'chip-blue'},{v:'AR Agreements'},{v:'Life of AR'},{v:'1 renewal due',c:'b-amber'}],
+    [{v:'Agr Sch 3'},{main:'ICO data-controller registration',sub:'Maintained; certificate on file'},{v:'Annual',c:'chip-blue'},{v:'AR Agreements · Data Protection'},{v:'Life of AR'},{v:'1 pending',c:'b-amber'}],
+    [{v:'Agr Sch 3'},{main:'Wind-down plan maintained',sub:'Orderly wind-down guide'},{v:'Annual',c:'chip-blue'},{v:'AR Agreements'},{v:'Life of AR'},{v:'Operational',c:'b-green'}],
+    [{v:'Agr Sch 6'},{main:'Client call recording',sub:'All client/investor calls recorded'},{v:'Continuous',c:'chip-purple'},{v:'AR Agreements (control)'},{v:'5 years'},{v:'Operational',c:'b-green'}],
+    [{v:'Agr Sch 7'},{main:'Directors\u2019 personal guarantee (fees)',sub:'Personal liability for unpaid fees'},{v:'On execution',c:'chip-slate'},{v:'AR Agreements'},{v:'Life of AR'},{v:'Operational',c:'b-green'}],
+  ]};
+const MANUAL_STATS={mapped:23,operational:17,attention:6};
+
+/* Razlin Part 4A FCA permission grid (Manual §1.2) */
+const RAZLIN_PERMS=[
+  {act:'Advising on investments (not pensions)',ecp:1,pro:1,ret:0,inv:'Shares · debentures · gov & public securities · units · warrants · CFDs(security) · rolling spot forex',lim:'Rights/interests (both)'},
+  {act:'Arranging (bringing about) deals in investments',ecp:1,pro:1,ret:0,inv:'As above',lim:'As above'},
+  {act:'Arranging safeguarding & administration of assets',ecp:1,pro:1,ret:0,inv:'Securities & derivatives (excl. spread/binary bets)',lim:'Securities listed'},
+  {act:'Dealing in investments as agent',ecp:1,pro:1,ret:0,inv:'Shares · debentures · gov securities · units · warrants · rolling spot forex',lim:'Rights/interests (both)'},
+  {act:'Making arrangements with a view to transactions',ecp:1,pro:1,ret:0,inv:'As above',lim:'As above'},
+  {act:'Dealing in investments as principal',ecp:1,pro:1,ret:0,inv:'Securities & derivatives (excl. spread/binary bets)',lim:'Matched principal broker'},
+];
+const RAZLIN_PROHIBITED=['Insurance mediation','Mortgages / lending','Pension advice or dealing','Holding client money or assets','Retail investment business','Placing / underwriting (without senior mgmt)','Operating a CIS / investment management','Multiple-principal arrangements'];
+
+/* Policy Register (Manual §3) — per-AR adoption & acknowledgement */
+const POLICY_REG={cols:[
+    {h:'Policy',t:'main'},{h:'Regulatory Basis',t:'text'},{h:'Version',t:'mono'},{h:'Last Reviewed',t:'date'},{h:'AR Acknowledgements',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{main:'Corporate Governance Policy'},{v:'SYSC 4 · Principle 3'},{v:'v2.0'},{v:'Jan 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Data Protection Policy (UK GDPR · DUAA 2025)'},{v:'UK GDPR · DPA 2018 · DUAA 2025'},{v:'v2.2'},{v:'Jun 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Personal Data Breach Notification Procedure'},{v:'UK GDPR Art 33/34'},{v:'v1.2'},{v:'Feb 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Subject Access Request (SAR) Policy'},{v:'UK GDPR Art 15'},{v:'v1.2'},{v:'Feb 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Privacy & Cookie Policy (AR website)'},{v:'UK GDPR · PECR'},{v:'v1.1'},{v:'Nov 2025'},{v:'2 / 4'},{v:'Review due',c:'b-amber'}],
+    [{main:'Clear Desk Policy'},{v:'Principle 3 · DP'},{v:'v1.0'},{v:'Nov 2025'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'IT & Communications Policy'},{v:'Principle 3 · SYSC 9'},{v:'v1.3'},{v:'Jan 2026'},{v:'3 / 4'},{v:'Review due',c:'b-amber'}],
+    [{main:'Social Media Policy'},{v:'COBS 4 · Principle 7'},{v:'v1.1'},{v:'Jan 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'AML & CTF Policy'},{v:'MLR 2017 · JMLSG · POCA'},{v:'v2.2'},{v:'Mar 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Anti-Bribery & Corruption Policy'},{v:'Bribery Act 2010'},{v:'v1.1'},{v:'Jan 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Conflicts of Interest Policy'},{v:'SYSC 10.1'},{v:'v2.0'},{v:'Feb 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Personal Account Dealing Policy'},{v:'COBS 11.7A · MAR'},{v:'v1.2'},{v:'Feb 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Whistleblowing Policy'},{v:'SYSC 18 (principles) · PIDA'},{v:'v1.1'},{v:'Jan 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Gifts & Hospitality Policy'},{v:'COBS 2.3A · Bribery Act'},{v:'v1.1'},{v:'Jan 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Complaints Handling Policy'},{v:'DISP 1'},{v:'v1.2'},{v:'Feb 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Market Conduct & Market Abuse Policy',sub:'RAZ-POL-MKT-001 · Drake Star'},{v:'UK MAR Art 7–18 · CJA 1993 Pt V · FSA 2012 s.89–91'},{v:'v1.0'},{v:'Jun 2026'},{v:'1 / 1'},{v:'Current',c:'b-green'}],
+    [{main:'Investment Research & Distribution Policy',sub:'RAZ-POL-RES-001 / RDP-002 · Codrington'},{v:'COBS 12.3 · MAR Art 20 · DR 2016/958'},{v:'v2.0'},{v:'Jun 2026'},{v:'1 / 1'},{v:'Current',c:'b-green'}],
+    [{main:'Cross-Border / Overseas-Persons Policy',sub:'Codrington'},{v:'Art 72 RAO · overseas-persons exclusion · COBS'},{v:'v1.0'},{v:'Jun 2026'},{v:'1 / 1'},{v:'Current',c:'b-green'}],
+    [{main:'Corporate Finance Conduct Policy',sub:'Drake Star'},{v:'COBS · MAR · Takeover Code'},{v:'v1.0'},{v:'Jun 2026'},{v:'1 / 1'},{v:'Current',c:'b-green'}],
+    [{main:'AR Financial Monitoring Procedure',sub:'FIN-001 · all ARs, enhanced Drake Star'},{v:'SUP 12.6A · SUP 12 Annex 1'},{v:'v1.0'},{v:'Jun 2026'},{v:'4 / 4'},{v:'Current',c:'b-green'}],
+    [{main:'Unregulated Introducer Policy',sub:'RAZ-POL-UIP-001 · Newbould'},{v:'Art 25 RAO · s.21 FSMA · SUP 12.4'},{v:'v1.0'},{v:'Jun 2026'},{v:'1 / 1'},{v:'Current',c:'b-green'}],
+  ]};
+
+/* Forms & Declarations (Manual Appendices 1–6 + Staff Declaration) */
+const FORMS={cols:[
+    {h:'Form / Declaration',t:'main'},{h:'Purpose',t:'text'},{h:'Cadence',t:'chip'},{h:'Applies To',t:'text'},{h:'Outstanding',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{main:'App. 1 — Declaration of Interest',sub:'Conflicts of Interest'},{v:'Declare personal interest in a transaction'},{v:'On event',c:'chip-amber'},{v:'AR directors & staff'},{v:'0'},{v:'Up to date',c:'b-green'}],
+    [{main:'App. 2 — Outside Business Interest (OBI)'},{v:'Disclose & approve outside interests'},{v:'On event / Annual',c:'chip-blue'},{v:'AR directors & staff'},{v:'2'},{v:'Pending',c:'b-amber'}],
+    [{main:'App. 3 — Directors\u2019 Conflicts Questionnaire'},{v:'Annual conflicts declaration'},{v:'Annual',c:'chip-blue'},{v:'AR directors'},{v:'1'},{v:'Pending',c:'b-amber'}],
+    [{main:'App. 4 — Disclosure of Interests & Relationships'},{v:'Connected persons & relationships'},{v:'On change',c:'chip-slate'},{v:'AR directors & staff'},{v:'0'},{v:'Up to date',c:'b-green'}],
+    [{main:'App. 5 — PAD Pre-Clearance Request'},{v:'Pre-clear personal trades (MAR)'},{v:'Per trade',c:'chip-amber'},{v:'All AR staff'},{v:'0'},{v:'Up to date',c:'b-green'}],
+    [{main:'App. 6 — Gifts & Hospitality Pre-Approval'},{v:'Approve gifts/hospitality > £100'},{v:'Per item',c:'chip-amber'},{v:'All AR staff'},{v:'0'},{v:'Up to date',c:'b-green'}],
+    [{main:'AR Staff Declaration'},{v:'Manual read, understood & acknowledged'},{v:'Quarterly',c:'chip-teal'},{v:'All 10 CF30s'},{v:'2'},{v:'Pending',c:'b-amber'}],
+    [{main:'RAZ-FORM-IDD-001 — Introducer Due Diligence',sub:'Identity · AML · corporate · perimeter limbs'},{v:'Onboard & verify introducers (AML/perimeter)'},{v:'On onboarding',c:'chip-blue'},{v:'Newbould'},{v:'1'},{v:'In progress',c:'b-amber'}],
+  ]};
+
+/* Compliance Training (Manual §2.4 — Skillcast, three-strike rule) */
+const TRAINING={cols:[
+    {h:'Individual',t:'main'},{h:'AR',t:'text'},{h:'Module',t:'chip'},{h:'Status',t:'badge'},{h:'Attempts',t:'mono'},{h:'Result',t:'badge'},{h:'Strike',t:'badge'},{h:'Due',t:'date'}],
+  rows:[
+    [{main:'N. Cant'},{v:'Codrington'},{v:'AML / CTF',c:'chip-teal'},{v:'Complete',c:'b-green'},{v:'1'},{v:'Pass',c:'b-green'},{v:'—',c:'b-slate'},{v:'Annual'}],
+    [{main:'N. Cant'},{v:'Codrington'},{v:'Data Protection / GDPR',c:'chip-blue'},{v:'Complete',c:'b-green'},{v:'1'},{v:'Pass',c:'b-green'},{v:'—',c:'b-slate'},{v:'Annual'}],
+    [{main:'Tamsin (SIX)'},{v:'SIX Financial'},{v:'Financial Promotions',c:'chip-purple'},{v:'In progress',c:'b-amber'},{v:'2'},{v:'Fail · retake',c:'b-amber'},{v:'Strike 2',c:'b-amber'},{v:'30 Jun 2026'}],
+    [{main:'T. Mensah'},{v:'Drake Star'},{v:'Market Abuse',c:'chip-purple'},{v:'Complete',c:'b-green'},{v:'1'},{v:'Pass',c:'b-green'},{v:'—',c:'b-slate'},{v:'Annual'}],
+    [{main:'R. Haldane'},{v:'Codrington'},{v:'AML / CTF',c:'chip-teal'},{v:'Complete',c:'b-green'},{v:'3'},{v:'Pass',c:'b-green'},{v:'Cleared',c:'b-slate'},{v:'Annual'}],
+    [{main:'New joiner'},{v:'Newbould & Co'},{v:'AML / CTF',c:'chip-teal'},{v:'Not started',c:'b-red'},{v:'0'},{v:'—',c:'b-slate'},{v:'Induction',c:'b-amber'},{v:'On induction'}],
+  ]};
+
+/* Data Protection — personal data breaches (UK GDPR Art 33/34, ICO 72h) */
+const DATA_BREACH={cols:[
+    {h:'Ref',t:'ref'},{h:'AR',t:'main'},{h:'Detected',t:'date'},{h:'Nature',t:'text'},{h:'Risk',t:'risk'},{h:'ICO (72h)',t:'badge'},{h:'Individuals Notified',t:'bool'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'DB-2026-002'},{main:'SIX Financial'},{v:'04 Apr 2026'},{v:'Email sent to wrong recipient (1 client)'},{r:25},{v:'Not required',c:'b-slate'},{v:'yes'},{v:'Closed',c:'b-green'}],
+    [{ref:'DB-2026-001'},{main:'Codrington'},{v:'18 Feb 2026'},{v:'Laptop misplaced — encrypted, recovered'},{r:30},{v:'Logged, not notified',c:'b-slate'},{v:'no'},{v:'Closed',c:'b-green'}],
+  ]};
+
+/* Subject Access Requests (UK GDPR Art 15 — 1-month clock) */
+const SAR={cols:[
+    {h:'Ref',t:'ref'},{h:'AR',t:'main'},{h:'Requester',t:'text'},{h:'Received',t:'date'},{h:'Deadline (1mo)',t:'date'},{h:'Extended',t:'bool'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'SAR-2026-002'},{main:'Drake Star'},{v:'Former client'},{v:'12 Jun 2026'},{v:'12 Jul 2026'},{v:'no'},{v:'In progress',c:'b-amber'}],
+  ]};
+
+/* Real-Time Monitoring (Manual §2.2 — Companies House, credit, adverse media, sanctions) */
+const RTM={cols:[
+    {h:'Date',t:'date'},{h:'AR',t:'main'},{h:'Source',t:'chip'},{h:'Alert',t:'text'},{h:'Action',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{v:'16 Apr 2026'},{main:'Drake Star UK'},{v:'Credit reference',c:'chip-amber'},{v:'Deteriorating financial health flag'},{v:'Triggered 12.6A financial review'},{v:'Escalated',c:'b-red'}],
+    [{v:'11 Apr 2026'},{main:'Codrington'},{v:'Companies House',c:'chip-blue'},{v:'Director appointment filed'},{v:'F&P assessment requested'},{v:'In progress',c:'b-amber'}],
+    [{v:'09 Apr 2026'},{main:'Newbould & Co'},{v:'Sanctions',c:'chip-teal'},{v:'SmartSearch refer on ID verification'},{v:'AML DD escalated to MLRO'},{v:'Open',c:'b-red'}],
+    [{v:'28 Mar 2026'},{main:'SIX Financial'},{v:'Companies House',c:'chip-blue'},{v:'Confirmation statement filed'},{v:'Logged — no action'},{v:'Cleared',c:'b-green'}],
+  ]};
+
+/* Whistleblowing (Manual §3 — SYSC 18 principles / PIDA) */
+const REG_WB={cols:[
+    {h:'Ref',t:'ref'},{h:'Raised Via',t:'chip'},{h:'Nature',t:'text'},{h:'Received',t:'date'},{h:'Confidentiality',t:'text'},{h:'Outcome',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'WB-2026-001'},{v:'Internal',c:'chip-teal'},{v:'Query re CDD completeness on a file'},{v:'06 Mar 2026'},{v:'Maintained'},{v:'Investigated — file remediated'},{v:'Closed',c:'b-green'}],
+  ]};
+
+/* AR Agreements — contract & commercial register (AR Agreement template: FSMA s.39, SUP 12.5, Schedules 2/3/5/6/7) */
+const REG_AGREE={cols:[
+    {h:'Appointed Representative',t:'main'},{h:'Agreement Ref',t:'mono'},{h:'Effective',t:'date'},{h:'Term / Notice',t:'text'},{h:'Monthly Fee',t:'mono'},{h:'CFs',t:'text'},{h:'PII £2m',t:'badge'},{h:'ICO Reg',t:'badge'},{h:'Pers. Guarantee',t:'badge'},{h:'Status',t:'badge'}],
+  rows:[
+    [{main:'SIX Financial Information UK',sub:'AR · Arranging'},{v:'RAZ-AR-SIX-2024'},{v:'14 Jan 2024'},{v:'12-mo min · 3-mo notice'},{v:'£5,750 +VAT'},{v:'4 CF30'},{v:'Confirmed',c:'b-green'},{v:'Registered',c:'b-green'},{v:'Executed',c:'b-green'},{v:'Active',c:'b-green'}],
+    [{main:'Drake Star UK Limited',sub:'AR · Arranging/Advising'},{v:'RAZ-AR-DS-2023'},{v:'02 Sep 2023'},{v:'12-mo min · 3-mo notice'},{v:'£5,500 +VAT'},{v:'3 CF30'},{v:'Confirmed',c:'b-green'},{v:'Registered',c:'b-green'},{v:'Executed',c:'b-green'},{v:'Active — review',c:'b-amber'}],
+    [{main:'Codrington Associates',sub:'AR · Research/Arranging'},{v:'RAZ-AR-COD-2024'},{v:'05 Nov 2024'},{v:'12-mo min · 3-mo notice'},{v:'£5,500 +VAT'},{v:'3 CF30'},{v:'Confirmed',c:'b-green'},{v:'Registered',c:'b-green'},{v:'Executed',c:'b-green'},{v:'Active',c:'b-green'}],
+    [{main:'Newbould & Co Solutions',sub:'Introducer AR'},{v:'RAZ-AR-NEW-2026'},{v:'12 Jun 2026'},{v:'12-mo min · 3-mo notice'},{v:'£250 +VAT (IAR)'},{v:'n/a'},{v:'Renewal due',c:'b-amber'},{v:'Pending',c:'b-amber'},{v:'Executed',c:'b-green'},{v:'Active — AML DD open',c:'b-amber'}],
+  ]};
+const AGREE_TERMS=['Compliance fee £5,000 +VAT / month, in advance','£250 +VAT per additional CF / month (first CF included)','Non-routine CF application £750 +VAT / month','Ad hoc consulting £250 +VAT / hr · £2,000 +VAT / day','Fair usage 7.5 hrs / month review (then £125 +VAT / hr)','Minimum term 12 months · 3 months\u2019 notice','Early termination = 12 months\u2019 compliance fee if AR exits within 12 months of Registration Date','Application fee non-refundable','PII insurance \u2265 £2,000,000','ICO data-controller registration required','Directors\u2019 personal guarantee for fees (Schedule 7)','All client calls recorded (Schedule 6)','Wind-down plan maintained','6-year post-termination indemnity'];
+
+/* ════════ CF30 QUARTERLY RETURNS (RAZ-FORM-CF30-RETURN-001 v2.0) ════════ */
+/* Returns register — one per CF30 population per AR per quarter */
+const REG_CF30={cols:[
+    {h:'Appointed Representative',t:'main'},{h:'CF30 Population',t:'text'},{h:'Quarter',t:'chip'},{h:'Due (10 BD)',t:'date'},{h:'Status',t:'badge'},{h:'Flagged Items',t:'text'},{h:'SMF Review',t:'badge'}],
+  rows:[
+    [{main:'Drake Star UK Limited',sub:'High · Quarterly + ad hoc'},{v:'T. Mensah +2'},{v:'Q2 2026',c:'chip-teal'},{v:'14 Jul 2026'},{v:'Submitted',c:'b-green'},{v:'Deal activity · 1 PAD cleared'},{v:'Reviewed',c:'b-green'}],
+    [{main:'Codrington Associates',sub:'High · Quarterly + ad hoc'},{v:'N. Cant +2'},{v:'Q2 2026',c:'chip-teal'},{v:'14 Jul 2026'},{v:'In progress',c:'b-amber'},{v:'Research dist. · AA dual-role conflict'},{v:'Awaiting',c:'b-amber'}],
+    [{main:'SIX Financial Information UK',sub:'Medium · Quarterly'},{v:'S. Whitfield +3'},{v:'Q2 2026',c:'chip-teal'},{v:'14 Jul 2026'},{v:'In progress',c:'b-amber'},{v:'FP timing discrepancy carried'},{v:'Pending',c:'b-slate'}],
+  ]};
+/* The 14 reportable sections of the digital return — NIL-by-default (zero-friction) */
+const CF30_SECTIONS=['Financial promotions / exempt communications','Conflicts of interest','Gifts & hospitality','Personal account dealing','Client complaints','Market abuse & MNPI','Outside business interests','Training & CPD (35 hrs/yr)','Regulatory breaches & incidents','Data protection incidents / DSARs','Deal activity (M&A ARs)','Research activity (Codrington)'];
+/* Immediate (do-not-wait) reportable events */
+const CF30_IMMEDIATE=['Personal data breaches (UK GDPR Art.33 — 72hr ICO window)','Suspected market abuse or MNPI misuse','Client complaints','Regulatory breaches','Material conflicts of interest'];
+
+/* Risk re-scoring engine — 5 factors, each 1-3 (Section 2 of the return) */
+const RISK_FACTORS=['Complexity / breadth of permissions','Volume of client-facing activity','MNPI / deal-flow access','Complaints or breaches (prior period)','Changes in personnel / business model'];
+const CF30_RISK=[
+  {ar:'SIX Financial Information UK',scores:[1,3,1,2,1]},
+  {ar:'Drake Star UK Limited',scores:[3,2,3,3,2]},
+  {ar:'Codrington Associates',scores:[2,3,3,2,2]},
+];
+function riskBand(t){return t<=7?{c:'Low',cad:'Bi-annual',cls:'b-green'}:t<=11?{c:'Medium',cad:'Quarterly',cls:'b-amber'}:{c:'High',cad:'Quarterly + ad hoc',cls:'b-red'};}
+
+/* ════════ CF30 CERTIFICATION (8-module self-study + assessment) ════════ */
+const CERT_MODULES=[
+  {n:'1',t:'FCA Framework & FSMA',d:'Regulated activities, SUP 12, Razlin oversight role'},
+  {n:'2',t:'SM&CR & Fit and Proper',d:'FIT 2.1–2.3, SYSC 27, Conduct Rules, annual recertification'},
+  {n:'3',t:'Financial Promotions (COBS 4)',d:'Fair/clear/not misleading, professional-only, adoption model'},
+  {n:'4',t:'AML / KYC / EDD',d:'MLR 2017, CDD/EDD, SARs, tipping-off, red flags'},
+  {n:'5',t:'Conflicts of Interest',d:'SYSC 10, identification, management, disclosure last resort'},
+  {n:'6',t:'Data Protection',d:'UK GDPR principles, DSARs (1 month), 72hr breach'},
+  {n:'7',t:'Record-Keeping',d:'SUP 12 retention, audit trail, FP 6 yrs, KYC 5 yrs'},
+  {n:'8',t:'Specific Obligations',d:'RDP-001, adoption model, MNPI, distribution, PAD, 24hr breach'},
+];
+const REG_CERT={cols:[
+    {h:'CF30 Individual',t:'main'},{h:'AR',t:'text'},{h:'Modules',t:'text'},{h:'Assessment',t:'badge'},{h:'CPD (35 hr/yr)',t:'text'},{h:'Fit & Proper',t:'badge'},{h:'Recert Due',t:'date'},{h:'Status',t:'badge'}],
+  rows:[
+    [{main:'Nicholas Cant',sub:'AA dual-role conflict disclosed to SMF16'},{v:'Codrington'},{v:'8 / 8'},{v:'Passed',c:'b-green'},{v:'11.5 / 35 hrs'},{v:'Satisfactory',c:'b-green'},{v:'Feb 2027'},{v:'Certified',c:'b-green'}],
+    [{main:'Stephen Codrington',sub:'CF1 · CJP producer/distributor conflict'},{v:'Codrington'},{v:'8 / 8'},{v:'Passed',c:'b-green'},{v:'19 / 35 hrs'},{v:'Satisfactory',c:'b-green'},{v:'Feb 2027'},{v:'Certified',c:'b-green'}],
+    [{main:'T. Mensah'},{v:'Drake Star'},{v:'6 / 8'},{v:'In progress',c:'b-amber'},{v:'9 / 35 hrs'},{v:'Satisfactory',c:'b-green'},{v:'Mar 2027'},{v:'In progress',c:'b-amber'}],
+  ]};
+
+/* FP adoption model (RAZ-POL-RDP-001) — the per-note workflow + COBS 4 content prohibitions */
+const ADOPTION_STEPS=['Razlin reviews each Note against the COBS 4 compliance checklist','If it passes, Razlin adopts it as its own communication under FSMA s.21(1)(a)','Razlin issues written Adoption Confirmation specifying the approved distribution list','AR distributes only after Adoption Confirmation — no blanket or standing authorisation'];
+const FP_PROHIBITIONS=['No explicit price targets (a named "fair value" is a target in substance)','No author EPS / earnings / margin forecasts (company-guided figures must be attributed)','No buy / sell / hold recommendations (advising on investments is outside AR scope)','No directional labels — "Positive" / "Negative" / "Neutral"','No advisory language in covering emails ("compelling at current levels", etc.)'];
+
+/* Home-page priority actions (SMF "what needs you today") */
+const PRIORITY=[
+  {sev:'r',t:'Newbould AML DD — SmartSearch refer',m:'Introducer onboarding · escalated to MLRO',mod:'aml'},
+  {sev:'r',t:'Drake Star going-concern concern',m:'SUP 12.6A.2R · balance-sheet insolvency',mod:'annual-review'},
+  {sev:'a',t:'Codrington Q2 return — AA dual-role conflict',m:'Awaiting SMF16 review',mod:'cf30-returns'},
+  {sev:'a',t:'SIX FP attestation timing discrepancy',m:'BR-2026-003 · follow-up',mod:'breaches'},
+  {sev:'a',t:'AML financial-crime declaration overdue',m:'Newbould pending',mod:'attestations'},
+];
+
+/* ════════ MARKET ABUSE / STOR / MNPI (RAZ-MAR-001 · RAZ-POL-MKT-001) ════════ */
+const REG_MAR={cols:[
+    {h:'Ref',t:'ref'},{h:'Date',t:'date'},{h:'AR / Individual',t:'main'},{h:'Instrument / Deal',t:'text'},{h:'Nature of Concern',t:'text'},{h:'MNPI Access',t:'bool'},{h:'Insider List',t:'bool'},{h:'STOR Filed',t:'badge'},{h:'Referred to Razlin',t:'bool'}],
+  rows:[
+    [{ref:'MAR-2026-003'},{v:'09 Jun 2026'},{main:'Drake Star UK',sub:'T. Mensah'},{v:'Listed target — Project Mercury'},{v:'Pre-announcement price move in target'},{v:'yes'},{v:'yes'},{v:'Assessed — no STOR',c:'b-green'},{v:'yes'}],
+    [{ref:'MAR-2026-000'},{v:'Q1 2026'},{main:'Codrington Associates',sub:'N. Cant'},{v:'AA Note pre-publication'},{v:'CFO disclosure — assessed as non-MNPI'},{v:'yes'},{v:'yes'},{v:'No concern',c:'b-green'},{v:'yes'}],
+  ]};
+/* Insider lists & market soundings — controls maintained per AR */
+const MAR_CONTROLS=[
+  {ar:'Drake Star UK Limited',il:'Per-mandate insider lists; deal-team access logged',ms:'Soundings via approved gatekeeper only',rl:'Restricted / watch list operated'},
+  {ar:'Codrington Associates',il:'Research insider list where MNPI held',ms:'n/a — research stream',rl:'Coverage list / dealing restrictions'},
+];
+
+/* ════════ INVESTMENT RESEARCH & DISTRIBUTION (RAZ-POL-RDP-002 v2.0 · RAZ-POL-RES-001) ════════ */
+const REG_RES={cols:[
+    {h:'Ref',t:'ref'},{h:'Stream',t:'chip'},{h:'Note / Coverage',t:'main'},{h:'Producer',t:'text'},{h:'Classification',t:'text'},{h:'Adoption / Authorisation',t:'badge'},{h:'Distribution',t:'text'},{h:'Status',t:'badge'}],
+  rows:[
+    [{ref:'RES-2026-014'},{v:'AA Notes',c:'chip-teal'},{main:'Japan mid-cap industrials — Q2'},{v:'Asymmetric Advisors HK'},{v:'Non-independent (COBS 12.3)'},{v:'Adopted s.21(1)(a)',c:'b-green'},{v:'Verified list · prof/ECP'},{v:'Distributed',c:'b-green'}],
+    [{ref:'RES-2026-013'},{v:'CJP',c:'chip-blue'},{main:'Japan equities — CJP note'},{v:'S. Codrington / Tokyo analysts'},{v:'Non-independent (COBS 12.3)'},{v:'Standing authorisation',c:'b-green'},{v:'Verified list · prof/ECP'},{v:'Distributed',c:'b-green'}],
+    [{ref:'RES-2026-012'},{v:'Weekly',c:'chip-purple'},{main:'Weekly Japan market commentary'},{v:'N. Cant'},{v:'Non-independent (COBS 12.3)'},{v:'Standing Format Auth.',c:'b-green'},{v:'Verified list · prof/ECP'},{v:'Distributed',c:'b-green'}],
+    [{ref:'RES-2026-011'},{v:'AA Notes',c:'chip-teal'},{main:'Single-stock note — "CJ FV ¥2,336"'},{v:'Asymmetric Advisors HK'},{v:'Price target in substance'},{v:'Returned — remediate',c:'b-red'},{v:'Withheld'},{v:'Not adopted',c:'b-red'}],
+  ]};
+const RES_DUALROLE=[
+  {p:'N. Cant',r:'AA director + CF30 distributor of AA Notes',m:'Disclosed to SMF16; PAD heightened; financial-interest declaration'},
+  {p:'S. Codrington',r:'CJP producer + distributor',m:'Producer Declaration; analyst separation; dealing restrictions'},
+];
+
+/* ════════ ONBOARDING PIPELINE ════════ */
+const REG_PIPE={cols:[
+    {h:'Prospect',t:'main'},{h:'Type',t:'chip'},{h:'Stage',t:'badge'},{h:'Fees (proposed)',t:'text'},{h:'Critical Pre-App',t:'text'},{h:'Key Contact',t:'text'},{h:'Reference',t:'mono'}],
+  rows:[
+    [{main:'Solistic',sub:'Tokenised securities — BVI platform (Irish tax-res)'},{v:'Arranging + FP',c:'chip-teal'},{v:'Proposal issued',c:'b-amber'},{v:'£4,000 pm + £5,000 onboarding'},{v:'Legal opinion — token characterisation'},{v:'Gennady Sukhanov'},{v:'RAZ-AR-PROP-2026-SOL'}],
+    [{main:'Tomlinson Family Office',sub:'Fund-of-funds advisory — professional only'},{v:'Advising',c:'chip-blue'},{v:'Proposal issued',c:'b-amber'},{v:'£3,000 pm + £2,500 onboarding'},{v:'AIFM/CIS legal opinion (s.235 FSMA)'},{v:'Anne Peden · Justin Roberts'},{v:'RAZ-AR-PROP-2026-TFO'}],
+    [{main:'Newbould & Co Solutions',sub:'Corporate introducer — agreement executed'},{v:'Introducer',c:'chip-slate'},{v:'AML DD open',c:'b-red'},{v:'Net-revenue share'},{v:'Identity verification — SmartSearch refer'},{v:'Sophie Newbould'},{v:'RAZ-FORM-IDD-001'}],
+    [{main:'NewCo (Chaitanya)',sub:'Onboarding — not approved'},{v:'Arranging',c:'chip-teal'},{v:'7 conditions',c:'b-red'},{v:'TBC'},{v:'Seven onboarding conditions on file'},{v:'Chaitanya'},{v:'File note'}],
+  ]};
+const PIPE_STAGES=['Indicative proposal issued','Legal opinion / critical pre-app cleared','AML & onboarding DD complete','FCA notification via Connect','FCA register updated','Go-live authorisation issued'];
+
+/* ════════ POST-KESSION AR AGREEMENT REVIEW (network repapering) ════════ */
+const REG_KESSION={cols:[
+    {h:'Appointed Representative',t:'main'},{h:'Agreement',t:'mono'},{h:'Scope Unambiguous',t:'badge'},{h:'Categorisation Limit (s.39(3))',t:'text'},{h:'Re-paper',t:'badge'},{h:'SMF16 Sign-off',t:'badge'}],
+  rows:[
+    [{main:'SIX Financial Information UK'},{v:'RAZ-AR-SIX-2023'},{v:'Confirmed',c:'b-green'},{v:'Prof/ECP — data services scope'},{v:'Not required',c:'b-green'},{v:'Complete',c:'b-green'}],
+    [{main:'Drake Star UK Limited'},{v:'RAZ-AR-DS-2023'},{v:'Review',c:'b-amber'},{v:'Prof/ECP — corporate finance'},{v:'In progress',c:'b-amber'},{v:'Pending',c:'b-slate'}],
+    [{main:'Codrington Associates'},{v:'RAZ-AR-COD-2024'},{v:'Confirmed',c:'b-green'},{v:'Prof/ECP — dual-stream research'},{v:'Re-papered',c:'b-green'},{v:'Complete',c:'b-green'}],
+  ]};
+
+
+
+function badge(v,c){return `<span class="badge ${c||'b-slate'}"><span class="d"></span>${v}</span>`}
+function chip(v,c){return `<span class="chip ${c||'chip-slate'}">${v}</span>`}
+function riskCell(r){const c=r<=33?'rf-low':r<=60?'rf-med':'rf-high';const l=r<=33?'Low':r<=60?'Med':'High';return `<div class="risk-wrap"><div class="risk-bar"><div class="risk-fill ${c}" style="width:${r}%"></div></div><span class="risk-lbl">${l}</span></div>`}
+function boolCell(v){if(v==='yes')return '<span class="bool-yes">Yes</span>';if(v==='flag')return '<span class="bool-flag">Conflict</span>';return '<span class="bool-no">No</span>'}
+function renderCell(cell,type){
+  if(cell==null)return '';
+  switch(type){
+    case 'main':return `<div class="cell-main">${cell.main}</div>${cell.sub?`<div class="cell-sub">${cell.sub}</div>`:''}`;
+    case 'ref':return `<span class="cell-ref">${cell.ref}</span>`;
+    case 'badge':return badge(cell.v,cell.c);
+    case 'chip':return chip(cell.v,cell.c);
+    case 'risk':return riskCell(cell.r);
+    case 'bool':return boolCell(cell.v);
+    case 'date':return `<span class="cell-date">${cell.v}</span>`;
+    case 'mono':return `<span class="cell-mono">${cell.v}</span>`;
+    default:return `<span style="font-size:12.5px;color:var(--text2)">${cell.v}</span>`;
+  }
+}
+function renderTable(cfg,mod){
+  const editable = mod && typeof DATASETS!=='undefined' && DATASETS[mod];
+  const head=cfg.cols.map(c=>`<th>${c.h}</th>`).join('')+(editable?'<th style="text-align:right">·</th>':'');
+  const body=cfg.rows.map((row,ri)=>`<tr>${row.map((cell,i)=>`<td>${renderCell(cell,cfg.cols[i].t)}</td>`).join('')}${editable?`<td style="text-align:right"><button class="abtn a-reject" title="Delete entry" onclick="deleteRow('${mod}',${ri})">✕</button></td>`:''}</tr>`).join('');
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+/* shard watermark svg (faint, dashboard) */
+const SHARD_WM=`<svg width="240" height="300" viewBox="0 0 64 84" fill="none"><polygon points="32,12 32,74 15,74" fill="#06B6D4"/><polygon points="32,12 49,74 32,74" fill="#0F172A"/><polygon points="32,2 35,15 29,15" fill="#84CC16"/><line x1="32" y1="12" x2="32" y2="74" stroke="#22D3EE" stroke-width="0.9"/></svg>`;
+
+/* ════════ VIEWS ════════ */
+function netHealth(){
+  let pts=0,max=0;
+  MATRIX.rows.forEach(r=>r.rag.forEach(g=>{if(g==='n')return;max+=2;pts+=g==='g'?2:g==='a'?1:0;}));
+  return Math.round(pts/max*100);
+}
+function vDashboard(){
+  const score=netHealth();
+  const circ=2*Math.PI*66, off=circ*(1-score/100);
+  const ringColor=score>=80?'#34D399':score>=60?'#FBBF24':'#F87171';
+  return `
+  <div class="home-hero">
+    <div>
+      <div class="home-hi">Network oversight, <span>at a glance</span></div>
+      <div class="home-sub">Three appointed representatives and one introducer under continuous SUP 12 oversight. Everything below is live.</div>
+    </div>
+    <div class="home-actions">
+      <button class="btn-ghost" onclick="exportCSV('dashboard')">↓ Board pack</button>
+      <button class="btn-teal" onclick="go(document.querySelector('[data-mod=cf30-returns]'))">CF30 returns →</button>
+    </div>
+  </div>
+  <div class="hero-band">
+    <div class="score-card">
+      <div class="ring">
+        <svg width="150" height="150"><circle cx="75" cy="75" r="66" fill="none" stroke="var(--ring-track)" stroke-width="11"/>
+        <circle cx="75" cy="75" r="66" fill="none" stroke="${ringColor}" stroke-width="11" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}"/></svg>
+        <div class="ring-val"><div class="ring-num">${score}</div><div class="ring-lbl">Health</div></div>
+      </div>
+      <div class="score-cap">Composite RAG across 11 oversight dimensions · 3 ARs + 1 introducer</div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi kpi-g"><div class="kpi-top"><div class="kpi-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg></div></div><div class="kpi-num">3</div><div class="kpi-lbl">Active ARs</div><div class="kpi-sub">+ 1 introducer · 3 in pipeline</div></div>
+      <div class="kpi kpi-a"><div class="kpi-top"><div class="kpi-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></svg></div></div><div class="kpi-num">2</div><div class="kpi-lbl">CF30 returns open</div><div class="kpi-sub">Q2 · due 14 Jul</div></div>
+      <div class="kpi kpi-r"><div class="kpi-top"><div class="kpi-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4m0 4h0"/></svg></div></div><div class="kpi-num">2</div><div class="kpi-lbl">Priority actions</div><div class="kpi-sub">2 escalated · 3 amber</div></div>
+      <div class="kpi kpi-t"><div class="kpi-top"><div class="kpi-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div></div><div class="kpi-num" style="font-size:23px;padding-top:6px">14 Jul</div><div class="kpi-lbl">Next deadline</div><div class="kpi-sub">CF30 Q2 returns</div></div>
+    </div>
+  </div>
+  <div class="dash-grid">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><div class="card-title">Needs your attention</div><div class="card-note">SMF16 / 17 PRIORITY QUEUE</div></div>
+      ${PRIORITY.map(p=>`<div class="prio" onclick="go(document.querySelector('[data-mod=${p.mod}]'))"><div class="prio-dot ${p.sev}"></div><div><div class="prio-t">${p.t}</div><div class="prio-m">${p.m}</div></div><div class="prio-go">→</div></div>`).join('')}
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><div class="card-title">Upcoming deadlines</div><div class="card-note">REGULATORY CALENDAR</div></div>
+      ${CAL.slice(0,5).map(c=>`<div class="timeline-item"><div class="tl-bar ${c.bar}"></div><div class="tl-date">${c.date}<div class="tl-countdown ${c.soon?'soon':''}">${c.cd}</div></div><div class="tl-body"><div class="tl-title">${c.title}</div><div class="tl-sub">${c.sub}</div></div></div>`).join('')}
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="card-head"><div class="card-title">AR compliance matrix</div><div class="card-note">RAG · 11 OVERSIGHT DIMENSIONS</div></div>
+    <div class="matrix-wrap"><table class="matrix">
+      <thead><tr><th>Appointed Representative</th>${MATRIX.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${MATRIX.rows.map(r=>`<tr><td>${r.ar}<div class="m-ar-sub">${r.sub}</div></td>${r.rag.map(g=>`<td><span class="mdot mdot-${g}" title="${g==='g'?'Satisfactory':g==='a'?'Attention':g==='r'?'Action required':'N/A'}"></span></td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>
+    <div style="padding:11px 20px;border-top:1px solid var(--border);display:flex;gap:18px;font-size:10.5px;color:var(--text2)">
+      <span><span class="mdot mdot-g" style="vertical-align:middle"></span> Satisfactory</span>
+      <span><span class="mdot mdot-a" style="vertical-align:middle"></span> Attention</span>
+      <span><span class="mdot mdot-r" style="vertical-align:middle"></span> Action required</span>
+      <span><span class="mdot mdot-n" style="vertical-align:middle"></span> N/A</span>
+    </div>
+  </div>`;
+}
+
+function vMarketAbuse(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Market Abuse & STOR</h1><div class="page-meta">UK MAR · INSIDER LISTS · MARKET SOUNDINGS · STOR SURVEILLANCE</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('market-abuse')">↓ Export</button>
+      <button class="btn-teal" onclick="openAdd(currentMod,'Surveillance Entry')">+ Log entry</button>
+    </div>
+  </div>
+  <div class="reg-intro">Market-conduct surveillance across the deal-doing ARs. Every mandate is assessed at inception for in-scope instruments; inside information triggers an insider list, soundings are gatekept and wall-crossed, and any suspicion is escalated to Razlin for a STOR decision. The UK has <strong>not</strong> adopted the EU Listing Act 2024 soundings changes — onshored UK MAR applies.<span class="basis">RAZ-POL-MKT-001 · UK MAR Art 7/8/10/11/12/16/17/18 · CJA 1993 Pt V · FSA 2012 s.89–91 · Market Watch 51/58/75/83 · Takeover Code · 5-year retention</span></div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Insider lists, soundings & restricted lists</div><div class="card-note">CONTROLS BY AR</div></div>
+    <div class="matrix-wrap"><table>
+      <thead><tr><th>Appointed Representative</th><th>Insider lists (Art 18)</th><th>Market soundings (Art 11)</th><th>Restricted / watch list</th></tr></thead>
+      <tbody>${MAR_CONTROLS.map(c=>`<tr><td><div class="cell-main">${c.ar}</div></td><td><span style="font-size:12px;color:var(--text2)">${c.il}</span></td><td><span style="font-size:12px;color:var(--text2)">${c.ms}</span></td><td><span style="font-size:12px;color:var(--text2)">${c.rl}</span></td></tr>`).join('')}</tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">STOR / MNPI surveillance log</div><div class="card-note">RAZ-MAR-001 · OBSERVATIONS & ESCALATIONS</div></div>
+    ${renderTable(REG_MAR,currentMod)}
+  </div>`;
+}
+
+function vResearch(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Research Distribution</h1><div class="page-meta">CODRINGTON DUAL-STREAM · COBS 12.3 · MAR ART 20 · DR 2016/958</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('research')">↓ Export</button>
+      <button class="btn-teal" onclick="openAdd(currentMod,'Research Note')">+ Log note</button>
+    </div>
+  </div>
+  <div class="reg-intro">Codrington distributes three streams to UK professionals: <strong>AA Notes</strong> (Asymmetric Advisors HK — adopted per-note by Razlin under s.21(1)(a)), <strong>CJP Notes</strong> (Stephen Codrington's Tokyo desk) and the <strong>Weekly Commentary</strong> (Nick Cant, under Standing Format Authorisation). All are non-independent research with mandatory disclosures; none may carry price targets, forecasts, recommendations or directional labels.<span class="basis">RAZ-POL-RDP-002 v2.0 / RAZ-POL-RES-001 · COBS 12.3 · MAR Art 20 + DR 2016/958 · Producer Declaration · 20% quarterly sampling · 6-year retention</span></div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Structural dual-role conflicts</div><div class="card-note">DISCLOSED & MANAGED — NOT IGNORED</div></div>
+    <div class="panel-list" style="padding:6px 20px 14px">${RES_DUALROLE.map(d=>`<div class="pl-row"><div class="pl-step">!</div><div><div class="pl-txt"><strong>${d.p}</strong> — ${d.r}</div><div style="font-size:11.5px;color:var(--text2);margin-top:2px">Managed: ${d.m}</div></div></div>`).join('')}</div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Research distribution register</div><div class="card-note">PER-NOTE ADOPTION / AUTHORISATION & DISTRIBUTION</div></div>
+    ${renderTable(REG_RES,currentMod)}
+  </div>`;
+}
+
+function vPipeline(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Onboarding Pipeline</h1><div class="page-meta">PROSPECTIVE ARs & INTRODUCERS · SUP 12.4 · FCA CONNECT</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('pipeline')">↓ Export</button>
+      <button class="btn-teal" onclick="openAdd(currentMod,'Prospect')">+ Add prospect</button>
+    </div>
+  </div>
+  <div class="reg-intro">Every prospective appointment runs the same gated path — nothing goes live until the critical pre-application requirement is cleared, AML and onboarding DD are complete, the FCA is notified via Connect and Razlin issues written go-live authorisation. No client-facing activity before go-live.<span class="basis">SUP 12.4 appointment · FCA Connect notification · legal-opinion pre-app gates · AML DD · go-live authorisation</span></div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">The onboarding gate</div><div class="card-note">SAME PATH FOR EVERY PROSPECT</div></div>
+    <div class="panel-list" style="padding:6px 20px 14px">${PIPE_STAGES.map((s,i)=>`<div class="pl-row"><div class="pl-step">${i+1}</div><div class="pl-txt">${s}</div></div>`).join('')}</div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Pipeline</div><div class="card-note">BY STAGE · CONDITIONS · FEES · CONTACTS</div></div>
+    ${renderTable(REG_PIPE,currentMod)}
+  </div>`;
+}
+
+function vCF30Returns(){
+  const rows=REG_CF30.rows;
+  const sub=rows.filter(r=>/Submitted|NIL/.test(r[4].v)).length, nil=rows.filter(r=>/NIL/.test(r[4].v)).length, open=rows.length-sub;
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">CF30 Quarterly Returns</h1><div class="page-meta">DIGITAL SELF-REPORTING · DUE 10 BD AFTER QUARTER END</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('cf30-returns')">↓ Export</button>
+      <button class="btn-teal" onclick="openReturn('')">+ New return</button>
+    </div>
+  </div>
+  <div class="reg-intro">A zero-friction quarterly return for every CF30. Twelve sections default to <strong>NIL</strong> — an AR with nothing to report confirms in two clicks. Cadence is risk-based: medium baseline is quarterly (see AR Risk Scoring).<span class="basis">RAZ-FORM-CF30-RETURN-001 v2.0 · SUP 12.7 · DISP 1 · COBS · MLR 2017 · 5-year retention (SYSC 9.1)</span></div>
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+    <div class="stat-card"><div class="stat-label">Returns this quarter</div><div class="stat-value">${rows.length}</div><div class="stat-delta">Q2 2026 · due 14 Jul</div></div>
+    <div class="stat-card s-green"><div class="stat-label">Submitted</div><div class="stat-value">${sub}</div><div class="stat-delta up">${nil} NIL · ${sub-nil} with items</div></div>
+    <div class="stat-card s-amber"><div class="stat-label">Outstanding</div><div class="stat-value">${open}</div><div class="stat-delta dn">awaiting submission</div></div>
+    <div class="stat-card s-blue"><div class="stat-label">Immediate-report items</div><div class="stat-value" style="font-size:20px;padding-top:6px">5 types</div><div class="stat-delta">breach · MNPI · complaint · DP · conflict</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Q2 2026 returns</div><div class="card-note">ONE PER CF30 POPULATION PER AR</div></div>
+    ${renderTable(REG_CF30,currentMod)}
+  </div>
+  <div class="dash-grid" style="margin-top:18px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><div class="card-title">The 12 reportable sections</div><div class="card-note">NIL BY DEFAULT</div></div>
+      <div style="padding:14px 20px;display:flex;flex-wrap:wrap;gap:7px">${CF30_SECTIONS.map(s=>`<span class="chip chip-slate" style="text-transform:none;letter-spacing:0;font-size:11px;padding:5px 10px">${s}</span>`).join('')}</div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><div class="card-title">Report immediately — don't wait</div><div class="card-note">AD HOC ESCALATION</div></div>
+      <div class="panel-list" style="padding:6px 20px 14px">${CF30_IMMEDIATE.map(x=>`<div class="pl-row"><div class="pl-no">!</div><div class="pl-txt">${x}</div></div>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+function vRiskScoring(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">AR Risk Scoring</h1><div class="page-meta">5-FACTOR MODEL · ANNUAL Q1 RE-SCORING · SMF16/17 SIGN-OFF</div></div>
+    <div class="head-actions"><button class="btn-teal" onclick="toast('Saved','Risk scores saved. Cadences applied to CF30 returns.','success')">Apply cadences</button></div>
+  </div>
+  <div class="reg-intro">Each AR is scored 1–3 on five factors. The total drives return cadence: <strong>5–7 Low</strong> (bi-annual) · <strong>8–11 Medium</strong> (quarterly) · <strong>12–15 High</strong> (quarterly + ad hoc). Adjust any factor below — the band recalculates live.<span class="basis">RAZ-FORM-CF30-RETURN-001 §2 · SUP 12.7 risk-based oversight · medium-risk baseline</span></div>
+  ${CF30_RISK.map((a,i)=>{const tot=a.scores.reduce((x,y)=>x+y,0);const b=riskBand(tot);return `
+  <div class="rs-card">
+    <div class="rs-head"><div class="rs-ar">${a.ar}</div>${badge(b.c+' · '+b.cad,b.cls)}</div>
+    ${RISK_FACTORS.map((f,fi)=>`<div class="rs-factor"><div class="rs-flabel">${f}</div><div class="rs-seg">${[1,2,3].map(v=>`<button class="${a.scores[fi]===v?'on'+v:''}" onclick="setRisk(${i},${fi},${v})">${v}</button>`).join('')}</div></div>`).join('')}
+    <div class="rs-total"><div class="rs-score">${tot}<span style="font-size:14px;color:var(--text3)">/15</span></div><div class="rs-meta">Resulting cadence: <strong style="color:var(--text)">${b.cad}</strong>${tot>=12?' · ad hoc event reporting':''}</div></div>
+  </div>`}).join('')}`;
+}
+
+function vCertification(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">CF30 Certification</h1><div class="page-meta">8-MODULE SELF-STUDY + ASSESSMENT · SM&CR · CPD 35 HR/YR</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('certification')">↓ Export</button>
+      <button class="btn-teal" onclick="openAdd(currentMod,'CF30')">+ Add CF30</button>
+    </div>
+  </div>
+  <div class="reg-intro">The structured CF30 certification programme — eight self-study modules with assessment, annual recertification under SYSC 27, and CPD tracked toward the 35-hour minimum. Records retained 6 years.<span class="basis">SM&CR certification · FIT 2.1–2.3 · SYSC 27 · COCON conduct rules · TC competence · RAZ-POL-RDP-001</span></div>
+  <div class="section-label">Programme · 8 modules</div>
+  <div class="mod-grid">${CERT_MODULES.map(m=>`<div class="mod-card"><div class="mod-n">${m.n}</div><div><div class="mod-t">${m.t}</div><div class="mod-d">${m.d}</div></div></div>`).join('')}</div>
+  <div class="section-label">Certified persons</div>
+  <div class="card">${renderTable(REG_CERT,currentMod)}</div>`;
+}
+
+function regPage(title,meta,intro,basis,cfg,addLabel){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">${title}</h1><div class="page-meta">${meta}</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV(currentMod)">↓ Export</button>
+      ${addLabel?`<button class="btn-teal" onclick="openAdd(currentMod,'${addLabel}')">+ ${addLabel}</button>`:''}
+    </div>
+  </div>
+  <div class="reg-intro">${intro}<span class="basis">${basis}</span></div>
+  <div class="card">${renderTable(cfg,currentMod)}</div>`;
+}
+
+function vFinProms(){
+  fpTab='all';
+  const _tot=FP.length,_appr=FP.filter(p=>p.status==='approved').length,_rej=FP.filter(p=>p.status==='rejected').length,_pend=_tot-_appr-_rej,_docs=FP.reduce((n,p)=>n+((p.docs||[]).length),0),_rate=Math.round(_appr/Math.max(1,_appr+_rej)*100);
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Financial Promotions</h1><div class="page-meta">ADOPTION MODEL · COBS 4 · s.21(1)(a) FSMA · ART 19 FPO</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('fin-proms')">↓ Export Register</button>
+      <button class="btn-teal" onclick="openModal()">+ Submit for adoption</button>
+    </div>
+  </div>
+  <div class="reg-intro">The AR-facing submission channel. ARs submit every promotion — <strong>research notes, deal teasers, investor decks, marketing</strong> — with supporting documents attached; CCS reviews against COBS 4 and Razlin's SMF16 adopts under s.21(1)(a). Distribution only follows written <strong>Adoption Confirmation</strong>; recipients are <strong>professionals (COBS 3.5) and ECPs (COBS 3.6) only</strong>. Every submission, upload and decision is written to the immutable audit trail below.<span class="basis">RAZ-POL-RDP-001 · COBS 4.2.1R / 4.5 / 4.6 · COBS 12.3 · s.21(1)(a) adoption · SHA-256 document integrity · 6-year retention</span></div>
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+    <div class="stat-card"><div class="stat-label">In queue</div><div class="stat-value">${_pend}</div><div class="stat-delta">awaiting CCS review / SMF16 adoption</div></div>
+    <div class="stat-card s-green"><div class="stat-label">Adopted YTD</div><div class="stat-value">${_appr}</div><div class="stat-delta up">approval rate ${_rate}%</div></div>
+    <div class="stat-card s-amber"><div class="stat-label">Avg. review time</div><div class="stat-value">2.4d</div><div class="stat-delta">SLA ≤ 3 days</div></div>
+    <div class="stat-card s-blue"><div class="stat-label">Documents on file</div><div class="stat-value">${_docs}</div><div class="stat-delta">SHA-256 hashed · immutable</div></div>
+  </div>
+  <div class="dash-grid" style="margin-bottom:18px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><div class="card-title">The adoption model</div><div class="card-note">PER-NOTE · NO BLANKET AUTHORISATION</div></div>
+      <div class="panel-list" style="padding:6px 20px 14px">${ADOPTION_STEPS.map((s,i)=>`<div class="pl-row"><div class="pl-step">${i+1}</div><div class="pl-txt">${s}</div></div>`).join('')}</div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-head"><div class="card-title">Five COBS 4 content prohibitions</div><div class="card-note">RETURN THE NOTE IF ANY APPEAR</div></div>
+      <div class="panel-list" style="padding:6px 20px 14px">${FP_PROHIBITIONS.map(x=>`<div class="pl-row"><div class="pl-no">✕</div><div class="pl-txt">${x}</div></div>`).join('')}</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Submission queue</div>
+      <div class="ftabs">
+        <button class="ftab on" onclick="fpFilter(this,'all')">All</button>
+        <button class="ftab" onclick="fpFilter(this,'research')">Research</button>
+        <button class="ftab" onclick="fpFilter(this,'teaser')">Teasers</button>
+        <button class="ftab" onclick="fpFilter(this,'deck')">Decks</button>
+        <button class="ftab" onclick="fpFilter(this,'marketing')">Marketing</button>
+        <button class="ftab" onclick="fpFilter(this,'advisory')">Advisory</button>
+      </div>
+    </div>
+    <table><thead><tr><th>Promotion</th><th>Type</th><th>Status</th><th>COBS Risk</th><th>Docs</th><th>Submitted</th><th>Actions</th></tr></thead><tbody id="fpBody"></tbody></table>
+    <div class="ai-panel" id="aiPanel">
+      <div class="ai-ph"><span class="ai-chip">AI REVIEW</span><span class="ai-by">Compliance analysis · CCS × Claude</span><button class="ai-x" onclick="closeAI()">✕ Close</button></div>
+      <div class="ai-body" id="aiContent"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Audit trail</div><div style="display:flex;align-items:center;gap:12px"><div class="card-note">IMMUTABLE LOG · EVERY SUBMISSION, UPLOAD &amp; DECISION</div><button class="abtn a-view" onclick="exportAudit()">↓ Export trail</button></div></div>
+    <div id="fpAudit"></div>
+  </div>`;
+}
+
+function vAttestations(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Attestations Hub</h1><div class="page-meta">PERIODIC COMPLIANCE ATTESTATIONS · ALL RAZLIN ARs & CERTIFIED PERSONS</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('attestations')">↓ Export</button>
+      <button class="btn-ghost" onclick="toast('Reminder','Attestation reminders dispatched to outstanding ARs.','success')">↗ Send Reminders</button>
+      <button class="btn-teal" onclick="toast('New cycle','Attestation cycle scheduler — demo build.','')">+ New Cycle</button>
+    </div>
+  </div>
+  <div class="reg-intro">Tracks every periodic attestation Razlin relies on to evidence oversight — from the SUP 12.6A self-assessment to quarterly PAD and conduct-rules sign-offs.<span class="basis">SUP 12.6A · COBS 4 · COBS 11.7A · COBS 2.3A · COCON · FIT · MLR 2017 · SYSC 10.1</span></div>
+  <div class="att-grid">
+    ${ATTEST.map((a,i)=>{const pct=Math.round(a.done/a.total*100);return `
+    <div class="att-card ${a.cls}">
+      <div class="att-name">${a.name}</div>
+      <div class="att-ref">${a.ref}</div>
+      <div class="att-progress"><div class="att-progress-fill" style="width:${pct}%;background:${a.cls==='overdue'?'var(--red)':a.cls==='due'?'var(--amber)':'var(--green)'}"></div></div>
+      <div class="att-stat"><span><strong>${a.done}</strong> of <strong>${a.total}</strong> complete</span><span>${pct}%</span></div>
+      <div class="att-meta"><span class="att-cadence">${a.cadence}</span><br>${a.due}</div>
+      ${a.done<a.total?`<button class="abtn a-approve" style="margin-top:10px;width:100%" onclick="attDone(${i})">✓ Record a completion</button>`:'<div style="margin-top:10px;text-align:center;font-size:10.5px;color:var(--green);font-weight:600">✓ Complete</div>'}
+    </div>`}).join('')}
+  </div>`;
+}
+
+function vRegCalendar(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Regulatory Calendar</h1><div class="page-meta">REGDATA · FCA CONNECT · SUP 16 · SUP 12.7 · RAZLIN LTD FRN 730805</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="toast('Sync','Calendar syncing to Outlook…','')">↗ Sync</button>
+      <button class="btn-ghost" onclick="exportCSV('reg-calendar')">↓ Export</button>
+      <button class="btn-teal" onclick="openAdd('reg-calendar','Deadline')">+ Add Deadline</button>
+    </div>
+  </div>
+  <div class="reg-intro">Consolidated view of Razlin's AR-related regulatory submissions and notification obligations, including the REP025 annual AR report and SUP 12.7 change notifications via FCA Connect.<span class="basis">REP025 AR Annual Report · RegData returns · SUP 12.7 Connect notifications · SUP 16 reporting</span></div>
+  <div class="card">${CAL.map(c=>`<div class="timeline-item"><div class="tl-bar ${c.bar}"></div><div class="tl-date">${c.date}<div class="tl-countdown ${c.soon?'soon':''}">${c.cd}</div></div><div class="tl-body"><div class="tl-title">${c.title}</div><div class="tl-sub">${c.sub}</div></div></div>`).join('')}</div>`;
+}
+
+function vManualMap(){
+  const _m=MANUAL_MAP.rows.length, _att=MANUAL_MAP.rows.filter(r=>r[5]&&r[5].c!=='b-green').length, _op=_m-_att;
+  return `
+  <div class="hero-watermark">${SHARD_WM}</div>
+  <div class="page-head">
+    <div><h1 class="page-title">Manual Control Map</h1><div class="page-meta">RAZLIN AR COMPLIANCE MANUAL 2025 v1.0 · REQUIREMENT-TO-CONTROL COVERAGE</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('manual-map')">↓ Coverage Map</button>
+      <button class="btn-teal" onclick="toast('Manual','Manual v1.0 — approved 13 Jun 2025. Quarterly review.','')">View Manual</button>
+    </div>
+  </div>
+  <div class="reg-intro">Every requirement in the AR Compliance Manual is mapped here to the control that operationalises it, its cadence, retention period and live status — so an SMF can confirm at a glance that nothing in the manual is unowned. Each row links conceptually to the module that evidences it.<span class="basis">Manual §1–§3 + Appendices · SUP 12 · COBS · SYSC · MLR 2017 · UK GDPR · Bribery Act 2010 · DISP</span></div>
+  <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+    <div class="stat-card"><div class="stat-label">Requirements Mapped</div><div class="stat-value">${_m}</div><div class="stat-delta">across §1–§3 + appendices + AR Agr</div></div>
+    <div class="stat-card s-green"><div class="stat-label">Operational</div><div class="stat-value">${_op}</div><div class="stat-delta up">controls evidenced</div></div>
+    <div class="stat-card s-amber"><div class="stat-label">Needs Attention</div><div class="stat-value">${_att}</div><div class="stat-delta dn">outstanding actions</div></div>
+  </div>
+  <div class="card">${renderTable(MANUAL_MAP)}</div>`;
+}
+
+function vAgreements(){
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">AR Agreements</h1><div class="page-meta">CONTRACT & COMMERCIAL REGISTER · FSMA s.39 · SUP 12.5</div></div>
+    <div class="head-actions">
+      <button class="btn-ghost" onclick="exportCSV('ar-agreements')">↓ Export</button>
+      <button class="btn-teal" onclick="openAdd(currentMod,'AR Agreement')">+ AR Agreement</button>
+    </div>
+  </div>
+  <div class="reg-intro">The contractual position of each appointed representative under the Razlin AR Agreement — effective date, minimum term and notice, fee position, and the key contractual controls (PII, ICO registration, personal guarantee). Each AR\u2019s scope is capped by Razlin\u2019s Part 4A permission (see Permissions & RAO Scope).<span class="basis">AR Agreement · FSMA s.39 · SUP 12.5 contract terms · Schedules 2 (fees) / 3 (obligations) / 5 (permitted business) / 6 (call recording) / 7 (personal guarantee)</span></div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Standard Commercial Terms (Schedule 2 & 3)</div><div class="card-note">APPLY TO ALL AR AGREEMENTS UNLESS VARIED IN WRITING</div></div>
+    <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px">
+      ${AGREE_TERMS.map(t=>`<span class="chip chip-slate" style="text-transform:none;letter-spacing:0;font-size:11px;padding:5px 10px">${t}</span>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Post-Kession agreement review</div><div class="card-note">SCOPE RE-PAPERING · s.39(3) PRINCIPAL-LIABILITY PROTECTION</div></div>
+    <div class="reg-intro" style="margin:0;border-radius:0;border-left:none;border-top:none;border-right:none">Following <em>Kession Capital v KVB Consultants</em> [2026] UKSC 11, every executed AR agreement is being reviewed so scope is unambiguous — the condition on which the s.39(3) limitation on principal liability bites. Network-wide repapering programme (Vince Harvey).</div>
+    ${renderTable(REG_KESSION,currentMod)}
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">AR Agreement Register</div><div class="card-note">PER-AR CONTRACTUAL POSITION</div></div>
+    ${renderTable(REG_AGREE,currentMod)}
+  </div>`;
+}
+
+function vPermissions(){
+  const tick='<span style="color:var(--green);font-weight:700">✓</span>';
+  const cross='<span style="color:var(--red);font-weight:700">✕</span>';
+  const grid=`<table><thead><tr>
+      <th>Regulated Activity</th><th style="text-align:center">ECP</th><th style="text-align:center">Professional</th><th style="text-align:center">Retail</th><th>Investment Types</th><th>Limitation</th>
+    </tr></thead><tbody>
+    ${RAZLIN_PERMS.map(p=>`<tr>
+      <td><div class="cell-main">${p.act}</div></td>
+      <td style="text-align:center">${p.ecp?tick:cross}</td>
+      <td style="text-align:center">${p.pro?tick:cross}</td>
+      <td style="text-align:center">${p.ret?tick:cross}</td>
+      <td><span style="font-size:11.5px;color:var(--text2)">${p.inv}</span></td>
+      <td><span style="font-size:11.5px;color:var(--text2)">${p.lim}</span></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Permissions & RAO Scope</h1><div class="page-meta">MANUAL §1.2 · FSMA s.39 · SUP 12.5 · RAO 2001 · RAZLIN FRN 730805</div></div>
+    <div class="head-actions"><button class="btn-ghost" onclick="exportCSV('permissions')">↓ Export</button></div>
+  </div>
+  <div class="reg-intro">Razlin\u2019s own Part 4A permissions cap what any AR may do. Each AR\u2019s scope must sit within this grid; client-type limits operate as valid s.39(3) restrictions on principal liability (per Kession).<span class="basis">FSMA s.39(3) limitations · RAO Art 21/25/53/64 · SUP 12.5 permitted business · Kession Capital v KVB [2026] UKSC 11</span></div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Razlin Part 4A FCA Permissions</div><div class="card-note">PROFESSIONAL & ELIGIBLE COUNTERPARTY ONLY — NO RETAIL</div></div>
+    ${grid}
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Activities Razlin & its ARs cannot undertake</div><div class="card-note">MANUAL §1.2 — PROHIBITED SCOPE</div></div>
+    <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px">
+      ${RAZLIN_PROHIBITED.map(x=>`<span class="chip" style="color:var(--red);border-color:rgba(248,113,113,.35);background:var(--red-bg);text-transform:none;letter-spacing:0;font-size:11px;padding:5px 10px">✕ ${x}</span>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Per-AR Permitted Scope (RAO mapping)</div><div class="card-note">SCOPE OF APPOINTMENT VS PRINCIPAL PERMISSION</div></div>
+    ${renderTable(REG_PERM)}
+  </div>`;
+}
+
+const MODULES={
+  dashboard:vDashboard,
+  'manual-map':vManualMap,
+  'ar-register':()=>regPage('AR Register & Lifecycle','SUP 12.4 · 12.5 · 12.8 · 12.9 · FSMA s.39','The master record of Razlin\'s appointed representatives and introducer ARs across the full lifecycle — due-diligence onboarding, scope of appointment, FCA notification, and termination. Onboarding applicants are tracked through to approval.','SUP 12.4 due diligence · SUP 12.5 contract & scope · SUP 12.7 notifications · SUP 12.8 termination · SUP 12.9 records (3-yr retention)',REG_AR,'Onboard AR'),
+  permissions:vPermissions,
+  'ar-agreements':vAgreements,
+  pipeline:vPipeline,
+  'market-abuse':vMarketAbuse,
+  research:vResearch,
+  'cf30-returns':vCF30Returns,
+  'risk-scoring':vRiskScoring,
+  'policy-reg':()=>regPage('Policy Register','Manual §3 · 15 Mandatory AR Policies','The fifteen policies every AR must adopt, implement and acknowledge under the manual — with version control, last-reviewed dates and per-AR acknowledgement counts so review cycles and gaps are visible.','Manual §3 policy suite · SYSC · UK GDPR · MLR 2017 · Bribery Act 2010 · COBS · DISP · annual review',POLICY_REG,'Add / Review Policy'),
+  forms:()=>regPage('Forms & Declarations','Manual Appendices 1–6 + Staff Declaration','The manual\'s intake forms — declarations of interest, OBI, directors\' conflicts questionnaire, disclosure of relationships, PAD pre-clearance and gifts pre-approval — plus the quarterly AR Staff Declaration, tracked for outstanding returns.','Manual Appendices 1–6 · Staff Declaration · SYSC 10.1 · COBS 11.7A · COBS 2.3A',FORMS,'Issue Form'),
+  cmp:()=>regPage('Compliance Monitoring Programme','SYSC · SUP 12.6 · Risk-Based Monitoring','Razlin\'s risk-based schedule of monitoring across the AR network — thematic reviews, file reviews, desk-based and on-site work — with findings and remediation tracked to closure.','SUP 12.6 continuing obligations & adequate controls · SYSC monitoring · CMP v2.0 AR-issuable baseline',REG_CMP,'Schedule Review'),
+  'annual-review':()=>regPage('Annual Reviews (SUP 12.6A)','SUP 12.6A.2R · Principal Self-Assessment','The enhanced annual review of each AR\'s fitness, financial position and business adequacy, plus Razlin\'s own self-assessment of whether it has adequate resources to oversee the network.','SUP 12.6A.2R AR annual review · SUP 12.6A self-assessment · adequacy of resources',REG_ANN,'Start Review'),
+  'fin-proms':vFinProms,
+  pad:()=>regPage('Personal Account Dealing','COBS 11.7A · MAR · SYSC 10','Pre-clearance requests, holdings disclosures and restricted-list checks for staff and AR representatives, with quarterly attestations to evidence ongoing compliance.','COBS 11.7A personal transactions · MAR market abuse · restricted list & pre-clearance',REG_PAD,'Log Request'),
+  gifts:()=>regPage('Gifts, Entertainment & Inducements','COBS 2.3A / 2.3B · SYSC 10 · Bribery Act 2010','Register of gifts and hospitality given and received across the network, with de-minimis thresholds, approval routing, and an inducements assessment under the MiFID rules and anti-bribery overlay.','COBS 2.3A/2.3B inducements · SYSC 10 conflicts · Bribery Act 2010 · de-minimis thresholds',REG_GE,'Log Gift / Hospitality'),
+  conflicts:()=>regPage('Conflicts of Interest','SYSC 10.1 · Outside Business Interests','Identified conflicts across the AR network with mitigation and controls, linked outside-business-interest declarations, and periodic review sign-off.','SYSC 10.1 conflicts identification & management · SYSC 10.2 information barriers · OBI register',REG_COI,'Log Conflict'),
+  'tc-smcr':()=>regPage('T&C / SM&CR Certification','TC · SYSC 5 · SM&CR · FIT · COCON','Certification of customer-dealing-function holders (the population formerly approved as CF30), annual fit-and-proper assessments, conduct-rules training and T&C competence records.','SM&CR certification regime · Customer-Dealing Function (ex-CF30) · FIT annual F&P · COCON conduct rules · TC competence',REG_TC,'Add Person'),
+  training:()=>regPage('Compliance Training (Skillcast)','Manual §2.4 · TC · Three-Strike Rule','Mandatory Skillcast e-learning across the network — AML/CTF and Data Protection are core annual modules, with Financial Promotions and Market Abuse assigned by risk. Completion, attempts and pass/fail feed the three-strike escalation to the Risk & Audit Committee.','Manual §2.4 training · core annual: AML/CTF + GDPR · 3-strike escalation · completion auditing',TRAINING,'Assign Module'),
+  certification:vCertification,
+  aml:()=>regPage('Financial Crime / AML','SYSC 6 · MLR 2017 · JMLSG · MLRO Oversight','MLRO oversight of customer due diligence across ARs and introducers, sanctions/PEP screening, SmartSearch outcomes, SAR tracking and risk-rated ongoing monitoring.','MLR 2017 · SYSC 6 financial-crime systems · JMLSG guidance · SmartSearch CDD/EDD · CDD 6-yr retention · MLRO (SMF17)',REG_AML,'New DD Case'),
+  'data-breach':()=>regPage('Data Breaches (ICO)','Manual §3 · UK GDPR Art 33/34 · DUAA 2025 · ICO 72h','Personal-data breach register with risk assessment and the 72-hour ICO notification decision, plus whether affected individuals were notified — under DPO oversight. Read with the Data (Use and Access) Act 2025, which Razlin has reflected in its data-protection policy.','UK GDPR Art 33/34 · DPA 2018 · DUAA 2025 · ICO 72-hour notification · breach log retention',DATA_BREACH,'Log Breach'),
+  sar:()=>regPage('Subject Access Requests','Manual §3 · UK GDPR Art 15','Data-subject access requests tracked against the one-month statutory clock (extendable to three months where complex), with identity-verification and fulfilment status.','UK GDPR Art 15 · 1-month response (extendable to 3) · DPA 2018 · identity verification',SAR,'Log SAR'),
+  whistleblowing:()=>regPage('Whistleblowing','Manual §3 · SYSC 18 principles · PIDA','Confidential channel for concerns raised across the AR network, with confidentiality safeguards and outcomes; included in the Whistleblowers\' Champion annual report to the Razlin Board.','SYSC 18 (principles applied to ARs) · PIDA protected disclosures · confidentiality',REG_WB,'Log Concern'),
+  complaints:()=>regPage('Complaints (DISP)','DISP 1 · 8-Week Final · 4-Week Holding · FOS','Complaints log across the AR network with root-cause analysis, redress, FOS-referral rights and DISP reportability — final response within 8 weeks, holding response by 4 weeks.','DISP 1 complaints handling · 8-week final / 4-week holding / 3-day summary · FOS referral · 3-yr MiFID retention',REG_COMP,'Log Complaint'),
+  breaches:()=>regPage('Breaches & Incidents','SUP 15 · Principle 11 · Notifiability','Breach and incident register with severity rating, SUP 15 / Principle 11 notifiability assessment, root cause and remediation tracking.','SUP 15 notifications · Principle 11 open & cooperative · breach severity & notifiability',REG_BR,'Log Breach'),
+  'real-time':()=>regPage('Real-Time Monitoring','Manual §2.2 · Early-Warning Surveillance','Continuous surveillance feeding Razlin\'s oversight — Companies House filings, credit-reference deterioration, adverse media and sanctions screening — with the action taken on each alert.','Manual §2.2 real-time monitoring · Companies House · credit reference · adverse media · sanctions',RTM,'Add Source'),
+  attestations:vAttestations,
+  'reg-calendar':vRegCalendar,
+};
+
+/* ════════ ROUTER ════════ */
+function go(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  const mod=el.getAttribute('data-mod');
+  currentMod=mod;
+  document.getElementById('view').innerHTML=MODULES[mod]();
+  window.scrollTo(0,0);
+  if(mod==='fin-proms')renderFP();
+}
+
+/* ════════ FP SUBMISSION CHANNEL — audit trail + documents ════════ */
+const AUDIT=[
+  {t:'19 Apr · 09:41',a:'SUBMITTED',ref:'CCS-FP-2026-015',d:'Drake Star — Project Halcyon sale teaser · 2 documents attached'},
+  {t:'18 Apr · 16:02',a:'CLARIFICATION',ref:'CCS-FP-2026-014',d:'Atlas roadshow deck returned to Drake Star — target-market statement missing'},
+  {t:'18 Apr · 11:18',a:'DOCS ATTACHED',ref:'CCS-FP-2026-014',d:'Atlas_Roadshow_Deck_v12.pptx · SHA-256 logged to WORM store'},
+  {t:'17 Apr · 14:32',a:'ADOPTED',ref:'CCS-FP-2026-012',d:'Japan Q2 research note — CCS review complete, Razlin SMF16 adoption confirmed'},
+  {t:'16 Apr · 16:45',a:'REJECTED',ref:'CCS-FP-2026-011',d:'Retail flyer — fair-balance failure (COBS 4.2.1R); retail audience blocked'},
+  {t:'13 Apr · 12:05',a:'AI REVIEW',ref:'CCS-FP-2026-008',d:'Mercury term sheet — verdict: approve with conditions'},
+];
+function nowStamp(){const d=new Date();const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return String(d.getDate()).padStart(2,'0')+' '+m[d.getMonth()]+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function logAudit(a,ref,d){AUDIT.unshift({t:nowStamp(),a,ref,d});if(AUDIT.length>80)AUDIT.length=80;persist();}
+function auditHTML(list){return list.map(e=>`<div class="audit-item"><div class="audit-time">${e.t}</div><div class="audit-act"><strong>${e.a}</strong> · <span class="ref">${e.ref}</span> — ${e.d}</div></div>`).join('')||'<div style="padding:16px 20px;font-size:12px;color:var(--text3)">No events recorded for this item yet.</div>';}
+function exportAudit(){const rows=[csvRow(['Timestamp','Action','Reference','Detail']),...AUDIT.map(e=>csvRow([e.t,e.a,e.ref,e.d]))].join('\n');dl('fp-audit-trail.csv',rows);toast('Export complete',AUDIT.length+' audit events exported.','success');}
+
+let pendingDocs=[];
+function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';}
+async function hashFile(f){try{const buf=await f.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].slice(0,6).map(x=>x.toString(16).padStart(2,'0')).join('');}catch(e){return 'n/a';}}
+async function filesPicked(fileList){for(const f of fileList){const h=await hashFile(f);pendingDocs.push({n:f.name,s:fmtSize(f.size),h});}renderPendingDocs();}
+function renderPendingDocs(){const el=document.getElementById('fpFileList');if(!el)return;el.innerHTML=pendingDocs.map((d,i)=>`<div class="file-pill">📄 <span>${d.n}</span><span style="color:var(--text3)">${d.s}</span><span class="fp-hash">sha·${d.h}</span><span class="fp-x" onclick="pendingDocs.splice(${i},1);renderPendingDocs()">✕</span></div>`).join('');}
+
+let fpTab='all';
+function fpFilter(el,t){fpTab=t;document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderFP();}
+const FP_CHIP={research:'chip-blue',marketing:'chip-purple',intro:'chip-teal',advisory:'chip-amber',teaser:'chip-amber',deck:'chip-slate'};
+const FP_LBL={research:'Research',marketing:'Marketing',intro:'Corp intro',advisory:'Advisory',teaser:'Teaser',deck:'Deck'};
+
+function openFPDetail(ref){
+  const p=FP.find(x=>x.ref===ref);if(!p)return;
+  document.getElementById('fpdTitle').textContent=p.title;
+  document.getElementById('fpdRef').textContent=p.ref+' · '+p.ar+' · submitted '+p.submitted;
+  const docs=(p.docs||[]);const events=AUDIT.filter(e=>e.ref===ref);
+  document.getElementById('fpdBody').innerHTML=
+    `<div class="fsl">Submission</div><div style="font-size:12.5px;color:var(--text2);line-height:1.65;margin-bottom:18px">${p.desc}</div>`+
+    `<div class="fsl">Supporting documents (${docs.length})</div><div style="margin-bottom:18px">${docs.length?docs.map(d=>`<div class="file-pill">📄 <span>${d.n}</span><span style="color:var(--text3)">${d.s||''}</span>${d.h?`<span class=\"fp-hash\">sha·${d.h}</span>`:''}<span style="margin-left:auto;font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace">IMMUTABLE · WORM</span></div>`).join(''):'<div style="font-size:12px;color:var(--text3)">No documents attached.</div>'}</div>`+
+    `<div class="fsl">Audit trail — this submission</div><div style="margin:0 -24px">${auditHTML(events)}</div>`;
+  document.getElementById('fpDetailOverlay').classList.add('open');
+}
+function closeFPDetail(){document.getElementById('fpDetailOverlay').classList.remove('open');}
+
+/* ════════ FP LOGIC ════════ */
+function renderFP(){
+  closeAI();
+  const tbody=document.getElementById('fpBody'); if(!tbody)return;
+  const list=FP.filter(p=>fpTab==='all'||p.type===fpTab);
+  tbody.innerHTML=list.map(p=>`
+    <tr>
+      <td><div class="cell-ref">${p.ref}</div><div class="cell-main">${p.title}</div><div class="cell-sub">${p.ar}</div></td>
+      <td>${chip(FP_LBL[p.type]||p.type,FP_CHIP[p.type]||'chip-slate')}</td>
+      <td>${badge(p.status==='review'?'Clarification':p.status.charAt(0).toUpperCase()+p.status.slice(1),p.status==='approved'?'b-green':p.status==='pending'?'b-amber':p.status==='rejected'?'b-red':'b-teal')}</td>
+      <td>${riskCell(p.risk)}</td>
+      <td><span class="doc-chip" style="cursor:pointer" onclick="openFPDetail('${p.ref}')" title="View documents & audit trail">📎 ${(p.docs||[]).length}</span></td>
+      <td><span class="cell-date">${p.submitted}</span></td>
+      <td><div class="acts">
+        ${(p.status==='pending'||p.status==='review')?`<button class="abtn a-approve" onclick="fpApprove('${p.ref}',event)">✓ Adopt</button><button class="abtn a-reject" onclick="fpReject('${p.ref}',event)">✕ Reject</button>`:''}
+        <button class="abtn a-ai" onclick="aiReview('${p.ref}',event)">⚡ AI Review</button>
+        <button class="abtn a-view" onclick="event.stopPropagation();openFPDetail('${p.ref}')">View</button>
+      </div></td>
+    </tr>`).join('')||'<tr><td colspan="7" style="padding:22px;text-align:center;color:var(--text3)">No submissions of this type.</td></tr>';
+  const at=document.getElementById('fpAudit'); if(at)at.innerHTML=auditHTML(AUDIT.slice(0,8));
+}
+function fpApprove(ref,e){e.stopPropagation();const p=FP.find(x=>x.ref===ref);if(p)p.status='approved';logAudit('ADOPTED',ref,(p?p.title:'')+' — CCS review complete, Razlin SMF16 adoption confirmed');renderFP();toast('Promotion Adopted',`${ref} adopted by Razlin SMF16. Audit trail updated.`,'success')}
+function fpReject(ref,e){e.stopPropagation();const p=FP.find(x=>x.ref===ref);if(p)p.status='rejected';logAudit('REJECTED',ref,(p?p.title:'')+' — returned to AR; distribution blocked');renderFP();toast('Promotion Rejected',`${ref} rejected. AR submitter will be notified.`,'error')}
+
+async function aiReview(ref,e){
+  e.stopPropagation();
+  const p=FP.find(x=>x.ref===ref);if(!p)return;
+  logAudit('AI REVIEW',ref,'COBS 4 / MAR analysis requested — advisory only, SMF16 decides');
+  const panel=document.getElementById('aiPanel'),content=document.getElementById('aiContent');
+  panel.classList.add('open');
+  content.className='ai-body loading';
+  content.innerHTML=`<div class="spinner"></div>Analysing <strong>&nbsp;${ref}&nbsp;</strong> against COBS 4, MAR 7 and FCA financial-promotions guidance…`;
+  const prompt=`You are a senior compliance analyst at CCS (Comprehensive Compliance Solutions), a compliance consultancy that is not itself FCA authorised. You are reviewing a financial promotion on behalf of your client, Razlin Limited (FRN 730805), the FCA-authorised principal firm responsible for approving the promotion under s.21 FSMA and COBS 4. The originating firm is an appointed representative of Razlin, and all promotions are restricted to per se professional clients (COBS 3.5) and eligible counterparties (COBS 3.6) — no retail.
+
+Promotion Reference: ${p.ref}
+Title: ${p.title}
+Appointed Representative: ${p.ar}
+Type: ${p.type}
+Description: ${p.desc}
+Risk Score: ${p.risk}/100
+
+Conduct a structured compliance review covering: COBS 4.2.1R (fair, clear and not misleading); COBS 4.5 (risk warnings); COBS 4.6 (past performance, if applicable); MAR 7 / COBS 12 (research independence and conflicts, if research); s.21 FSMA and Art 19 FPO (exempt communication pathway, with Razlin as approver); and audience restriction to professionals/ECPs only. For each relevant area give a brief finding of one to two sentences. Then give an overall verdict: APPROVE, APPROVE WITH CONDITIONS, REFER FOR FURTHER REVIEW, or REJECT. Keep the whole response under 320 words, plain compliance prose, no markdown headers or bullet symbols.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data=await resp.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'No response received.';
+    let vC='v-rev',vI='⚠',vL='Refer for Review';const tu=text.toUpperCase();
+    if(tu.includes('REJECT')){vC='v-fail';vI='✕';vL='Reject'}
+    else if(tu.includes('APPROVE WITH CONDITIONS')){vC='v-rev';vI='⚠';vL='Approve with Conditions'}
+    else if(tu.includes('APPROVE')){vC='v-pass';vI='✓';vL='Approve'}
+    content.className='ai-body';
+    content.innerHTML=`<div class="ai-lbl">AI Compliance Analysis — ${p.ref}</div><div style="line-height:1.75">${text.replace(/\n\n/g,'<br><br>').replace(/\n/g,' ')}</div><div class="ai-verdict ${vC}">${vI}&nbsp; AI Verdict: ${vL}</div><div style="font-size:10.5px;color:var(--text3);margin-top:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px">AI analysis is advisory only and prepared by CCS (not FCA authorised). Final approval authority rests with Razlin Limited's SMF16/17 holder as the FCA-authorised principal firm.</div>`;
+  }catch(err){
+    content.className='ai-body';
+    content.innerHTML=`<div style="color:var(--red);font-size:12.5px">AI review unavailable: ${err.message}. Please conduct manual review.</div>`;
+  }
+}
+function closeAI(){const p=document.getElementById('aiPanel');if(p)p.classList.remove('open')}
+
+/* ════════ AR RISK SCORING ════════ */
+function setRisk(i,f,v){CF30_RISK[i].scores[f]=v;persist();rerender();}
+
+/* ════════ CF30 ZERO-FRICTION RETURN ════════ */
+let returnAR='';
+function openReturn(pref){
+  returnAR=pref||'';
+  const ars=REG_CF30.rows.map(r=>r[0].main);
+  const opts=ars.map(a=>`<option ${a===pref?'selected':''}>${a}</option>`).join('');
+  document.getElementById('retAR').innerHTML='<option value="">Select AR…</option>'+opts;
+  document.getElementById('retBody').innerHTML=CF30_SECTIONS.map((s,i)=>`
+    <div class="ret-row"><div class="ret-name">${s}</div>
+    <div class="seg"><button class="on-nil" data-i="${i}" data-v="nil" onclick="segPick(${i},'nil')">NIL</button><button data-i="${i}" data-v="rep" onclick="segPick(${i},'rep')">REPORT</button></div></div>`).join('');
+  document.getElementById('retDecl').checked=false;
+  document.getElementById('returnOverlay').classList.add('open');
+}
+function closeReturn(){document.getElementById('returnOverlay').classList.remove('open');}
+function segPick(i,v){
+  document.querySelectorAll(`#retBody .seg button[data-i="${i}"]`).forEach(b=>{
+    b.classList.remove('on-nil','on-rep');
+    if(b.getAttribute('data-v')===v)b.classList.add(v==='nil'?'on-nil':'on-rep');
+  });
+}
+function markAllNil(){CF30_SECTIONS.forEach((s,i)=>segPick(i,'nil'));}
+function submitReturn(){
+  const ar=document.getElementById('retAR').value;
+  if(!ar){toast('Select an AR','Choose the AR this return is for.','');return;}
+  if(!document.getElementById('retDecl').checked){toast('Declaration required','Confirm the declaration to submit.','');return;}
+  let reported=0;
+  document.querySelectorAll('#retBody .seg').forEach(seg=>{const on=seg.querySelector('.on-rep');if(on)reported++;});
+  const allNil=reported===0;
+  const row=REG_CF30.rows.find(r=>r[0].main===ar);
+  const statusCell=allNil?{v:'NIL return',c:'b-teal'}:{v:'Submitted',c:'b-green'};
+  const itemsCell={v:allNil?'Nil across all sections':reported+' section(s) with items'};
+  const reviewCell=allNil?{v:'Reviewed',c:'b-green'}:{v:'Awaiting',c:'b-amber'};
+  if(row){row[4]=statusCell;row[5]=itemsCell;row[6]=reviewCell;}
+  else{REG_CF30.rows.unshift([{main:ar,sub:'Medium · Quarterly'},{v:'CF30'},{v:'Q2 2026',c:'chip-teal'},{v:'14 Jul 2026'},statusCell,itemsCell,reviewCell]);}
+  persist();closeReturn();rerender();
+  toast(allNil?'NIL return submitted':'Return submitted',`${ar} — Q2 2026 ${allNil?'confirmed nil in two clicks.':'recorded with '+reported+' item(s).'}`,'success');
+}
+
+
+/* ════════ MODAL + TOAST ════════ */
+function openModal(){pendingDocs=[];renderPendingDocs();document.getElementById('overlay').classList.add('open');document.getElementById('modalDate').valueAsDate=new Date()}
+function closeModal(){document.getElementById('overlay').classList.remove('open')}
+function maybeClose(e){if(e.target===document.getElementById('overlay'))closeModal()}
+function submitFP(){
+  const t=document.getElementById('fpTitle'), arSel=document.getElementById('fpAR'), tySel=document.getElementById('fpType');
+  const title=t&&t.value.trim()?t.value.trim():'Untitled promotion';
+  const ar=arSel&&!/^Select/.test(arSel.value)?arSel.value:'—', ty=tySel?tySel.value:'Research / Commentary';
+  const typeMap={'Research / Commentary':'research','Deal Teaser':'teaser','Investor / Pitch Deck':'deck','Marketing Material':'marketing','Corporate Introduction':'intro','Advisory / Term Sheet':'advisory'};
+  const n=(FP.reduce((m,p)=>{const x=parseInt((p.ref.match(/(\d+)$/)||[])[1]||'0');return x>m?x:m;},0))+1;
+  const ref='CCS-FP-2026-'+String(n).padStart(3,'0');
+  FP.unshift({ref,title,ar:ar||'—',type:typeMap[ty]||'research',status:'pending',risk:35,submitted:fmtDate(new Date().toISOString().slice(0,10)),desc:title+' — submitted via the AR portal for CCS review against COBS 4.',docs:pendingDocs.slice()});
+  logAudit('SUBMITTED',ref,(ar!=='—'?ar+' — ':'')+title+(pendingDocs.length?' · '+pendingDocs.length+' document(s) attached':''));
+  if(pendingDocs.length)logAudit('DOCS ATTACHED',ref,pendingDocs.map(d=>d.n).join(', ')+' · SHA-256 logged to WORM store');
+  pendingDocs=[];
+  persist(); closeModal();
+  if(currentMod==='fin-proms')renderFP();
+  toast('Submission received',`${ref} queued for CCS review → Razlin SMF16 sign-off. Audit entry created.`,'success');
+}
+function toast(title,sub,type){
+  const el=document.getElementById('toast');
+  document.getElementById('toastTitle').textContent=title;
+  document.getElementById('toastSub').textContent=sub;
+  el.className=`toast show${type==='error'?' t-error':type==='success'?' t-success':''}`;
+  clearTimeout(window._tt); window._tt=setTimeout(()=>el.classList.remove('show'),4000);
+}
+
+/* ════════ INTERACTIVITY ENGINE ════════ */
+let currentMod='dashboard';
+let addMod=null;
+
+/* every editable register keyed by module id */
+const DATASETS={
+  'ar-register':REG_AR,'ar-agreements':REG_AGREE,'permissions':REG_PERM,'manual-map':MANUAL_MAP,
+  'cf30-returns':REG_CF30,'certification':REG_CERT,
+  'market-abuse':REG_MAR,'research':REG_RES,'pipeline':REG_PIPE,
+  'policy-reg':POLICY_REG,'forms':FORMS,'cmp':REG_CMP,'annual-review':REG_ANN,
+  'pad':REG_PAD,'gifts':REG_GE,'conflicts':REG_COI,'tc-smcr':REG_TC,'training':TRAINING,
+  'aml':REG_AML,'data-breach':DATA_BREACH,'sar':SAR,'whistleblowing':REG_WB,
+  'complaints':REG_COMP,'breaches':REG_BR,'real-time':RTM
+};
+
+function rerender(){document.getElementById('view').innerHTML=MODULES[currentMod]();window.scrollTo(0,0);if(currentMod==='fin-proms')renderFP();}
+
+function fmtDate(s){if(!s)return '—';const d=new Date(s+'T00:00:00');if(isNaN(d))return s;const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return String(d.getDate()).padStart(2,'0')+' '+m[d.getMonth()]+' '+d.getFullYear();}
+
+/* ---- Add entry (generic, driven by each register's column config) ---- */
+function fieldFor(col,i){
+  const t=col.t, lab=col.h;
+  if(t==='risk') return `<div class="fg"><label>${lab} (0–100)</label><input type="number" min="0" max="100" data-idx="${i}" placeholder="e.g. 40"></div>`;
+  if(t==='date') return `<div class="fg"><label>${lab}</label><input type="date" data-idx="${i}"></div>`;
+  if(t==='bool') return `<div class="fg"><label>${lab}</label><select data-idx="${i}"><option value="no">No</option><option value="yes">Yes</option><option value="flag">Conflict / Flag</option></select></div>`;
+  if(t==='badge'||t==='chip'){
+    const opts = t==='badge'
+      ? '<option value="b-green">Green · OK</option><option value="b-amber" selected>Amber · Attention</option><option value="b-red">Red · Action</option><option value="b-teal">Teal · Info</option><option value="b-slate">Slate · N/A</option>'
+      : '<option value="chip-teal" selected>Teal</option><option value="chip-blue">Blue</option><option value="chip-purple">Purple</option><option value="chip-amber">Amber</option><option value="chip-slate">Slate</option>';
+    return `<div class="fg"><label>${lab}</label><input type="text" data-idx="${i}" placeholder="Label"><select data-idx="${i}-c" style="margin-top:6px">${opts}</select></div>`;
+  }
+  const full = t==='main'?' full':'';
+  const hint = t==='main'?' — “Main | sub-line”':'';
+  return `<div class="fg${full}"><label>${lab}${hint}</label><input type="text" data-idx="${i}" placeholder="${lab}"></div>`;
+}
+function openAdd(mod,label){
+  addMod=mod;
+  document.getElementById('addTitle').textContent='New '+(label||'entry');
+  if(mod==='reg-calendar'){
+    document.getElementById('addRef').textContent='Regulatory calendar — Razlin Ltd FRN 730805';
+    document.getElementById('addBody').innerHTML=
+      '<div class="fg"><label>Date</label><input type="date" data-cal="date"></div>'+
+      '<div class="fg"><label>Status / Countdown</label><input type="text" data-cal="cd" placeholder="e.g. Scheduled"></div>'+
+      '<div class="fg full"><label>Item</label><input type="text" data-cal="title" placeholder="e.g. REP025 — AR Annual Report"></div>'+
+      '<div class="fg full"><label>Detail</label><input type="text" data-cal="sub" placeholder="Short description"></div>';
+    document.getElementById('addOverlay').classList.add('open');return;
+  }
+  const cfg=DATASETS[mod]; if(!cfg){toast('Unavailable','This view has no editable register.','');return;}
+  document.getElementById('addRef').textContent=(label||'Entry')+' · added to register';
+  document.getElementById('addBody').innerHTML=cfg.cols.map((c,i)=>fieldFor(c,i)).join('');
+  document.getElementById('addOverlay').classList.add('open');
+}
+function closeAdd(){document.getElementById('addOverlay').classList.remove('open');addMod=null;}
+function val(sel){const el=document.querySelector('#addBody '+sel);return el?el.value.trim():'';}
+function submitAdd(){
+  if(addMod==='reg-calendar'){
+    const dt=val('[data-cal="date"]'), title=val('[data-cal="title"]')||'New deadline', sub=val('[data-cal="sub"]'), cd=val('[data-cal="cd"]')||'Scheduled';
+    CAL.unshift({date:dt?fmtDate(dt):'TBC',title,sub,bar:'tlb-t',cd,soon:false});
+    persist(); closeAdd(); rerender(); toast('Deadline added',`“${title}” added to the regulatory calendar.`,'success'); return;
+  }
+  const cfg=DATASETS[addMod]; if(!cfg)return;
+  const row=cfg.cols.map(()=>({}));
+  cfg.cols.forEach((col,i)=>{
+    const t=col.t, v=val(`[data-idx="${i}"]`);
+    if(t==='main'){const p=v.split('|');row[i]={main:(p[0]||'').trim()||'—'};if(p[1])row[i].sub=p[1].trim();}
+    else if(t==='ref'){row[i]={ref:v||'—'};}
+    else if(t==='date'){row[i]={v:v?fmtDate(v):'—'};}
+    else if(t==='risk'){row[i]={r:Math.max(0,Math.min(100,parseInt(v||'0')||0))};}
+    else if(t==='bool'){row[i]={v:v||'no'};}
+    else if(t==='badge'||t==='chip'){row[i]={v:v||'—',c:val(`[data-idx="${i}-c"]`)||(t==='badge'?'b-slate':'chip-slate')};}
+    else {row[i]={v:v||'—'};}
+  });
+  cfg.rows.unshift(row);
+  persist(); closeAdd(); rerender();
+  toast('Entry added','New record saved to the register.','success');
+}
+function deleteRow(mod,idx){
+  const cfg=DATASETS[mod]; if(!cfg)return;
+  cfg.rows.splice(idx,1); persist(); rerender();
+  toast('Entry removed','Record deleted from the register.','error');
+}
+function attDone(i){
+  const a=ATTEST[i]; if(!a||a.done>=a.total)return;
+  a.done++; if(a.done>=a.total){a.cls='done';a.due='Complete';}
+  persist(); rerender(); toast('Completion recorded',`${a.name}: ${a.done} of ${a.total}.`,'success');
+}
+
+/* ---- CSV export (works for any register + dashboard/calendar/attestations/FP) ---- */
+function cellText(c){if(c==null)return '';if(c.main!=null)return c.sub?c.main+' — '+c.sub:c.main;if(c.ref!=null)return c.ref;if(c.r!=null)return c.r+'/100';if(c.v!=null)return c.v;return '';}
+function csvRow(a){return a.map(x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"').join(',');}
+function dl(name,text){
+  try{const b=new Blob([text],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}
+  catch(e){toast('Export','Download is blocked in this preview — open the downloaded file to export.','');}
+}
+function exportCSV(mod){
+  const cfg=DATASETS[mod];
+  if(cfg){const rows=[csvRow(cfg.cols.map(c=>c.h)),...cfg.rows.map(r=>csvRow(r.map(cellText)))].join('\n');dl(mod+'.csv',rows);toast('Export complete',`${cfg.rows.length} rows exported to CSV.`,'success');return;}
+  if(mod==='dashboard'){const lbl={g:'Satisfactory',a:'Attention',r:'Action required',n:'N/A'};const rows=[csvRow(['Appointed Representative',...MATRIX.cols]),...MATRIX.rows.map(r=>csvRow([r.ar,...r.rag.map(g=>lbl[g])]))].join('\n');dl('ar-compliance-matrix.csv',rows);toast('Export complete','AR compliance matrix exported.','success');return;}
+  if(mod==='reg-calendar'){const rows=[csvRow(['Date','Item','Detail','Status']),...CAL.map(c=>csvRow([c.date,c.title,c.sub,c.cd]))].join('\n');dl('regulatory-calendar.csv',rows);toast('Export complete','Regulatory calendar exported.','success');return;}
+  if(mod==='attestations'){const rows=[csvRow(['Attestation','Basis','Cadence','Complete','Total','Status']),...ATTEST.map(a=>csvRow([a.name,a.ref,a.cadence,a.done,a.total,a.due]))].join('\n');dl('attestations.csv',rows);toast('Export complete','Attestations register exported.','success');return;}
+  if(mod==='fin-proms'){const rows=[csvRow(['Ref','Title','AR','Type','Status','Risk','Submitted','Docs']),...FP.map(p=>csvRow([p.ref,p.title,p.ar,p.type,p.status,p.risk,p.submitted,(p.docs||[]).map(d=>d.n).join(' | ')]))].join('\n');dl('financial-promotions.csv',rows);toast('Export complete','FP register exported.','success');return;}
+  toast('Export','Nothing to export on this view.','');
+}
+
+/* ---- Persistence (best-effort; standalone file persists, sandbox degrades gracefully) ---- */
+const STORE_KEY='ccs_ar_portal_v3';
+function persist(){
+  try{const o={fp:FP,attest:ATTEST,cal:CAL,risk:CF30_RISK,au:AUDIT,ds:{}};for(const k in DATASETS)o.ds[k]=DATASETS[k].rows;localStorage.setItem(STORE_KEY,JSON.stringify(o));}catch(e){}
+}
+function hydrate(){
+  try{
+    const s=localStorage.getItem(STORE_KEY); if(!s)return;
+    const o=JSON.parse(s);
+    const repl=(arr,data)=>{if(Array.isArray(data)){arr.length=0;data.forEach(x=>arr.push(x));}};
+    if(o.fp)repl(FP,o.fp); if(o.au)repl(AUDIT,o.au); if(o.attest)repl(ATTEST,o.attest); if(o.cal)repl(CAL,o.cal); if(o.risk)repl(CF30_RISK,o.risk);
+    if(o.ds)for(const k in o.ds){if(DATASETS[k])repl(DATASETS[k].rows,o.ds[k]);}
+  }catch(e){}
+}
+
+/* INIT */
+hydrate();
+document.getElementById('view').innerHTML=MODULES.dashboard();
+
+</script>
+</body>
+</html>

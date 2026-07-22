@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',sans-serif;background:#F3F5F8;color:#101828}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#D3D9E4;border-radius:4px}
+  a{color:#0891B2;text-decoration:none}
+  a:hover{color:#0E7490}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.78)}}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#F3F5F8;color:#101828;font-family:'Manrope',sans-serif;font-size:14px">
+
+  <header style="position:sticky;top:0;z-index:100;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid #E3E7EE;padding:0 26px;display:flex;align-items:center;justify-content:space-between;height:62px">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="display:flex;align-items:center;gap:11px;border-right:1px solid #E3E7EE;padding-right:18px;margin-right:4px">
+        <svg width="26" height="33" viewBox="0 0 64 84" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CCS Shard" style="filter:drop-shadow(0 0 3px rgba(101,163,13,.35))">
+          <defs>
+            <linearGradient id="sFaceL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#155E75"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0.92"/></linearGradient>
+            <linearGradient id="sFaceR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0891B2"/><stop offset="1" stop-color="#0F172A"/></linearGradient>
+            <linearGradient id="sApex" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A3E635"/><stop offset="1" stop-color="#84CC16"/></linearGradient>
+          </defs>
+          <polygon points="32,12 32,74 15,74" fill="url(#sFaceL)"/>
+          <polygon points="32,12 49,74 32,74" fill="url(#sFaceR)"/>
+          <polygon points="32,2 35,15 29,15" fill="url(#sApex)"/>
+          <polygon points="27,9 30,20 23,20" fill="#0891B2"/>
+          <polygon points="37,7 40,22 34,22" fill="#155E75"/>
+          <line x1="32" y1="12" x2="32" y2="74" stroke="#22D3EE" stroke-width="0.9" opacity="0.85"/>
+          <g stroke="#22D3EE" stroke-width="0.6" opacity="0.45"><line x1="24" y1="34" x2="32" y2="34"/><line x1="22" y1="44" x2="32" y2="44"/><line x1="20" y1="54" x2="32" y2="54"/><line x1="18" y1="64" x2="32" y2="64"/></g>
+          <circle cx="32" cy="4" r="2.4" fill="#A3E635" opacity="0.9"/>
+        </svg>
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px;letter-spacing:5px;color:#101828;padding-left:2px">CCS</span>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:12.5px;font-weight:600;color:#101828;line-height:1">AR Oversight Platform</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:#8A93A6;text-transform:uppercase;margin-top:3px">Razlin Ltd · FRN 730805</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(8,145,178,.07);border:1px solid rgba(8,145,178,.35);padding:5px 11px;font-family:'JetBrains Mono',monospace;font-size:8px;color:#0891B2;letter-spacing:1.3px;text-transform:uppercase">
+        <span style="width:5px;height:5px;border-radius:50%;background:#65A30D;box-shadow:0 0 6px #84CC16;animation:pulse 2s ease-in-out infinite"></span>
+        {{ modeLabel }}
+      </div>
+      <div style="background:linear-gradient(180deg,#0E7490,#155E75);color:#fff;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;padding:6px 12px">SMF16/17 · {{ operator }}</div>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:238px 1fr;min-height:calc(100vh - 62px)">
+    <aside style="background:#FFFFFF;border-right:1px solid #E3E7EE;padding:22px 0;overflow-y:auto;max-height:calc(100vh - 62px);position:sticky;top:62px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="6">
+        <div style="margin-bottom:16px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:#8A93A6;text-transform:uppercase;padding:0 22px;margin-bottom:6px">{{ sec.label }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+            <div style="{{ it.style }}">
+              <span style="{{ it.dot }}"></span>
+              {{ it.name }}
+              <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(185,28,28,.09);color:#B91C1C;padding:1px 6px;border-radius:9px;border:1px solid rgba(185,28,28,.3)">{{ it.badge }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </aside>
+
+    <main style="padding:28px 32px;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;animation:fadeDown .4s ease both">
+        <div>
+          <h1 style="font-family:'Sora',sans-serif;font-size:27px;font-weight:600;color:#101828;line-height:1.05;margin-bottom:7px;letter-spacing:-.3px">Agent Runtime</h1>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6;letter-spacing:1px">7 HEADLESS AGENTS · CLAUDE AGENT SDK · {{ modeMeta }} · FAIL-CLOSED</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ exportLog }}" style="background:#FFFFFF;color:#101828;border:1px solid #D3D9E4;padding:9px 15px;font-family:'Manrope',sans-serif;font-size:12.5px;cursor:pointer" style-hover="border-color:rgba(8,145,178,.35);color:#0891B2">Export run log</button>
+          <button onClick="{{ runAll }}" style="background:linear-gradient(180deg,#06B6D4,#0891B2);color:#fff;border:none;padding:10px 17px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 2px 12px rgba(8,145,178,.25)" style-hover="filter:brightness(1.06)">Run manual cycle</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;background:linear-gradient(100deg,rgba(8,145,178,.07),transparent);border:1px solid #E3E7EE;border-left:3px solid #0891B2;padding:13px 18px;margin-bottom:20px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div style="font-size:12.5px;color:#4E576A;line-height:1.45"><strong style="color:#101828">Agents draft; humans decide.</strong> The only egress tool available to any agent is <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0891B2">enqueue_for_signoff</span>. On any error, ambiguity or rule conflict an agent halts and raises an <strong style="color:#B45309">OPERATOR REVIEW</strong> flag. Nothing leaves the platform without {{ operator }}'s sign-off.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;animation:fadeDown .4s .05s ease both">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+          <div style="background:#FFFFFF;border:1px solid #E3E7EE;padding:16px 18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:{{ s.bar }}"></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">{{ s.label }}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:#101828;line-height:1;margin-bottom:4px;letter-spacing:-.5px">{{ s.value }}</div>
+            <div style="font-size:10.5px;color:{{ s.subColor }}">{{ s.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E3E7EE;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05);animation:fadeDown .4s .1s ease both">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+          <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Agent fleet</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.8px">VERSIONED PROMPT · TOOL WHITELIST · TYPED JSON OUTPUT · CCS-AGENT-SPECS-001</div>
+        </div>
+        <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:13px">
+          <sc-for list="{{ agents }}" as="a" hint-placeholder-count="6">
+            <div style="border:1px solid #E3E7EE;background:#F5F7FA;padding:15px 16px;display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#101828;font-weight:500">{{ a.id }}</div>
+                  <div style="display:flex;align-items:center;gap:7px">
+                    <span style="{{ a.trigStyle }}">{{ a.trig }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6">{{ a.sched }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6">· {{ a.v }}</span>
+                  </div>
+                </div>
+                <span style="{{ a.statusStyle }}">{{ a.statusLabel }}</span>
+              </div>
+              <div style="font-size:12px;color:#4E576A;line-height:1.45">{{ a.desc }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <sc-for list="{{ a.tools }}" as="t" hint-placeholder-count="3">
+                  <span style="{{ t.style }}">{{ t.n }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #E3E7EE;padding-top:10px">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6">Last run · {{ a.last }}</span>
+                <button onClick="{{ a.run }}" style="background:#FFFFFF;color:#0891B2;border:1px solid rgba(8,145,178,.35);padding:6px 13px;font-family:'Manrope',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:rgba(8,145,178,.06)">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+                  Run now
+                </button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 20px;border-top:1px solid #E3E7EE;background:rgba(185,28,28,.03)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:1.2px;color:#B91C1C;text-transform:uppercase;font-weight:500">Withheld from every agent</span>
+          <sc-for list="{{ withheld }}" as="w" hint-placeholder-count="3">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#B91C1C;background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.28);padding:3px 9px;text-decoration:line-through;text-decoration-color:rgba(185,28,28,.6)">{{ w }}</span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E3E7EE;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Sign-Off Queue</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#0891B2;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.28);padding:2px 8px">THE ONLY EGRESS</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.8px">{{ pendingCount }} AWAITING {{ operator }}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="{{ thStyle }}">Reference</th>
+            <th style="{{ thStyle }}">Agent</th>
+            <th style="{{ thStyle }}">Type</th>
+            <th style="{{ thStyle }}">Subject / AR</th>
+            <th style="{{ thStyle }}">Produced</th>
+            <th style="{{ thStyle }}">Status</th>
+            <th style="{{ thStyle }};text-align:right">Actions</th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{ queue }}" as="q" hint-placeholder-count="5">
+              <tr style="border-bottom:1px solid rgba(148,163,184,.14)">
+                <td style="padding:12px 16px;vertical-align:top"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#0891B2;font-weight:500">{{ q.ref }}</span></td>
+                <td style="padding:12px 16px;vertical-align:top;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E576A">{{ q.agent }}</td>
+                <td style="padding:12px 16px;vertical-align:top"><span style="{{ q.kindStyle }}">{{ q.kind }}</span></td>
+                <td style="padding:12px 16px;vertical-align:top;max-width:320px">
+                  <div style="font-size:12.5px;color:#101828;font-weight:600;margin-bottom:3px">{{ q.ar }}</div>
+                  <div style="font-size:11px;color:#8A93A6;line-height:1.4">{{ q.summary }}</div>
+                </td>
+                <td style="padding:12px 16px;vertical-align:top;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E576A;white-space:nowrap">{{ q.produced }}</td>
+                <td style="padding:12px 16px;vertical-align:top"><span style="{{ q.statusStyle }}">{{ q.statusLabel }}</span></td>
+                <td style="padding:12px 16px;vertical-align:top">
+                  <div style="display:flex;gap:6px;justify-content:flex-end">
+                    <button onClick="{{ q.open }}" style="background:#FFFFFF;color:#4E576A;border:1px solid #D3D9E4;padding:5px 11px;font-family:'Manrope',sans-serif;font-size:11px;cursor:pointer" style-hover="border-color:rgba(8,145,178,.35);color:#0891B2">Review</button>
+                    <sc-if value="{{ q.actionable }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ q.sign }}" style="background:#15803D;color:#fff;border:none;padding:5px 11px;font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;cursor:pointer" style-hover="filter:brightness(1.08)">Sign off</button>
+                    </sc-if>
+                  </div>
+                </td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E3E7EE;margin-bottom:24px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">AgentRun log</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;background:#F5F7FA;border:1px solid #E3E7EE;padding:2px 8px">APPEND-ONLY · 7-YR RETENTION</span>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6">no update / no delete via API</span>
+        </div>
+        <div style="padding:6px 0">
+          <sc-for list="{{ log }}" as="e" hint-placeholder-count="5">
+            <div style="display:flex;align-items:baseline;gap:14px;padding:9px 20px;border-bottom:1px solid rgba(148,163,184,.1)">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8A93A6;white-space:nowrap;min-width:92px">{{ e.t }}</span>
+              <span style="{{ e.evStyle }}">{{ e.ev }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0891B2;min-width:190px">{{ e.agent }}</span>
+              <span style="font-size:12px;color:#4E576A;line-height:1.4">{{ e.d }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.6px;padding-bottom:20px">CCS — Comprehensive Compliance Solutions · Agent runtime is advisory · SMF sign-off is the sole authority · Deterministic dates &amp; thresholds computed in code</div>
+    </main>
+  </div>
+
+  <sc-if value="{{ selected }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeBackdrop }}" style="position:fixed;inset:0;z-index:200;background:rgba(16,24,40,.42);display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;overflow-y:auto">
+      <div onClick="{{ stop }}" style="background:#FFFFFF;width:100%;max-width:660px;border:1px solid #D3D9E4;box-shadow:0 24px 70px rgba(16,24,40,.28)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 22px;background:#F5F7FA;border-bottom:1px solid #E3E7EE">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0891B2;font-weight:500;margin-bottom:4px">{{ selected.ref }}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:600;color:#101828">{{ selected.ar }}</div>
+          </div>
+          <button onClick="{{ closeDraft }}" style="background:none;border:1px solid #D3D9E4;color:#4E576A;width:30px;height:30px;cursor:pointer;font-size:15px;line-height:1" style-hover="border-color:#B91C1C;color:#B91C1C">✕</button>
+        </div>
+        <div style="padding:20px 22px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <sc-for list="{{ selected.meta }}" as="m" hint-placeholder-count="4">
+              <div style="background:#F5F7FA;border:1px solid #E3E7EE;padding:9px 11px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:1px;color:#8A93A6;text-transform:uppercase;margin-bottom:4px">{{ m.k }}</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#101828">{{ m.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">Tool calls · whitelist enforced</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ selected.toolChips }}" as="t" hint-placeholder-count="3"><span style="{{ t.style }}">{{ t.n }}</span></sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">Structured output · Zod-validated</div>
+            <pre style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#101828;background:#0F172A;color:#95F3FF;padding:14px 16px;overflow-x:auto;line-height:1.55;white-space:pre-wrap;margin:0">{{ selected.output }}</pre>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">Draft — awaiting sign-off</div>
+            <div style="border:1px solid #E3E7EE;border-left:3px solid {{ selected.accent }};padding:13px 15px;font-size:12.5px;color:#4E576A;line-height:1.55;background:#FCFDFE">{{ selected.body }}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 22px;background:#F5F7FA;border-top:1px solid #E3E7EE">
+          <div style="font-size:11px;color:#8A93A6;line-height:1.4;max-width:300px">{{ selected.note }}</div>
+          <sc-if value="{{ selected.actionable }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:9px">
+              <button onClick="{{ returnDraft }}" style="background:#FFFFFF;color:#B45309;border:1px solid rgba(180,83,9,.4);padding:9px 16px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:rgba(180,83,9,.06)">Return to operator</button>
+              <button onClick="{{ signSelected }}" style="background:#15803D;color:#fff;border:none;padding:9px 18px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(21,128,61,.25)" style-hover="filter:brightness(1.08)">Sign off &amp; release</button>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:24px;right:24px;z-index:300;background:#FFFFFF;border:1px solid #E3E7EE;border-left:3px solid {{ toast.accent }};box-shadow:0 12px 40px rgba(16,24,40,.18);padding:14px 18px;max-width:360px;animation:toastIn .25s ease both">
+      <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#101828;margin-bottom:3px">{{ toast.title }}</div>
+      <div style="font-size:12px;color:#4E576A;line-height:1.45">{{ toast.sub }}</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;autonomousMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Runtime&quot;,&quot;label&quot;:&quot;Autonomous mode (post Gate 5)&quot;},&quot;operatorName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;A. Siddiq&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Runtime&quot;,&quot;label&quot;:&quot;Sign-off authority (SMF16/17)&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    const teal={n:'query_database'};
+    this.state = {
+      seq: 413,
+      toast: null,
+      selected: null,
+      agents: [
+        {id:'agent-quarterly-cycle', trig:'CRON', sched:'Daily · 06:00', v:'v3', last:'Today · 06:00',
+          desc:'Chases outstanding CF30 quarterly returns. Computes T+10BD due dates and the T-5BD…T+20BD escalation ladder in code — never in the model.',
+          tools:['query_database','compute_dates','enqueue_for_signoff']},
+        {id:'agent-anomaly', trig:'CRON', sched:'Nightly · 02:00', v:'v2', last:'Today · 02:00',
+          desc:'Scans registers and monitoring feeds for anomalies — adverse media, credit deterioration, threshold breaches — and flags them for review.',
+          tools:['query_database','screen_feeds','enqueue_for_signoff']},
+        {id:'agent-cpd-tracker', trig:'CRON', sched:'Daily · 06:00', v:'v2', last:'Today · 06:00',
+          desc:'Tracks CPD 35h/yr and certification lapses. Applies the three-strike escalation deterministically against coded thresholds.',
+          tools:['query_database','compute_thresholds','enqueue_for_signoff']},
+        {id:'agent-consolidator', trig:'WEBHOOK', sched:'On return submit', v:'v4', last:'12 Apr · 14:20',
+          desc:'Consolidates a submitted CF30 return into an oversight summary and cross-checks it against the registers for exceptions.',
+          tools:['query_database','enqueue_for_signoff']},
+        {id:'agent-notification-drafter', trig:'WEBHOOK', sched:'On flagged event', v:'v3', last:'11 Apr · 09:05',
+          desc:'Drafts SUP 15 / Principle 11 / ICO notifications for a flagged breach. Drafts only — it can never send or file.',
+          tools:['query_database','draft_template','enqueue_for_signoff']},
+        {id:'agent-pre-meeting-prep', trig:'ON-DEMAND', sched:'Operator-triggered', v:'v2', last:'08 Apr · 16:40',
+          desc:'Assembles the Risk & Audit Committee pre-meeting pack from the current network state, deadlines and open items.',
+          tools:['query_database','compile_pack','enqueue_for_signoff']},
+        {id:'agent-evidence-packer', trig:'ON-DEMAND', sched:'Operator-triggered', v:'v2', last:'02 Apr · 11:12',
+          desc:'Assembles an evidence bundle — documents, SHA-256 hashes and an audit extract — for a supervisory request.',
+          tools:['query_database','gather_docs','enqueue_for_signoff']},
+      ],
+      queue: [
+        {ref:'CCS-AGT-2026-0412', agent:'agent-quarterly-cycle', kind:'Chase', ar:'SIX Financial Information UK', produced:'Today · 06:01', status:'ready',
+          summary:'Q1 CF30 return outstanding — due T+10BD (13 May). Reminder + T-5BD escalation drafted.', promptV:'v3', hash:'a91f…c4', tokens:'3,204',
+          verdict:'DRAFT READY', findings:['Q1 CF30 return not received from SIX','Due date 13 May computed (quarter-end + 10 business days)','T-5BD escalation to Compliance queued'], action:'enqueue_for_signoff',
+          body:'Reminder to SIX Financial Information UK: your Q1 CF30 quarterly return is outstanding. The submission window closes on 13 May 2026 (quarter-end plus 10 business days). If not received by 06 May (T-5BD) this will escalate to Razlin Compliance. NIL returns can be filed in two clicks.',
+          note:'Advisory draft. Releasing sends via the sign-off channel only.'},
+        {ref:'CCS-AGT-2026-0411', agent:'agent-anomaly', kind:'Alert', ar:'Drake Star UK', produced:'Today · 02:14', status:'review',
+          summary:'Adverse-media match on a connected party could not be disambiguated. Halted and flagged.', promptV:'v2', hash:'7d02…9b', tokens:'2,118',
+          verdict:'OPERATOR REVIEW', findings:['Adverse-media hit on a name matching a connected party','Identity could not be disambiguated with available data','Fail-closed: no draft produced — human review required'], action:'operator_review',
+          body:'An adverse-media result partially matched a connected party of Drake Star UK. The agent could not confirm identity to the required confidence and halted rather than proceed. Manual review by Compliance is required before any register entry or notification.',
+          note:'Fail-closed flag. Resolve manually — the agent will not proceed autonomously.'},
+        {ref:'CCS-AGT-2026-0410', agent:'agent-notification-drafter', kind:'Notification', ar:'Codrington Associates', produced:'11 Apr · 09:05', status:'ready',
+          summary:'Draft ICO 72-hour breach notification for DB-014. Marked DO NOT SEND — SMF egress only.', promptV:'v3', hash:'3e55…1a', tokens:'4,760',
+          verdict:'DRAFT READY', findings:['Personal-data breach DB-014 logged for Codrington','UK GDPR Art 33 72-hour clock started 11 Apr 08:30','Draft prepared for SMF review — not filed'], action:'enqueue_for_signoff',
+          body:'Draft ICO notification (UK GDPR Art 33) for personal-data breach DB-014 affecting Codrington Associates. Nature, categories and approximate number of data subjects populated from the breach register. THIS IS A DRAFT — the agent has not filed it. Filing requires SMF sign-off within the 72-hour window.',
+          note:'The agent cannot file. Sign-off releases to the operator to submit.'},
+        {ref:'CCS-AGT-2026-0409', agent:'agent-consolidator', kind:'Summary', ar:'SIX Financial Information UK', produced:'12 Apr · 14:20', status:'ready',
+          summary:'Q4 return consolidated. 2 cross-check exceptions flagged against the registers.', promptV:'v4', hash:'c1a8…7f', tokens:'5,902',
+          verdict:'DRAFT READY', findings:['Q4 CF30 return consolidated into oversight summary','Exception: PAD attestation missing for 1 rep','Exception: G&E nil-return not matched to log'], action:'enqueue_for_signoff',
+          body:'Consolidated oversight summary for the SIX Q4 CF30 return. Twelve sections reconciled against the live registers. Two exceptions require attention: a missing PAD quarterly attestation for one representative, and a gifts & entertainment nil-return with no matching register line. Recommended for review before the quarterly oversight meeting.',
+          note:'Advisory summary. Sign-off records acceptance into the audit trail.'},
+        {ref:'CCS-AGT-2026-0408', agent:'agent-cpd-tracker', kind:'Escalation', ar:'Drake Star UK · A. Mensah', produced:'10 Apr · 06:02', status:'ready',
+          summary:'CPD at 22/35h with 3 months to deadline. Strike-1 notice drafted.', promptV:'v2', hash:'f420…33', tokens:'1,905',
+          verdict:'DRAFT READY', findings:['A. Mensah CPD 22/35h logged','3 months to the annual deadline','Strike 1 of 3 threshold reached — notice drafted'], action:'enqueue_for_signoff',
+          body:'Strike-1 CPD notice for A. Mensah (Drake Star UK). Current logged CPD is 22 of the required 35 hours with roughly three months remaining in the certification year. This is the first of three strikes; a second would escalate to the Risk & Audit Committee. Notice drafted for issue on sign-off.',
+          note:'Deterministic threshold. Sign-off issues the notice.'},
+      ],
+      log: [
+        {t:'Today · 06:01', ev:'AGENT RUN', agent:'agent-quarterly-cycle', d:'v3 · draft CCS-AGT-2026-0412 enqueued for sign-off · 3,204 tok'},
+        {t:'Today · 02:14', ev:'FAIL-CLOSED', agent:'agent-anomaly', d:'ambiguous adverse-media match → OPERATOR REVIEW raised · CCS-AGT-2026-0411'},
+        {t:'11 Apr · 09:05', ev:'AGENT RUN', agent:'agent-notification-drafter', d:'v3 · ICO Art 33 draft enqueued (marked DO NOT SEND) · 4,760 tok'},
+        {t:'11 Apr · 03:22', ev:'TOOL DENIED', agent:'agent-notification-drafter', d:'attempted send_email → blocked by tool whitelist · logged, no egress'},
+        {t:'12 Apr · 14:20', ev:'AGENT RUN', agent:'agent-consolidator', d:'v4 · Q4 consolidation enqueued · 2 exceptions · 5,902 tok'},
+      ],
+    };
+  }
+
+  now(){ const d=new Date(); const h=String(d.getHours()).padStart(2,'0'); const m=String(d.getMinutes()).padStart(2,'0'); return 'Today · '+h+':'+m; }
+  nextRef(){ const r='CCS-AGT-2026-0'+this.state.seq; this.setState(s=>({seq:s.seq+1})); return r; }
+  flash(title, sub, accent){ this.setState({toast:{title,sub,accent:accent||'#0891B2'}}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:null}),3400); }
+  logRun(entry){ this.setState(s=>({log:[entry, ...s.log]})); }
+
+  runAgent(a){
+    const ref=this.nextRef();
+    const t=this.now();
+    const draft={ref, agent:a.id, kind:'Draft', ar:'Manual run · '+a.id, produced:t, status:'ready',
+      summary:'Manual operator run — draft produced and enqueued for sign-off.', promptV:a.v, hash:(Math.random().toString(16).slice(2,6))+'…'+(Math.random().toString(16).slice(2,4)), tokens:(2000+Math.floor(Math.random()*4000)).toLocaleString(),
+      verdict:'DRAFT READY', findings:['Manual trigger accepted','Inputs validated against schema','Output validated → enqueued for sign-off'], action:'enqueue_for_signoff',
+      body:'Draft produced by a manual operator run of '+a.id+'. Output validated against the agent\u2019s Zod schema and routed to the Sign-Off Queue. No egress performed.',
+      note:'Manual run. Sign-off is the only route out.'};
+    this.setState(s=>({queue:[draft, ...s.queue]}));
+    this.logRun({t, ev:'AGENT RUN', agent:a.id, d:a.v+' · manual run · draft '+ref+' enqueued for sign-off'});
+    this.flash('Draft enqueued', a.id+' produced '+ref+'. Awaiting '+this.operator()+' sign-off.', '#0891B2');
+  }
+  runAll(){
+    const ondemand=this.state.agents.filter(a=>a.trig!=='WEBHOOK');
+    let n=0;
+    ondemand.forEach(a=>{ if(a.id.indexOf('anomaly')<0){ this.runAgent(a); n++; } });
+    this.flash('Manual cycle complete', n+' agents ran; drafts queued for sign-off. Anomaly agent runs on schedule only.', '#65A30D');
+  }
+  operator(){ return this.props.operatorName ?? 'A. Siddiq'; }
+
+  open(q){ this.setState({selected:q}); }
+  closeDraft(){ this.setState({selected:null}); }
+  sign(ref){
+    const t=this.now();
+    this.setState(s=>({ queue:s.queue.map(q=>q.ref===ref?{...q,status:'signed'}:q), selected:null }));
+    const q=this.state.queue.find(x=>x.ref===ref);
+    this.logRun({t, ev:'SIGNED-OFF', agent:q?q.agent:'—', d:'SMF16 sign-off · '+ref+' · released via enqueue_for_signoff'});
+    this.flash('Signed off', ref+' released through the sign-off channel. Immutable audit row written.', '#15803D');
+  }
+  returnDraft(ref){
+    const t=this.now();
+    this.setState(s=>({ queue:s.queue.map(q=>q.ref===ref?{...q,status:'returned'}:q), selected:null }));
+    const q=this.state.queue.find(x=>x.ref===ref);
+    this.logRun({t, ev:'RETURNED', agent:q?q.agent:'—', d:ref+' returned to operator for revision · no egress'});
+    this.flash('Returned to operator', ref+' sent back for revision. Nothing left the platform.', '#B45309');
+  }
+  exportLog(){ this.flash('Export complete', 'AgentRun log exported to CSV (append-only, 7-yr retention).', '#0891B2'); }
+
+  chip(bg, fg, bd){ return 'font-family:\'JetBrains Mono\',monospace;font-size:10px;padding:3px 9px;background:'+bg+';color:'+fg+';border:1px solid '+bd+';white-space:nowrap'; }
+  trigStyle(t){
+    if(t==='CRON') return this.chip('rgba(29,78,216,.08)','#1D4ED8','rgba(29,78,216,.28)');
+    if(t==='WEBHOOK') return this.chip('rgba(126,34,206,.08)','#7E22CE','rgba(126,34,206,.28)');
+    return this.chip('rgba(101,163,13,.1)','#4D7C0F','rgba(101,163,13,.3)');
+  }
+  toolStyle(n){
+    if(n==='enqueue_for_signoff') return this.chip('rgba(8,145,178,.1)','#0891B2','rgba(8,145,178,.35)');
+    return this.chip('#EDF0F5','#4E576A','#D3D9E4');
+  }
+  kindStyle(k){
+    const map={Chase:['rgba(8,145,178,.08)','#0891B2','rgba(8,145,178,.28)'],Alert:['rgba(180,83,9,.09)','#B45309','rgba(180,83,9,.28)'],Notification:['rgba(126,34,206,.08)','#7E22CE','rgba(126,34,206,.28)'],Summary:['rgba(29,78,216,.08)','#1D4ED8','rgba(29,78,216,.28)'],Escalation:['rgba(180,83,9,.09)','#B45309','rgba(180,83,9,.28)'],Draft:['#EDF0F5','#4E576A','#D3D9E4']};
+    const c=map[k]||map.Draft; return this.chip(c[0],c[1],c[2]);
+  }
+  statusBits(s){
+    const map={
+      ready:['DRAFT READY','rgba(8,145,178,.1)','#0891B2','rgba(8,145,178,.35)'],
+      review:['OPERATOR REVIEW','rgba(185,28,28,.09)','#B91C1C','rgba(185,28,28,.3)'],
+      signed:['SIGNED OFF','rgba(21,128,61,.1)','#15803D','rgba(21,128,61,.3)'],
+      returned:['RETURNED','rgba(180,83,9,.09)','#B45309','rgba(180,83,9,.28)'],
+    };
+    return map[s]||map.ready;
+  }
+  evStyle(ev){
+    const c={'AGENT RUN':['#1D4ED8','rgba(29,78,216,.08)'],'FAIL-CLOSED':['#B91C1C','rgba(185,28,28,.09)'],'TOOL DENIED':['#B91C1C','rgba(185,28,28,.09)'],'SIGNED-OFF':['#15803D','rgba(21,128,61,.1)'],'RETURNED':['#B45309','rgba(180,83,9,.09)']}[ev]||['#4E576A','#EDF0F5'];
+    return 'font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:.6px;padding:2px 7px;color:'+c[0]+';background:'+c[1]+';min-width:98px;text-align:center;font-weight:500';
+  }
+
+  renderVals(){
+    const op=this.operator();
+    const autonomous=this.props.autonomousMode ?? false;
+    const navItem=(name,active,badge)=>({
+      name, badge:badge||'',
+      style:'display:flex;align-items:center;gap:10px;padding:8px 22px;font-size:12.5px;'+(active?'color:#0891B2;border-left:2px solid #0891B2;background:linear-gradient(90deg,rgba(8,145,178,.08),transparent);font-weight:600;':'color:#4E576A;border-left:2px solid transparent;')+'user-select:none',
+      dot:'width:6px;height:6px;border-radius:2px;flex-shrink:0;background:'+(active?'#0891B2':'#C4CBD6'),
+    });
+    const navSections=[
+      {label:'Overview', items:[navItem('Oversight Dashboard',false)]},
+      {label:'Governance', items:[navItem('Agent Runtime',true), navItem('Sign-Off Queue',false, String(this.state.queue.filter(q=>q.status==='ready'||q.status==='review').length))]},
+      {label:'Compliance Manual', items:[navItem('Manual Control Map',false),navItem('Policy Register',false),navItem('Forms & Declarations',false)]},
+      {label:'SUP 12 — AR Lifecycle', items:[navItem('AR Register & Lifecycle',false),navItem('AR Agreements',false),navItem('Onboarding Pipeline',false)]},
+      {label:'AR Self-Reporting', items:[navItem('CF30 Returns',false),navItem('AR Risk Scoring',false),navItem('Permissions & Scope',false),navItem('Monitoring Programme',false)]},
+      {label:'Conduct Registers', items:[navItem('Financial Promotions',false),navItem('Market Abuse / STOR',false),navItem('Gifts & Entertainment',false),navItem('Conflicts of Interest',false)]},
+      {label:'People & Financial Crime', items:[navItem('Financial Crime / AML',false),navItem('Data Breaches (ICO)',false),navItem('Complaints (DISP)',false),navItem('Attestations Hub',false)]},
+    ];
+
+    const agents=this.state.agents.map(a=>({
+      id:a.id, trig:a.trig, sched:autonomous&&a.trig==='CRON'?a.sched+' · auto':a.sched, v:a.v, last:a.last, desc:a.desc,
+      trigStyle:this.trigStyle(a.trig),
+      statusLabel:autonomous?'AUTONOMOUS':'MANUAL',
+      statusStyle:this.chip(autonomous?'rgba(101,163,13,.1)':'#EDF0F5', autonomous?'#4D7C0F':'#8A93A6', autonomous?'rgba(101,163,13,.3)':'#D3D9E4'),
+      tools:a.tools.map(n=>({n, style:this.toolStyle(n)})),
+      run:()=>this.runAgent(a),
+    }));
+
+    const withheld=['send_email','file_regulatory','persist_final'];
+
+    const queue=this.state.queue.map(q=>{
+      const sb=this.statusBits(q.status);
+      return {...q, kindStyle:this.kindStyle(q.kind),
+        statusLabel:sb[0], statusStyle:this.chip(sb[1],sb[2],sb[3]),
+        actionable:q.status==='ready',
+        open:()=>this.open(q), sign:()=>this.sign(q.ref)};
+    });
+
+    const log=this.state.log.map(e=>({...e, evStyle:this.evStyle(e.ev)}));
+
+    const pend=this.state.queue.filter(q=>q.status==='ready').length;
+    const flags=this.state.queue.filter(q=>q.status==='review').length;
+    const runsToday=this.state.log.filter(e=>e.t.indexOf('Today')===0).length;
+    const stats=[
+      {label:'Agents online', value:'7', sub:autonomous?'autonomous mode':'manual-trigger', subColor:'#8A93A6', bar:'#0891B2'},
+      {label:'Runs today', value:String(runsToday), sub:'all logged (7-yr)', subColor:'#8A93A6', bar:'#1D4ED8'},
+      {label:'Awaiting sign-off', value:String(pend), sub:'in the queue', subColor:'#0891B2', bar:'#65A30D'},
+      {label:'Operator review', value:String(flags), sub:flags?'fail-closed flag':'none open', subColor:flags?'#B91C1C':'#15803D', bar:flags?'#B91C1C':'#15803D'},
+      {label:'Agent egress', value:'0', sub:'send / file / persist', subColor:'#15803D', bar:'#15803D'},
+    ];
+
+    const sel=this.state.selected;
+    let selected=null;
+    if(sel){
+      const ag=this.state.agents.find(a=>a.id===sel.agent);
+      const tools=(ag?ag.tools:['query_database','enqueue_for_signoff']);
+      const outObj={ agent:sel.agent, trigger:(ag?ag.trig:'ON-DEMAND'), prompt_version:sel.promptV,
+        verdict:sel.verdict, findings:sel.findings, recommended_action:sel.action, requires_signoff:true, egress:'enqueue_for_signoff' };
+      selected={ ref:sel.ref, ar:sel.ar, body:sel.body, note:sel.note,
+        actionable:sel.status==='ready',
+        accent: sel.status==='review'?'#B91C1C':'#0891B2',
+        meta:[{k:'Agent',v:sel.agent.replace('agent-','')},{k:'Prompt',v:sel.promptV},{k:'Model',v:'claude'},{k:'Tokens',v:sel.tokens},{k:'Input hash',v:sel.hash},{k:'Verdict',v:sel.verdict},{k:'Produced',v:sel.produced},{k:'Retention',v:'7 yr'}],
+        toolChips:tools.map(n=>({n, style:this.toolStyle(n)})),
+        output:JSON.stringify(outObj,null,2),
+      };
+    }
+
+    return {
+      operator:op,
+      modeLabel:autonomous?'Agents · Autonomous':'Agents · Manual trigger',
+      modeMeta:autonomous?'AUTONOMOUS (Gate 5)':'MANUAL-TRIGGER MODE',
+      navSections, agents, withheld, queue, log, stats,
+      pendingCount:String(pend),
+      thStyle:'padding:10px 16px;text-align:left;font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:1.6px;color:#8A93A6;text-transform:uppercase;border-bottom:1px solid #E3E7EE;background:#F5F7FA;white-space:nowrap',
+      selected,
+      runAll:()=>this.runAll(),
+      exportLog:()=>this.exportLog(),
+      closeDraft:()=>this.closeDraft(),
+      closeBackdrop:()=>this.closeDraft(),
+      stop:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
+      signSelected:()=> sel && this.sign(sel.ref),
+      returnDraft:()=> sel && this.returnDraft(sel.ref),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+# Handoff: CCS AR Oversight Platform (for Razlin Limited)
+
+**Audience:** Claude Code (or any developer) implementing the production system, plus the humans running the legal/operational track. This README is self-sufficient — you do not need the design conversation.
+
+## Overview
+
+CCS ("Comprehensive Compliance Solutions") is a multi-tenant compliance platform Razlin Limited (FCA FRN 730805) uses to oversee its Appointed Representatives (ARs: SIX, Drake Star, Codrington Associates). Seven AI agents draft compliance work (CF30 chases, risk scoring, CPD strikes, anomaly flags, ICO drafts); humans (SMF16/17) sign off before anything leaves the system. **The golden rule: agents draft, humans decide, nothing leaves unsigned.**
+
+## About the Design Files
+
+Everything in `design_references/` is a **design reference created in HTML** — interactive prototypes showing intended look and behaviour, NOT production code to ship. Your task is to **recreate these designs in a real codebase** using the target stack below. The `.dc.html` files open directly in a browser (with `support.js` alongside); use them as the visual and behavioural spec. The one exception: `deterministic-engine.js` is **reference logic to port directly** (see Invariant 7).
+
+## Fidelity
+
+**High-fidelity.** Colors, typography, spacing, copy, and interactions are final. Recreate pixel-perfectly.
+
+## Target Stack
+
+- **Next.js (App Router)** on `portal.razlin.co.uk`
+- **Prisma + Postgres** with row-level security
+- **Azure Blob (immutability policy) or S3 Object Lock** for WORM document storage
+- **Entra ID / Okta OIDC** SSO — session carries `role` (AR | COMPLIANCE | SMF) + `arId`
+- **Anthropic API server-side only** (key vaulted; never in the browser)
+- **Agent SDK workers** behind a scheduler (CRON / webhook / on-demand), manual-trigger until Gate 5
+- Build phases and gate criteria: `original_docs/BUILD_GUIDE.md` and `original_docs/CCS Go-Live Checklist.html`
+
+## Screens / Views
+
+### 1. Agent Runtime & Sign-Off Queue (`design_references/Agent Runtime & Sign-Off Queue.dc.html`)
+Internal CCS screen. Fleet of 7 agents (CRON / WEBHOOK / ON-DEMAND) with versioned prompts, tool whitelists, schedules, and a "Run now" trigger. The Sign-Off Queue is the **sole egress point**: Review / Sign off / Return actions, detail modal with run metadata, whitelisted tool calls, Zod-validated JSON output. AgentRun log includes a `TOOL DENIED` row proving whitelist enforcement.
+
+### 2. Backend & Data Infrastructure (`design_references/Backend & Data Infrastructure.dc.html`)
+Internal CCS screen. Request path Tier 1 (SSO) → Tier 2 (App + API, server-side Claude) → Tier 3 (Postgres + WORM + audit) → Tier 4 (agents). API tool surface: 3 callable tools vs 3 withheld tools (struck through; clicking one simulates the 403 + audit row). Register table list with row counts, RLS scope, retention; row click opens schema + RLS policy SQL + recent writes. WORM object list with SHA-256 verify. Append-only audit feed.
+
+### 3. Deterministic Engine (`design_references/Deterministic Engine.dc.html`)
+Internal harness over `deterministic-engine.js`: CF30 cycle computer (pick a quarter → due date + T-5BD…T+20BD escalation ladder), 5-factor risk-band calculator, CPD three-strike checker, and the 18-case unit-test table.
+
+### 4. AR Portal — Razlin branded (`design_references/AR Portal (Razlin).dc.html`)
+**AR-facing.** Different brand: dark-teal header `#0F2E3D` with `#0E7490` accent, "RAZLIN Partner Portal". FP submission form (type chips, title, audience, COBS 4 checklist, file attach with client-side SHA-256), tenant-isolated submissions list (PENDING/ADOPTED/REJECTED), and a two-step NIL CF30 return modal (12 sections declared nil → named declaration). Footer carries the FCA regulatory line.
+
+### 5. Go-Live Monitoring (`design_references/Go-Live Monitoring.dc.html`)
+Internal CCS screen. 5 SMF gates + Phase 6 timeline, sign-off queue-age bars (target < 48h; green <24h, amber 24–48h, red >48h), fail-closed alert list (never auto-resolved), definition-of-done grid, and the `AGENTS_AUTONOMOUS` flag — clicking Enable while Gate 5 is uncleared shows a blocked toast.
+
+## Design Tokens
+
+**CCS internal screens (light theme)**
+- Background `#F3F5F8`; cards `#FFFFFF`; borders `#E3E7EE` (subtle: `rgba(148,163,184,.1–.14)`); inputs/panels `#F5F7FA`
+- Text: primary `#101828`, secondary `#4E576A`, muted `#8A93A6`
+- Accent cyan `#0891B2` (hover `#0E7490`); header gradient `#0E7490→#155E75`; CTA gradient `#06B6D4→#0891B2`
+- Status: success `#15803D`, pending/warn `#B45309`, danger `#B91C1C`, info blue `#1D4ED8`, purple (AI) `#7E22CE`, lime (live dot) `#65A30D`/`#84CC16`
+- Status chips: 9–10px JetBrains Mono, tinted bg at ~8–10% alpha, 1px border at ~28–35% alpha, square corners
+- Fonts: **Sora** (headings, 600–700), **Manrope** (body), **JetBrains Mono** (data/labels/uppercase micro-labels at 8px/1.3px letter-spacing)
+- Cards: square corners, `box-shadow: 0 1px 3px rgba(16,24,40,.05)`, 2px colored bottom-accent bar on stat cards
+- Layout: sticky 62px header; 238px white left sidebar (2px left-border active state); 28/32px main padding
+- Logo: the "CCS Shard" SVG (embedded in each file) + `CCS` wordmark at 5px letter-spacing
+
+**Razlin AR portal deltas**: header solid `#0F2E3D` with 3px `#0E7490` bottom border; accent `#0E7490`; 222px sidebar; "R" square logo mark.
+
+## Interactions & Behavior
+
+- Toasts: bottom-right, white card, 3px colored left border, ~4s auto-dismiss
+- Modals: full-screen `rgba(16,24,40,.42)` backdrop, square white panel, `#F5F7FA` header/footer bands
+- Row hover: `#F5F7FA`; buttons hover: `brightness(1.06–1.1)`
+- Entry animation: fadeDown 0.4s staggered ~0.05s per band
+- Withheld-tool click → 403 toast + new `TOOL DENIED` audit row + denied-counter increment (make this real in prod: gateway rejection + audit insert)
+- FP submit: title required (warn toast); success prepends a PENDING row with a new `FP-*` ref
+- NIL return: step 1 lists all 12 nil sections → step 2 named declaration → success toast + stat flips to FILED
+- File attach: SHA-256 computed via `crypto.subtle.digest` at attach time, shown truncated `sha256 xxxx…xxxx`
+
+## State Management (production)
+
+Registers (~30 tables; the 8 modelled in the design): `appointed_rep`, `cf30_return`, `financial_promotion`, `audit_event`, `agent_run`, `risk_score`, `data_breach`, `person_cpd`. Column lists and per-table RLS policies are in the Backend screen's inspect modal. Statuses: submissions `PENDING → ADOPTED | REJECTED`; register writes `PENDING → FINAL` (sign-off only); audit rows `APPEND` only.
+
+## Non-Negotiable Invariants (enforce in code review + tests)
+
+1. **One writeable path** — everything through the API tool layer. Agent tools: `query_database`, `write_register_entry` (rows land `PENDING`), `enqueue_for_signoff`.
+2. **Withheld tools are unreachable code paths**, not permission checks: `send_email`, `file_regulatory`, `persist_final` must not exist in any agent tool registry. Attempts → 403 at gateway + audit row.
+3. **Sign-Off Queue is the sole egress** — no email, filing, or FINAL persistence without an audited SMF16/17 action.
+4. **Append-only audit** — app role has INSERT only on `audit_event`/`agent_run`; no UPDATE/DELETE grants. Retention 6yr / 7yr.
+5. **RLS tenant isolation** — `arId = current_setting('app.ar_id')` per table; COMPLIANCE read-all + draft; SMF sign-off. Write cross-tenant leak tests.
+6. **Documents are WORM** — SHA-256 at ingest, verify-on-read in UI.
+7. **All arithmetic in code** — port `deterministic-engine.js` to TypeScript verbatim in behaviour: quarter-end +10BD CF30 due dates (England & Wales bank holidays), T-5BD…T+20BD ladder, risk bands (5–7 GREEN / 8–11 AMBER / 12–15 RED), CPD 35h three-strike, retention clocks, Art 33 72h. Keep all 18 test cases as unit tests; extend bank holidays past 2027. Agents call `compute_dates` / `compute_thresholds` — the model never does date maths.
+8. **No client-side secrets** — grep build output for the Anthropic key.
+9. **Fail closed** — any agent error/ambiguity halts the run and opens an operator-review alert; never auto-resolve.
+10. **`AGENTS_AUTONOMOUS=false` until Gate 5** (clean Codrington pilot quarter + executed DPA + pen test sign-off, each cleared in writing by SMF16/17). Until then all agent runs are operator-triggered. Flag flips are per-environment config, audited with the SMF authorisation reference.
+
+## Suggested Claude Code Prompts (in order)
+
+1. "Read design_handoff_ccs_platform/README.md and original_docs/BUILD_GUIDE.md. Scaffold the Next.js + Prisma + Postgres project per Phase 1; set up the schema for the 8 register tables with the RLS policies described."
+2. "Port design_references/deterministic-engine.js to TypeScript in src/lib/engine/ with all 18 test cases as Vitest unit tests. Extend the bank-holiday table to 2030."
+3. "Build the API tool layer: query_database / write_register_entry (PENDING) / enqueue_for_signoff, plus gateway rejection + audit insert for send_email / file_regulatory / persist_final. Write tests proving the withheld tools are absent from every agent registry."
+4. "Implement the internal screens pixel-perfect from design_references/: Agent Runtime & Sign-Off Queue, Backend & Data Infrastructure, Deterministic Engine, Go-Live Monitoring. Use the design tokens in the handoff README."
+5. "Implement the Razlin-branded AR portal from design_references/AR Portal (Razlin).dc.html, with SSO role/arId enforcement and real SHA-256 + WORM upload."
+6. "Wire the 7 agents as manual-trigger Agent SDK workers, fail-closed, with agent_run logging. Gate CRON/webhook triggers behind AGENTS_AUTONOMOUS."
+
+## Human Track (not for Claude Code)
+
+- Execute the CCS↔Razlin DPA before any real AR data
+- Commission the pen test (accept in writing)
+- Confirm with RAZ: CPD strike thresholds (currently 75%/90% pace at 3/1 months, hard fail at deadline), the 12 NIL-return sections, 48h queue SLO + escalation recipients
+- Run the Codrington pilot quarter with agents manual; SMF16/17 clears Gate 5 in writing; then flip `AGENTS_AUTONOMOUS`
+- Standing quarterly review: agent output quality, audit completeness, access rights
+
+## Files
+
+- `HANDOFF.md` — condensed invariants + file map (same content, shorter)
+- `design_references/*.dc.html` + `support.js` — open in a browser to interact with each screen
+- `design_references/deterministic-engine.js` — portable reference logic + `runTests()`
+- `original_docs/` — architecture one-pager, BUILD_GUIDE phases, go-live checklist, original portal reference, original project README/notes

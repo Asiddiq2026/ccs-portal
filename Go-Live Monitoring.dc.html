@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',sans-serif;background:#F3F5F8;color:#101828}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#D3D9E4;border-radius:4px}
+  a{color:#0891B2;text-decoration:none}
+  a:hover{color:#0E7490}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.78)}}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes flowdash{to{stroke-dashoffset:-16}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#F3F5F8;color:#101828;font-family:'Manrope',sans-serif;font-size:14px">
+
+  <header style="position:sticky;top:0;z-index:100;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid #E3E7EE;padding:0 26px;display:flex;align-items:center;justify-content:space-between;height:62px">
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="display:flex;align-items:center;gap:11px;border-right:1px solid #E3E7EE;padding-right:18px;margin-right:4px">
+        <svg width="26" height="33" viewBox="0 0 64 84" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="CCS Shard" style="filter:drop-shadow(0 0 3px rgba(101,163,13,.35))">
+          <defs>
+            <linearGradient id="sFaceLb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#155E75"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0.92"/></linearGradient>
+            <linearGradient id="sFaceRb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0891B2"/><stop offset="1" stop-color="#0F172A"/></linearGradient>
+            <linearGradient id="sApexb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A3E635"/><stop offset="1" stop-color="#84CC16"/></linearGradient>
+          </defs>
+          <polygon points="32,12 32,74 15,74" fill="url(#sFaceLb)"/>
+          <polygon points="32,12 49,74 32,74" fill="url(#sFaceRb)"/>
+          <polygon points="32,2 35,15 29,15" fill="url(#sApexb)"/>
+          <polygon points="27,9 30,20 23,20" fill="#0891B2"/>
+          <polygon points="37,7 40,22 34,22" fill="#155E75"/>
+          <line x1="32" y1="12" x2="32" y2="74" stroke="#22D3EE" stroke-width="0.9" opacity="0.85"/>
+          <g stroke="#22D3EE" stroke-width="0.6" opacity="0.45"><line x1="24" y1="34" x2="32" y2="34"/><line x1="22" y1="44" x2="32" y2="44"/><line x1="20" y1="54" x2="32" y2="54"/><line x1="18" y1="64" x2="32" y2="64"/></g>
+          <circle cx="32" cy="4" r="2.4" fill="#A3E635" opacity="0.9"/>
+        </svg>
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:20px;letter-spacing:5px;color:#101828;padding-left:2px">CCS</span>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:12.5px;font-weight:600;color:#101828;line-height:1">AR Oversight Platform</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:#8A93A6;text-transform:uppercase;margin-top:3px">Razlin Ltd · FRN 730805</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:13px">
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(8,145,178,.07);border:1px solid rgba(8,145,178,.35);padding:5px 11px;font-family:'JetBrains Mono',monospace;font-size:8px;color:#0891B2;letter-spacing:1.3px;text-transform:uppercase">
+        <span style="width:5px;height:5px;border-radius:50%;background:#65A30D;box-shadow:0 0 6px #84CC16;animation:pulse 2s ease-in-out infinite"></span>
+        {{ envLabel }}
+      </div>
+      <div style="background:linear-gradient(180deg,#0E7490,#155E75);color:#fff;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;padding:6px 12px">SMF16/17 · {{ operator }}</div>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:238px 1fr;min-height:calc(100vh - 62px)">
+    <aside style="background:#FFFFFF;border-right:1px solid #E3E7EE;padding:22px 0;overflow-y:auto;max-height:calc(100vh - 62px);position:sticky;top:62px">
+      <sc-for list="{{ navSections }}" as="sec" hint-placeholder-count="6">
+        <div style="margin-bottom:16px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:#8A93A6;text-transform:uppercase;padding:0 22px;margin-bottom:6px">{{ sec.label }}</div>
+          <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+            <div style="{{ it.style }}">
+              <span style="{{ it.dot }}"></span>
+              {{ it.name }}
+              <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(8,145,178,.09);color:#0891B2;padding:1px 6px;border-radius:9px;border:1px solid rgba(8,145,178,.3)">{{ it.badge }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </aside>
+
+    <main style="padding:28px 32px;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;animation:fadeDown .4s ease both">
+        <div>
+          <h1 style="font-family:'Sora',sans-serif;font-size:27px;font-weight:600;color:#101828;line-height:1.05;margin-bottom:7px;letter-spacing:-.3px">Backend &amp; Data Infrastructure</h1>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6;letter-spacing:1px">APPLICATION + API · POSTGRES · WORM OBJECT STORE · APPEND-ONLY AUDIT · {{ envMeta }}</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ exportAudit }}" style="background:#FFFFFF;color:#101828;border:1px solid #D3D9E4;padding:9px 15px;font-family:'Manrope',sans-serif;font-size:12.5px;cursor:pointer" style-hover="border-color:rgba(8,145,178,.35);color:#0891B2">Export audit trail</button>
+          <button onClick="{{ probeTool }}" style="background:linear-gradient(180deg,#06B6D4,#0891B2);color:#fff;border:none;padding:10px 17px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 2px 12px rgba(8,145,178,.25)" style-hover="filter:brightness(1.06)">Probe withheld tool</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;background:linear-gradient(100deg,rgba(8,145,178,.07),transparent);border:1px solid #E3E7EE;border-left:3px solid #0891B2;padding:13px 18px;margin-bottom:20px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2"><rect x="3" y="4" width="18" height="4"/><rect x="3" y="10" width="18" height="4"/><rect x="3" y="16" width="18" height="4"/></svg>
+        <div style="font-size:12.5px;color:#4E576A;line-height:1.45"><strong style="color:#101828">One writeable path, one egress.</strong> Agents and users reach data only through the API. Writes land as <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#B45309">PENDING</span> and require SMF sign-off to finalise; the audit trail is append-only with <strong style="color:#101828">no update / no delete</strong> exposed. Row-level security scopes every AR to its own firm.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;animation:fadeDown .4s .05s ease both">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+          <div style="background:#FFFFFF;border:1px solid #E3E7EE;padding:16px 18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:{{ s.bar }}"></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">{{ s.label }}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:#101828;line-height:1;margin-bottom:4px;letter-spacing:-.5px">{{ s.value }}</div>
+            <div style="font-size:10.5px;color:{{ s.subColor }}">{{ s.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E3E7EE;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05);animation:fadeDown .4s .1s ease both">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+          <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Request path &amp; service tiers</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.8px">SSO → APP → API → DATA · SERVER-SIDE AI · HEADLESS AGENTS</div>
+        </div>
+        <div style="padding:18px 20px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:stretch">
+          <sc-for list="{{ services }}" as="v" hint-placeholder-count="4">
+            <div style="border:1px solid #E3E7EE;background:#F5F7FA;padding:13px 14px;display:flex;flex-direction:column;gap:8px;position:relative">
+              <div style="position:absolute;top:0;left:0;right:0;height:2px;background:{{ v.bar }}"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase">{{ v.tier }}</span>
+                <span style="{{ v.pill }}">{{ v.state }}</span>
+              </div>
+              <div style="font-family:'Sora',sans-serif;font-size:13.5px;font-weight:600;color:#101828">{{ v.name }}</div>
+              <div style="font-size:11px;color:#4E576A;line-height:1.4">{{ v.desc }}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;margin-top:auto;padding-top:6px;border-top:1px solid #E3E7EE">{{ v.meta }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E3E7EE;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">API tool surface</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#0891B2;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.28);padding:2px 8px">WHITELIST ENFORCED AT GATEWAY</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.8px">{{ callsToday }} CALLS TODAY · {{ deniedToday }} DENIED</div>
+        </div>
+        <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:22px">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#15803D;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#15803D"></span>Callable</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ allowedTools }}" as="t" hint-placeholder-count="3">
+                <div style="border:1px solid #E3E7EE;border-left:3px solid #15803D;background:#F5F7FA;padding:10px 13px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#101828;font-weight:500">{{ t.n }}</span>
+                    <span style="{{ t.tagStyle }}">{{ t.tag }}</span>
+                  </div>
+                  <div style="font-size:11px;color:#4E576A;line-height:1.4">{{ t.d }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#B91C1C;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#B91C1C"></span>Withheld — unreachable code path</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ deniedTools }}" as="t" hint-placeholder-count="3">
+                <div onClick="{{ t.probe }}" style="border:1px solid rgba(185,28,28,.25);border-left:3px solid #B91C1C;background:rgba(185,28,28,.03);padding:10px 13px;cursor:pointer" style-hover="background:rgba(185,28,28,.06)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#B91C1C;font-weight:500;text-decoration:line-through;text-decoration-color:rgba(185,28,28,.55)">{{ t.n }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#B91C1C;background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.28);padding:2px 7px">403 · BLOCKED</span>
+                  </div>
+                  <div style="font-size:11px;color:#4E576A;line-height:1.4">{{ t.d }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #E3E7EE;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Postgres — register tables</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#0891B2;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.28);padding:2px 8px">ROW-LEVEL SECURITY</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.8px">{{ tableCount }} TABLES · {{ recordCount }} ROWS · 6-YR RETENTION</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="{{ thStyle }}">Table</th>
+            <th style="{{ thStyle }}">Register</th>
+            <th style="{{ thStyle }};text-align:right">Rows</th>
+            <th style="{{ thStyle }}">RLS scope</th>
+            <th style="{{ thStyle }}">Last write</th>
+            <th style="{{ thStyle }}">Retention</th>
+            <th style="{{ thStyle }};text-align:right"></th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{ tables }}" as="r" hint-placeholder-count="8">
+              <tr onClick="{{ r.open }}" style="border-bottom:1px solid rgba(148,163,184,.14);cursor:pointer" style-hover="background:#F5F7FA">
+                <td style="padding:11px 16px;vertical-align:middle"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0891B2;font-weight:500">{{ r.name }}</span></td>
+                <td style="padding:11px 16px;vertical-align:middle;font-size:12px;color:#101828">{{ r.label }}</td>
+                <td style="padding:11px 16px;vertical-align:middle;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#101828">{{ r.rows }}</td>
+                <td style="padding:11px 16px;vertical-align:middle"><span style="{{ r.scopeStyle }}">{{ r.scope }}</span></td>
+                <td style="padding:11px 16px;vertical-align:middle;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#4E576A;white-space:nowrap">{{ r.last }}</td>
+                <td style="padding:11px 16px;vertical-align:middle;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#8A93A6">{{ r.ret }}</td>
+                <td style="padding:11px 16px;vertical-align:middle;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8A93A6">inspect →</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+        <div style="background:#FFFFFF;border:1px solid #E3E7EE;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Object storage</div>
+              <span style="{{ wormPill }}">{{ wormState }}</span>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6">SHA-256 · WORM</span>
+          </div>
+          <div style="padding:6px 0">
+            <sc-for list="{{ docs }}" as="d" hint-placeholder-count="4">
+              <div onClick="{{ d.verify }}" style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid rgba(148,163,184,.1);cursor:pointer" style-hover="background:#F5F7FA">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12px;color:#101828;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6;margin-top:2px">{{ d.hash }} · {{ d.size }}</div>
+                </div>
+                <span style="{{ d.lockStyle }}">{{ d.lock }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E3E7EE;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Audit trail</div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;background:#F5F7FA;border:1px solid #E3E7EE;padding:2px 8px">APPEND-ONLY</span>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6">no update / delete</span>
+          </div>
+          <div style="padding:6px 0">
+            <sc-for list="{{ audit }}" as="e" hint-placeholder-count="6">
+              <div style="display:flex;align-items:baseline;gap:11px;padding:9px 20px;border-bottom:1px solid rgba(148,163,184,.1)">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6;white-space:nowrap;min-width:78px">{{ e.t }}</span>
+                <span style="{{ e.evStyle }}">{{ e.ev }}</span>
+                <span style="font-size:11.5px;color:#4E576A;line-height:1.4">{{ e.d }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.6px;padding-bottom:20px">CCS — Comprehensive Compliance Solutions · Multi-tenant processor for Razlin Ltd · Secrets vaulted server-side · WORM + SHA-256 document chain · Audit &amp; run logs immutable</div>
+    </main>
+  </div>
+
+  <sc-if value="{{ selected }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeBackdrop }}" style="position:fixed;inset:0;z-index:200;background:rgba(16,24,40,.42);display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;overflow-y:auto">
+      <div onClick="{{ stop }}" style="background:#FFFFFF;width:100%;max-width:660px;border:1px solid #D3D9E4;box-shadow:0 24px 70px rgba(16,24,40,.28)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 22px;background:#F5F7FA;border-bottom:1px solid #E3E7EE">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#0891B2;font-weight:500;margin-bottom:4px">{{ selected.name }}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:600;color:#101828">{{ selected.label }}</div>
+          </div>
+          <button onClick="{{ closeModal }}" style="background:none;border:1px solid #D3D9E4;color:#4E576A;width:30px;height:30px;cursor:pointer;font-size:15px;line-height:1" style-hover="border-color:#B91C1C;color:#B91C1C">✕</button>
+        </div>
+        <div style="padding:20px 22px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <sc-for list="{{ selected.meta }}" as="m" hint-placeholder-count="4">
+              <div style="background:#F5F7FA;border:1px solid #E3E7EE;padding:9px 11px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:1px;color:#8A93A6;text-transform:uppercase;margin-bottom:4px">{{ m.k }}</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#101828">{{ m.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">Columns</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ selected.cols }}" as="c" hint-placeholder-count="4"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#4E576A;background:#EDF0F5;border:1px solid #D3D9E4;padding:3px 9px">{{ c }}</span></sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">Row-level security policy</div>
+            <pre style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#0F172A;color:#95F3FF;padding:14px 16px;overflow-x:auto;line-height:1.55;white-space:pre-wrap;margin:0">{{ selected.policy }}</pre>
+          </div>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:8px">Recent writes — all via API, audited</div>
+            <div style="border:1px solid #E3E7EE;border-left:3px solid #0891B2;background:#FCFDFE">
+              <sc-for list="{{ selected.writes }}" as="w" hint-placeholder-count="3">
+                <div style="display:flex;align-items:baseline;gap:11px;padding:8px 13px;border-bottom:1px solid rgba(148,163,184,.12)">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6;min-width:70px">{{ w.t }}</span>
+                  <span style="{{ w.st }}">{{ w.state }}</span>
+                  <span style="font-size:11.5px;color:#4E576A">{{ w.d }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 22px;background:#F5F7FA;border-top:1px solid #E3E7EE">
+          <div style="font-size:11px;color:#8A93A6;line-height:1.4;max-width:340px">{{ selected.note }}</div>
+          <button onClick="{{ closeModal }}" style="background:#0891B2;color:#fff;border:none;padding:9px 18px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="filter:brightness(1.08)">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:24px;right:24px;z-index:300;background:#FFFFFF;border:1px solid #E3E7EE;border-left:3px solid {{ toast.accent }};box-shadow:0 12px 40px rgba(16,24,40,.18);padding:14px 18px;max-width:380px;animation:toastIn .25s ease both">
+      <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#101828;margin-bottom:3px">{{ toast.title }}</div>
+      <div style="font-size:12px;color:#4E576A;line-height:1.45">{{ toast.sub }}</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;environment&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Production&quot;,&quot;Staging&quot;,&quot;Local&quot;],&quot;default&quot;:&quot;Production&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Runtime&quot;,&quot;label&quot;:&quot;Environment&quot;},&quot;immutabilityLock&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Storage&quot;,&quot;label&quot;:&quot;WORM immutability lock&quot;},&quot;operatorName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;A. Siddiq&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Runtime&quot;,&quot;label&quot;:&quot;Sign-off authority (SMF16/17)&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      toast:null, selected:null, deniedToday:3, callsToday:'12,480',
+      tables:[
+        {name:'appointed_rep', label:'AR Register (SUP 12)', rows:3, scope:'per-AR', last:'Today · 06:01', ret:'6 yr',
+          cols:['id','frn','legal_name','status','onboarded_at','risk_band','arId'],
+          note:'One row per appointed representative. AR users can read only their own row.',
+          writes:[{t:'06:01',state:'FINAL',d:'SIX status refreshed by consolidator'},{t:'12 Apr',state:'PENDING',d:'Drake Star risk band change → awaiting sign-off'}]},
+        {name:'cf30_return', label:'CF30 Quarterly Returns', rows:48, scope:'per-AR', last:'Today · 06:01', ret:'6 yr',
+          cols:['id','arId','quarter','received_at','status','due_date','exceptions'],
+          note:'Return submissions. Due dates computed in the deterministic engine, never by an agent.',
+          writes:[{t:'06:01',state:'PENDING',d:'Q1 chase drafted for SIX → sign-off queue'},{t:'12 Apr',state:'FINAL',d:'Q4 return consolidated · 2 exceptions'}]},
+        {name:'financial_promotion', label:'Financial Promotions (COBS 4)', rows:126, scope:'per-AR', last:'12 Apr · 14:20', ret:'6 yr',
+          cols:['id','arId','type','audience','status','submitted_by','reviewed_by'],
+          note:'FP submissions with COBS 4 checklist. Adopt/Reject writes an AuditEvent.',
+          writes:[{t:'12 Apr',state:'PENDING',d:'Teaser submitted by Codrington → SMF queue'},{t:'11 Apr',state:'FINAL',d:'Research note adopted by SMF16'}]},
+        {name:'audit_event', label:'Audit Trail', rows:'8,412', scope:'network', last:'Today · 06:01', ret:'6 yr',
+          cols:['id','actor','action','entity','entity_id','ts','hash_prev'],
+          note:'Append-only. No update or delete is exposed through the API layer.',
+          writes:[{t:'06:01',state:'APPEND',d:'AGENT RUN · CCS-AGT-2026-0412'},{t:'06:01',state:'APPEND',d:'ENQUEUED FOR SIGN-OFF'}]},
+        {name:'agent_run', label:'Agent Run Log', rows:'1,204', scope:'network', last:'Today · 06:01', ret:'7 yr',
+          cols:['id','agent_id','version','prompt_hash','input_hash','tokens','output'],
+          note:'Immutable. Records every headless agent invocation for 7 years.',
+          writes:[{t:'06:01',state:'APPEND',d:'agent-quarterly-cycle v3 · 3,204 tok'},{t:'02:14',state:'APPEND',d:'agent-anomaly · FAIL-CLOSED flag'}]},
+        {name:'risk_score', label:'AR Risk Scoring', rows:3, scope:'per-AR', last:'10 Apr · 06:02', ret:'6 yr',
+          cols:['id','arId','factors','total','band','cadence','computed_at'],
+          note:'5-factor banding computed in code (5-7 bi-annual / 8-11 quarterly / 12-15 quarterly+ad hoc).',
+          writes:[{t:'10 Apr',state:'FINAL',d:'Drake Star recomputed → band AMBER'}]},
+        {name:'data_breach', label:'Data Breaches (ICO)', rows:14, scope:'per-AR', last:'11 Apr · 08:30', ret:'6 yr',
+          cols:['id','arId','ref','detected_at','art33_clock','status','severity'],
+          note:'UK GDPR Art 33 72-hour clock started server-side on log.',
+          writes:[{t:'11 Apr',state:'PENDING',d:'DB-014 breach logged for Codrington'}]},
+        {name:'person_cpd', label:'CPD & Certification', rows:37, scope:'per-AR', last:'Today · 06:00', ret:'6 yr',
+          cols:['id','arId','person','cpd_hours','required','strikes','cert_expiry'],
+          note:'CPD 35h/yr tracked; three-strike escalation against coded thresholds.',
+          writes:[{t:'06:00',state:'PENDING',d:'A. Mensah strike-1 notice drafted'}]},
+      ],
+      audit:[
+        {t:'06:01',ev:'AGENT RUN',d:'agent-quarterly-cycle v3 · draft CCS-AGT-2026-0412'},
+        {t:'06:01',ev:'ENQUEUED',d:'CCS-AGT-2026-0412 → Sign-Off Queue'},
+        {t:'03:22',ev:'TOOL DENIED',d:'agent-notification-drafter · send_email blocked (403)'},
+        {t:'11 Apr',ev:'DOCS ATTACHED',d:'Codrington · 2 files · SHA-256 recorded'},
+        {t:'11 Apr',ev:'ADOPTED',d:'SMF16 · research note FP-0231 released'},
+        {t:'11 Apr',ev:'AI REVIEW',d:'server-side · COBS 4 verdict: APPROVE w/ conditions'},
+      ],
+      docs:[
+        {name:'SIX_Q4_CF30_return.pdf', hash:'sha256 a91f…c4d2', size:'1.4 MB', locked:true},
+        {name:'Codrington_DB-014_evidence.zip', hash:'sha256 7d02…9b1e', size:'8.9 MB', locked:true},
+        {name:'DrakeStar_AR_agreement_v3.pdf', hash:'sha256 3e55…1a77', size:'612 KB', locked:true},
+        {name:'FP-0231_research_note.pdf', hash:'sha256 c1a8…7f40', size:'2.1 MB', locked:true},
+      ],
+    };
+  }
+
+  now(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  operator(){ return this.props.operatorName ?? 'A. Siddiq'; }
+  flash(title,sub,accent){ this.setState({toast:{title,sub,accent:accent||'#0891B2'}}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:null}),3600); }
+
+  open(r){ this.setState({selected:r}); }
+  closeModal(){ this.setState({selected:null}); }
+  probeTool(name){
+    const t=name||'send_email';
+    this.setState(s=>({
+      deniedToday:s.deniedToday+1,
+      audit:[{t:this.now(),ev:'TOOL DENIED',d:'probe · '+t+' blocked at gateway (403)'}, ...s.audit],
+    }));
+    this.flash('403 — tool withheld', t+' is not on any whitelist. Call rejected at the API gateway and logged. No egress occurred.','#B91C1C');
+  }
+  verifyDoc(d){ this.flash('Hash verified', d.name+' matches its recorded SHA-256. WORM lock intact — object is immutable.','#15803D'); }
+  exportAudit(){ this.flash('Export complete','Audit trail exported to CSV (append-only, 6-yr retention). Run logs held 7 yr.','#0891B2'); }
+
+  chip(bg,fg,bd){ return "font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;background:"+bg+";color:"+fg+";border:1px solid "+bd+";white-space:nowrap"; }
+  scopeStyle(s){ return s==='per-AR'
+    ? this.chip('rgba(8,145,178,.08)','#0891B2','rgba(8,145,178,.28)')
+    : this.chip('#EDF0F5','#4E576A','#D3D9E4'); }
+  writeState(st){
+    const m={FINAL:['rgba(21,128,61,.1)','#15803D','rgba(21,128,61,.3)'],PENDING:['rgba(180,83,9,.09)','#B45309','rgba(180,83,9,.28)'],APPEND:['rgba(8,145,178,.08)','#0891B2','rgba(8,145,178,.28)']}[st]||['#EDF0F5','#4E576A','#D3D9E4'];
+    return this.chip(m[0],m[1],m[2]);
+  }
+  evStyle(ev){
+    const c={'AGENT RUN':['#1D4ED8','rgba(29,78,216,.08)'],'ENQUEUED':['#0891B2','rgba(8,145,178,.08)'],'TOOL DENIED':['#B91C1C','rgba(185,28,28,.09)'],'DOCS ATTACHED':['#4D7C0F','rgba(101,163,13,.1)'],'ADOPTED':['#15803D','rgba(21,128,61,.1)'],'AI REVIEW':['#7E22CE','rgba(126,34,206,.08)']}[ev]||['#4E576A','#EDF0F5'];
+    return "font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.5px;padding:2px 6px;color:"+c[0]+";background:"+c[1]+";min-width:88px;text-align:center;font-weight:500";
+  }
+
+  renderVals(){
+    const op=this.operator();
+    const env=this.props.environment ?? 'Production';
+    const worm=this.props.immutabilityLock ?? true;
+
+    const navItem=(name,active,badge)=>({
+      name, badge:badge||'',
+      style:'display:flex;align-items:center;gap:10px;padding:8px 22px;font-size:12.5px;'+(active?'color:#0891B2;border-left:2px solid #0891B2;background:linear-gradient(90deg,rgba(8,145,178,.08),transparent);font-weight:600;':'color:#4E576A;border-left:2px solid transparent;')+'user-select:none',
+      dot:'width:6px;height:6px;border-radius:2px;flex-shrink:0;background:'+(active?'#0891B2':'#C4CBD6'),
+    });
+    const navSections=[
+      {label:'Overview', items:[navItem('Oversight Dashboard',false)]},
+      {label:'Platform', items:[navItem('Backend & Data',true), navItem('Agent Runtime',false), navItem('Sign-Off Queue',false,'4')]},
+      {label:'Compliance Manual', items:[navItem('Manual Control Map',false),navItem('Policy Register',false),navItem('Forms & Declarations',false)]},
+      {label:'SUP 12 — AR Lifecycle', items:[navItem('AR Register & Lifecycle',false),navItem('AR Agreements',false),navItem('Onboarding Pipeline',false)]},
+      {label:'AR Self-Reporting', items:[navItem('CF30 Returns',false),navItem('AR Risk Scoring',false),navItem('Monitoring Programme',false)]},
+      {label:'People & Financial Crime', items:[navItem('Financial Crime / AML',false),navItem('Data Breaches (ICO)',false),navItem('Attestations Hub',false)]},
+    ];
+
+    const pillOK=this.chip('rgba(21,128,61,.1)','#15803D','rgba(21,128,61,.3)');
+    const services=[
+      {tier:'Tier 1 · Access', name:'SSO — Entra / Okta', desc:'OIDC. Role + arId on every session (AR / Compliance / SMF).', meta:'portal.razlin.co.uk', state:'LIVE', pill:pillOK, bar:'#0891B2'},
+      {tier:'Tier 2 · App + API', name:'Web app + API', desc:'Per-role UI. All reads/writes pass the API — whitelist enforced here.', meta:'Next.js · row-level security', state:'LIVE', pill:pillOK, bar:'#1D4ED8'},
+      {tier:'Tier 2 · AI', name:'Server-side Claude', desc:'Review + agent calls run server-side with a vaulted key. Never in the browser.', meta:'ANTHROPIC_API_KEY · vaulted', state:'VAULTED', pill:this.chip('rgba(126,34,206,.08)','#7E22CE','rgba(126,34,206,.28)'), bar:'#7E22CE'},
+      {tier:'Tier 3 · Data', name:'Postgres + WORM + audit', desc:'One table per register, RLS-scoped. Docs immutable with SHA-256; audit append-only.', meta:'30 tables · 842 objects', state:'LIVE', pill:pillOK, bar:'#15803D'},
+      {tier:'Tier 4 · Agents', name:'Scheduler + workers', desc:'Headless Agent SDK. CRON / webhook / on-demand. Manual-trigger until Gate 5.', meta:'7 agents · fail-closed', state:'READY', pill:this.chip('rgba(101,163,13,.1)','#4D7C0F','rgba(101,163,13,.3)'), bar:'#65A30D'},
+    ];
+
+    const allowedTools=[
+      {n:'query_database', tag:'READ', tagStyle:this.chip('#EDF0F5','#4E576A','#D3D9E4'), d:'Scoped reads. RLS applies the caller\u2019s arId automatically.'},
+      {n:'write_register_entry', tag:'WRITE · PENDING', tagStyle:this.chip('rgba(180,83,9,.09)','#B45309','rgba(180,83,9,.28)'), d:'Writes land as PENDING. Nothing is finalised without SMF sign-off.'},
+      {n:'enqueue_for_signoff', tag:'EGRESS', tagStyle:this.chip('rgba(8,145,178,.1)','#0891B2','rgba(8,145,178,.35)'), d:'The only route out of the platform. Routes a draft to the Sign-Off Queue.'},
+    ];
+    const deniedTools=[
+      {n:'send_email', d:'Direct send to an AR, the FCA or the ICO. Never on any whitelist.', probe:()=>this.probeTool('send_email')},
+      {n:'file_regulatory', d:'File a return/notification with a regulator. Human egress only.', probe:()=>this.probeTool('file_regulatory')},
+      {n:'persist_final', d:'Write a FINAL (non-pending) row. Reserved for post sign-off.', probe:()=>this.probeTool('persist_final')},
+    ];
+
+    const tables=this.state.tables.map(r=>({...r,
+      scopeStyle:this.scopeStyle(r.scope),
+      writes:(r.writes||[]).map(w=>({...w, st:this.writeState(w.state)})),
+      open:()=>this.open(r)}));
+
+    const audit=this.state.audit.map(e=>({...e, evStyle:this.evStyle(e.ev)}));
+
+    const docs=this.state.docs.map(d=>({...d,
+      lock: worm?'WORM':'MUTABLE',
+      lockStyle: worm?this.chip('rgba(21,128,61,.1)','#15803D','rgba(21,128,61,.3)'):this.chip('rgba(185,28,28,.09)','#B91C1C','rgba(185,28,28,.3)'),
+      verify:()=>this.verifyDoc(d)}));
+
+    const sel=this.state.selected;
+    let selected=null;
+    if(sel){
+      selected={ name:sel.name, label:sel.label, note:sel.note, cols:sel.cols,
+        meta:[{k:'Rows',v:String(sel.rows)},{k:'RLS',v:sel.scope},{k:'Last write',v:sel.last},{k:'Retention',v:sel.ret}],
+        writes:(sel.writes||[]).map(w=>({...w, st:this.writeState(w.state)})),
+        policy: sel.scope==='per-AR'
+          ? 'CREATE POLICY tenant_isolation ON '+sel.name+'\n  USING (arId = current_setting(\'app.ar_id\'));\n-- AR reads/writes only its own firm\'s rows\n-- COMPLIANCE: read-all + draft · SMF: sign-off'
+          : 'CREATE POLICY append_only ON '+sel.name+'\n  FOR INSERT WITH CHECK (true);\n-- no UPDATE / DELETE granted to app role\n-- network-wide read for COMPLIANCE + SMF',
+      };
+    }
+
+    const stats=[
+      {label:'Register tables', value:'30', sub:'one per register', subColor:'#8A93A6', bar:'#0891B2'},
+      {label:'Records stored', value:'18.7k', sub:'across 3 ARs', subColor:'#8A93A6', bar:'#1D4ED8'},
+      {label:'WORM documents', value:'842', sub:'SHA-256 · immutable', subColor:'#15803D', bar:'#65A30D'},
+      {label:'Audit rows', value:'8.4k', sub:'append-only', subColor:'#0891B2', bar:'#0891B2'},
+      {label:'Agent egress', value:'0', sub:'send / file / persist', subColor:'#15803D', bar:'#15803D'},
+    ];
+
+    return {
+      operator:op,
+      envLabel: env==='Production'?'Env · Production':'Env · '+env,
+      envMeta: env.toUpperCase(),
+      navSections, services, allowedTools, deniedTools, tables, audit, docs, stats,
+      callsToday:this.state.callsToday, deniedToday:String(this.state.deniedToday),
+      tableCount:'30', recordCount:'18,742',
+      wormState: worm?'IMMUTABILITY ON':'IMMUTABILITY OFF',
+      wormPill: worm?this.chip('rgba(21,128,61,.1)','#15803D','rgba(21,128,61,.3)'):this.chip('rgba(185,28,28,.09)','#B91C1C','rgba(185,28,28,.3)'),
+      thStyle:"padding:10px 16px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.6px;color:#8A93A6;text-transform:uppercase;border-bottom:1px solid #E3E7EE;background:#F5F7FA;white-space:nowrap",
+      selected,
+      probeTool:()=>this.probeTool('send_email'),
+      exportAudit:()=>this.exportAudit(),
+      closeModal:()=>this.closeModal(),
+      closeBackdrop:()=>this.closeModal(),
+      stop:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

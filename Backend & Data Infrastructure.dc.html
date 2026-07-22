@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="./deterministic-engine.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',sans-serif;background:#F3F5F8;color:#101828}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#D3D9E4;border-radius:4px}
+  a{color:#0E7490;text-decoration:none}
+  a:hover{color:#155E75}
+  input::placeholder{color:#8A93A6}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#F3F5F8;color:#101828;font-family:'Manrope',sans-serif;font-size:14px">
+
+  <header style="position:sticky;top:0;z-index:100;background:#0F2E3D;border-bottom:3px solid #0E7490;padding:0 26px;display:flex;align-items:center;justify-content:space-between;height:62px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,.15);padding-right:16px">
+        <div style="width:30px;height:30px;background:linear-gradient(135deg,#0E7490,#155E75);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:#fff">R</div>
+        <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:17px;letter-spacing:3px;color:#FFFFFF">RAZLIN</span>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:12.5px;font-weight:600;color:#FFFFFF;line-height:1">Partner Portal</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:3px">Appointed Representative Services</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:6px 12px">CODRINGTON ASSOCIATES · AR</div>
+      <div style="width:30px;height:30px;border-radius:50%;background:#0E7490;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">RB</div>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:222px 1fr;min-height:calc(100vh - 62px)">
+    <aside style="background:#FFFFFF;border-right:1px solid #E3E7EE;padding:22px 0">
+      <sc-for list="{{ navItems }}" as="it" hint-placeholder-count="5">
+        <div style="{{ it.style }}">
+          <span style="{{ it.dot }}"></span>
+          {{ it.name }}
+        </div>
+      </sc-for>
+      <div style="margin:22px 18px 0;border:1px solid #E3E7EE;background:#F5F7FA;padding:12px 13px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:5px">Your compliance contact</div>
+        <div style="font-size:12px;color:#101828;font-weight:600">Razlin Compliance</div>
+        <div style="font-size:11px;color:#4E576A;margin-top:2px">compliance@razlin.co.uk</div>
+      </div>
+    </aside>
+
+    <main style="padding:28px 32px;overflow-y:auto">
+      <div style="margin-bottom:22px;animation:fadeDown .4s ease both">
+        <h1 style="font-family:'Sora',sans-serif;font-size:25px;font-weight:600;color:#101828;line-height:1.05;margin-bottom:7px;letter-spacing:-.3px">Good morning, Rachel</h1>
+        <div style="font-size:13px;color:#4E576A">Everything you submit here goes to Razlin for review and sign-off before it can be used.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;animation:fadeDown .4s .05s ease both">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+          <div style="background:#FFFFFF;border:1px solid #E3E7EE;padding:15px 17px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:{{ s.bar }}"></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.3px;color:#8A93A6;text-transform:uppercase;margin-bottom:7px">{{ s.label }}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:#101828;line-height:1;margin-bottom:4px">{{ s.value }}</div>
+            <div style="font-size:10.5px;color:{{ s.subColor }}">{{ s.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(100deg,rgba(14,116,144,.07),transparent);border:1px solid #E3E7EE;border-left:3px solid #0E7490;padding:14px 18px;margin-bottom:20px">
+        <div style="font-size:12.5px;color:#4E576A;line-height:1.45"><strong style="color:#101828">Q2 quarterly return due {{ cf30Due }}.</strong> Nothing to report this quarter? A NIL return takes two clicks — all twelve sections are declared nil and Razlin is notified.</div>
+        <button onClick="{{ openNil }}" style="background:#0E7490;color:#fff;border:none;padding:9px 16px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap" style-hover="filter:brightness(1.1)">File NIL return</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+        <div style="background:#FFFFFF;border:1px solid #E3E7EE;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+          <div style="padding:15px 20px;border-bottom:1px solid #E3E7EE">
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Submit for adoption</div>
+            <div style="font-size:11.5px;color:#8A93A6;margin-top:2px">Financial promotions, teasers, decks and research need Razlin sign-off before use.</div>
+          </div>
+          <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:7px">Type</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <sc-for list="{{ typeChips }}" as="c" hint-placeholder-count="5">
+                  <button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:7px">Title</div>
+              <input value="{{ title }}" onChange="{{ setTitle }}" placeholder="e.g. European MedTech — Q3 sector teaser" style="width:100%;border:1px solid #D3D9E4;background:#FFFFFF;padding:9px 12px;font-family:'Manrope',sans-serif;font-size:13px;color:#101828;outline:none" style-focus="border-color:#0E7490">
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:7px">Intended audience</div>
+              <div style="display:flex;gap:6px">
+                <sc-for list="{{ audChips }}" as="c" hint-placeholder-count="3">
+                  <button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:7px">COBS 4 checklist</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ cobs }}" as="c" hint-placeholder-count="4">
+                  <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none">
+                    <span style="{{ c.box }}">{{ c.tick }}</span>
+                    <span style="font-size:12px;color:#4E576A">{{ c.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.2px;color:#8A93A6;text-transform:uppercase;margin-bottom:7px">Documents · hashed on attach</div>
+              <label style="display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px dashed #C4CBD6;background:#F9FAFC;padding:14px;cursor:pointer;font-size:12px;color:#4E576A" style-hover="border-color:#0E7490;color:#0E7490">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Drop files or click to attach
+                <input type="file" multiple onChange="{{ filesPicked }}" style="display:none">
+              </label>
+              <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+                  <sc-for list="{{ files }}" as="f" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:center;gap:9px;border:1px solid #E3E7EE;background:#F5F7FA;padding:7px 11px">
+                      <span style="font-size:11.5px;color:#101828;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</span>
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4D7C0F">{{ f.hash }}</span>
+                      <button onClick="{{ f.remove }}" style="background:none;border:none;color:#8A93A6;cursor:pointer;font-size:13px;line-height:1" style-hover="color:#B91C1C">✕</button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+            <button onClick="{{ submit }}" style="{{ submitStyle }}">Submit to Razlin for sign-off</button>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E3E7EE;box-shadow:0 1px 3px rgba(16,24,40,.05);align-self:start">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #E3E7EE">
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#101828">Your submissions</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6">CODRINGTON ONLY · ISOLATED</span>
+          </div>
+          <div style="padding:6px 0">
+            <sc-for list="{{ subs }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid rgba(148,163,184,.1)">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;color:#101828;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.title }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6;margin-top:2px">{{ s.ref }} · {{ s.kind }} · {{ s.when }}</div>
+                </div>
+                <span style="{{ s.pill }}">{{ s.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:12px 20px;border-top:1px solid #E3E7EE;font-size:11px;color:#8A93A6;line-height:1.5">Adopted materials may be used exactly as approved. Rejected items include reviewer notes — revise and resubmit.</div>
+        </div>
+      </div>
+
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#8A93A6;letter-spacing:.6px;padding-bottom:20px;display:flex;justify-content:space-between"><span>Razlin Limited · Authorised and regulated by the Financial Conduct Authority · FRN 730805</span><span>Codrington Associates is an appointed representative of Razlin Limited</span></div>
+    </main>
+  </div>
+
+  <sc-if value="{{ nil }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeNil }}" style="position:fixed;inset:0;z-index:200;background:rgba(16,24,40,.42);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div onClick="{{ stop }}" style="background:#FFFFFF;width:100%;max-width:480px;border:1px solid #D3D9E4;box-shadow:0 24px 70px rgba(16,24,40,.28)">
+        <div style="padding:18px 22px;background:#F5F7FA;border-bottom:1px solid #E3E7EE">
+          <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:600;color:#101828">Q2 2026 NIL return</div>
+          <div style="font-size:11.5px;color:#8A93A6;margin-top:3px">Codrington Associates · due {{ cf30Due }}</div>
+        </div>
+        <div style="padding:18px 22px">
+          <sc-if value="{{ nilStep1 }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12.5px;color:#4E576A;line-height:1.55;margin-bottom:14px">You are declaring <strong style="color:#101828">nothing to report</strong> across all twelve CF30 sections for Q2 2026 — including complaints, breaches, financial promotions issued outside adoption, conflicts, and gifts &amp; entertainment above threshold.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
+              <sc-for list="{{ nilSections }}" as="n" hint-placeholder-count="6">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#4E576A;background:#F5F7FA;border:1px solid #E3E7EE;padding:3px 8px">{{ n }} · NIL</span>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ nilStep2 }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #E3E7EE;border-left:3px solid #0E7490;background:#FCFDFE;padding:13px 15px;font-size:12.5px;color:#4E576A;line-height:1.55;margin-bottom:8px">I confirm on behalf of Codrington Associates that the information in this NIL return is accurate and complete, and I understand Razlin relies on it for its oversight obligations under SUP 12.</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8A93A6">Declared by: Rachel Bailey · Director</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:9px;padding:15px 22px;background:#F5F7FA;border-top:1px solid #E3E7EE">
+          <button onClick="{{ closeNil }}" style="background:#FFFFFF;color:#4E576A;border:1px solid #D3D9E4;padding:9px 15px;font-family:'Manrope',sans-serif;font-size:12.5px;cursor:pointer">Cancel</button>
+          <button onClick="{{ nilNext }}" style="background:#0E7490;color:#fff;border:none;padding:9px 18px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer" style-hover="filter:brightness(1.1)">{{ nilCta }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:24px;right:24px;z-index:300;background:#FFFFFF;border:1px solid #E3E7EE;border-left:3px solid {{ toast.accent }};box-shadow:0 12px 40px rgba(16,24,40,.18);padding:14px 18px;max-width:380px;animation:toastIn .25s ease both">
+      <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#101828;margin-bottom:3px">{{ toast.title }}</div>
+      <div style="font-size:12px;color:#4E576A;line-height:1.45">{{ toast.sub }}</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    kind:'Teaser', title:'', aud:'Professional', files:[],
+    cobs:[
+      {label:'Fair, clear and not misleading (COBS 4.2)', on:true},
+      {label:'Risk warnings prominent and balanced', on:true},
+      {label:'Past performance caveats included where relevant', on:false},
+      {label:'Target audience and distribution channel identified', on:false},
+    ],
+    subs:[
+      {ref:'FP-0234', title:'European MedTech — sector teaser', kind:'Teaser', when:'14 Apr', status:'pending'},
+      {ref:'FP-0231', title:'Renewables infra — research note', kind:'Research', when:'11 Apr', status:'adopted'},
+      {ref:'FP-0228', title:'DACH industrials — buyer deck', kind:'Deck', when:'03 Apr', status:'rejected'},
+      {ref:'FP-0224', title:'Q2 market commentary email', kind:'Marketing', when:'28 Mar', status:'adopted'},
+    ],
+    seq:235, nil:false, nilStep:1, cf30Done:false, toast:null,
+  };
+  componentDidMount(){ if(!window.CCSEngine){ this._iv=setInterval(()=>{ if(window.CCSEngine){ clearInterval(this._iv); this.forceUpdate(); } },100); } }
+  componentWillUnmount(){ clearInterval(this._iv); }
+
+  chip(bg,fg,bd){ return "font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:3px 9px;background:"+bg+";color:"+fg+";border:1px solid "+bd+";white-space:nowrap"; }
+  flash(title,sub,accent){ this.setState({toast:{title,sub,accent:accent||'#0E7490'}}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:null}),3800); }
+
+  async filesPicked(e){
+    const list=Array.from(e.target.files||[]);
+    for(const f of list){
+      let hash='sha256 …';
+      try{
+        const buf=await f.arrayBuffer();
+        const dig=await crypto.subtle.digest('SHA-256', buf);
+        const hex=Array.from(new Uint8Array(dig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        hash='sha256 '+hex.slice(0,4)+'…'+hex.slice(-4);
+      }catch(_){}
+      this.setState(s=>({files:[...s.files,{name:f.name, hash}]}));
+    }
+    e.target.value='';
+  }
+
+  submit(){
+    const t=this.state.title.trim();
+    if(!t){ this.flash('Title required','Give the submission a title so Razlin can identify it.','#B45309'); return; }
+    const ref='FP-0'+this.state.seq;
+    this.setState(s=>({
+      seq:s.seq+1, title:'', files:[],
+      subs:[{ref, title:t, kind:s.kind, when:'Today', status:'pending'}, ...s.subs],
+    }));
+    this.flash('Submitted to Razlin', ref+' is with Razlin Compliance for review. You\u2019ll be notified when it\u2019s adopted or returned with notes.','#15803D');
+  }
+
+  renderVals(){
+    const E=window.CCSEngine;
+    const cf30Due=E?E.fmt(E.cf30DueDate('2026-06-30')):'14 Jul 2026';
+    const navItem=(name,active)=>({
+      name,
+      style:'display:flex;align-items:center;gap:10px;padding:8px 22px;font-size:12.5px;'+(active?'color:#0E7490;border-left:2px solid #0E7490;background:linear-gradient(90deg,rgba(14,116,144,.08),transparent);font-weight:600;':'color:#4E576A;border-left:2px solid transparent;')+'user-select:none',
+      dot:'width:6px;height:6px;border-radius:2px;flex-shrink:0;background:'+(active?'#0E7490':'#C4CBD6'),
+    });
+    const navItems=[navItem('Overview',true),navItem('Submit for adoption',false),navItem('Your submissions',false),navItem('Quarterly returns (CF30)',false),navItem('Your documents',false),navItem('Training & CPD',false)];
+
+    const kinds=['Research','Teaser','Deck','Marketing','Advisory'];
+    const typeChips=kinds.map(k=>({label:k, pick:()=>this.setState({kind:k}),
+      style:'padding:6px 13px;font-family:\'Manrope\',sans-serif;font-size:12px;cursor:pointer;border:1px solid '+(this.state.kind===k?'rgba(14,116,144,.45);background:rgba(14,116,144,.08);color:#0E7490;font-weight:600':'#D3D9E4;background:#FFFFFF;color:#4E576A')}));
+    const auds=['Professional','Eligible counterparty','Retail'];
+    const audChips=auds.map(a=>({label:a, pick:()=>this.setState({aud:a}),
+      style:'flex:1;padding:6px 0;font-family:\'Manrope\',sans-serif;font-size:12px;cursor:pointer;border:1px solid '+(this.state.aud===a?'rgba(14,116,144,.45);background:rgba(14,116,144,.08);color:#0E7490;font-weight:600':'#D3D9E4;background:#FFFFFF;color:#4E576A')}));
+
+    const cobs=this.state.cobs.map((c,i)=>({label:c.label, tick:c.on?'✓':'',
+      box:'width:16px;height:16px;flex-shrink:0;border:1.5px solid '+(c.on?'#0E7490;background:#0E7490;color:#fff':'#C4CBD6;background:#fff;color:transparent')+';font-size:11px;line-height:14px;text-align:center;font-weight:700',
+      toggle:()=>this.setState(s=>{ const arr=s.cobs.map((x,xi)=>xi===i?{...x,on:!x.on}:x); return {cobs:arr}; })}));
+
+    const files=this.state.files.map((f,i)=>({...f, remove:()=>this.setState(s=>({files:s.files.filter((_,xi)=>xi!==i)}))}));
+
+    const pillFor=(st)=>({
+      pending:this.chip('rgba(180,83,9,.09)','#B45309','rgba(180,83,9,.28)'),
+      adopted:this.chip('rgba(21,128,61,.1)','#15803D','rgba(21,128,61,.3)'),
+      rejected:this.chip('rgba(185,28,28,.09)','#B91C1C','rgba(185,28,28,.3)'),
+    })[st];
+    const subs=this.state.subs.map(s=>({...s, status:s.status.toUpperCase(), pill:pillFor(s.status)}));
+
+    const pending=this.state.subs.filter(s=>s.status==='pending').length;
+    const adopted=this.state.subs.filter(s=>s.status==='adopted').length;
+    const stats=[
+      {label:'Awaiting Razlin', value:String(pending), sub:'with Compliance now', subColor:'#B45309', bar:'#B45309'},
+      {label:'Adopted this quarter', value:String(adopted), sub:'approved for use', subColor:'#15803D', bar:'#15803D'},
+      {label:'Q2 return', value:this.state.cf30Done?'FILED':'DUE', sub:this.state.cf30Done?'NIL return received':cf30Due, subColor:this.state.cf30Done?'#15803D':'#0E7490', bar:'#0E7490'},
+      {label:'CPD · R. Bailey', value:'29/35h', sub:'on track · 5 mo left', subColor:'#8A93A6', bar:'#65A30D'},
+    ];
+
+    const canSubmit=this.state.title.trim().length>0;
+    return {
+      navItems, stats, typeChips, audChips, cobs, files, subs, cf30Due,
+      hasFiles:this.state.files.length>0,
+      title:this.state.title,
+      setTitle:(e)=>this.setState({title:e.target.value}),
+      filesPicked:(e)=>this.filesPicked(e),
+      submit:()=>this.submit(),
+      submitStyle:'width:100%;padding:11px 0;font-family:\'Manrope\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;color:#fff;background:'+(canSubmit?'linear-gradient(180deg,#0E7490,#155E75);box-shadow:0 2px 12px rgba(14,116,144,.25)':'#C4CBD6'),
+      nil:this.state.nil, nilStep1:this.state.nilStep===1, nilStep2:this.state.nilStep===2,
+      nilCta:this.state.nilStep===1?'Confirm — all sections NIL':'Declare & submit',
+      nilSections:['Complaints','Breaches','FPs off-platform','Conflicts','G&E','AML flags','Market abuse','Data incidents','PAD','Whistleblowing','Client money','Other'],
+      openNil:()=>this.setState({nil:true, nilStep:1}),
+      closeNil:()=>this.setState({nil:false}),
+      nilNext:()=>{ if(this.state.nilStep===1){ this.setState({nilStep:2}); } else { this.setState({nil:false, cf30Done:true}); this.flash('NIL return filed','Q2 2026 CF30 NIL return submitted to Razlin. A confirmation has been recorded in your firm\u2019s audit history.','#15803D'); } },
+      stop:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
+      toast:this.state.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
