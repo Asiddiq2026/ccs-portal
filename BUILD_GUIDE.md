@@ -1,95 +1,94 @@
-/* CCS Deterministic Engine — all date/threshold arithmetic in code, never the model.
-   Portable reference implementation (no deps). Port to TS + unit tests in Phase 6.
-   Timezone: dates are calendar dates (UTC internally). Bank holidays: England & Wales. */
-(function (root) {
-  'use strict';
-  const BANK_HOLIDAYS = new Set([
-    '2025-01-01','2025-04-18','2025-04-21','2025-05-05','2025-05-26','2025-08-25','2025-12-25','2025-12-26',
-    '2026-01-01','2026-04-03','2026-04-06','2026-05-04','2026-05-25','2026-08-31','2026-12-25','2026-12-28',
-    '2027-01-01','2027-03-26','2027-03-29','2027-05-03','2027-05-31','2027-08-30','2027-12-27','2027-12-28',
-  ]);
-  const D = (s) => new Date(s + 'T00:00:00Z');
-  const iso = (d) => d.toISOString().slice(0, 10);
-  const fmt = (s) => { const d = D(s); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }); };
+# BUILD_GUIDE.md — CCS AR Oversight Platform
+Paste these into Claude Code in order. Each phase ends with a verify step — don't move on until it passes. Read `README.md` and `CLAUDE.md` first.
 
-  function isBusinessDay(dateStr) {
-    const d = D(dateStr), wd = d.getUTCDay();
-    return wd !== 0 && wd !== 6 && !BANK_HOLIDAYS.has(dateStr);
-  }
-  function addBusinessDays(dateStr, n) {
-    let d = D(dateStr), step = n >= 0 ? 1 : -1, left = Math.abs(n);
-    while (left > 0) {
-      d.setUTCDate(d.getUTCDate() + step);
-      if (isBusinessDay(iso(d))) left--;
-    }
-    return iso(d);
-  }
-  function quarterEnd(dateStr) {
-    const d = D(dateStr), q = Math.floor(d.getUTCMonth() / 3);
-    return iso(new Date(Date.UTC(d.getUTCFullYear(), q * 3 + 3, 0)));
-  }
-  // CF30 quarterly return: due = quarter-end + 10 business days
-  function cf30DueDate(quarterEndStr) { return addBusinessDays(quarterEndStr, 10); }
-  // Escalation ladder around the due date T
-  function escalationLadder(dueDateStr) {
-    return [
-      { step: 'T-5BD',  date: addBusinessDays(dueDateStr, -5), action: 'Reminder to AR · escalate to Razlin Compliance if unacknowledged' },
-      { step: 'T',      date: dueDateStr,                      action: 'Return due · submission window closes' },
-      { step: 'T+5BD',  date: addBusinessDays(dueDateStr, 5),  action: 'Second chase · Compliance flag raised on the AR' },
-      { step: 'T+10BD', date: addBusinessDays(dueDateStr, 10), action: 'Escalation to SMF16/17 · oversight meeting agenda item' },
-      { step: 'T+20BD', date: addBusinessDays(dueDateStr, 20), action: 'Formal breach consideration · SUP 12 remediation review' },
-    ];
-  }
-  // 5-factor risk banding: each factor scored 1-3, total 5-15
-  function riskBand(factors) {
-    const total = factors.reduce((a, b) => a + b, 0);
-    if (total <= 7)  return { total, band: 'GREEN', cadence: 'Bi-annual monitoring' };
-    if (total <= 11) return { total, band: 'AMBER', cadence: 'Quarterly monitoring' };
-    return { total, band: 'RED', cadence: 'Quarterly + ad-hoc monitoring' };
-  }
-  // CPD 35h/yr, three-strike rule (coded thresholds — confirm with RAZ at Gate 1)
-  function cpdStrike({ hours, required = 35, monthsLeft }) {
-    if (monthsLeft <= 0 && hours < required) return 3;
-    if (monthsLeft <= 1 && hours < required * 0.9) return 2;
-    if (monthsLeft <= 3 && hours < required * 0.75) return 1;
-    return 0;
-  }
-  // Retention clocks
-  function retentionEnd(dateStr, kind) {
-    const years = { doc: 6, audit: 6, agent_run: 7 }[kind];
-    if (years == null) return 'indefinite'; // AR / approved-person records
-    const d = D(dateStr); d.setUTCFullYear(d.getUTCFullYear() + years);
-    return iso(d);
-  }
-  // UK GDPR Art 33: ICO notification within 72 hours of awareness
-  function art33Deadline(detectedIso) {
-    return new Date(new Date(detectedIso).getTime() + 72 * 3600 * 1000).toISOString();
-  }
+---
 
-  function runTests() {
-    const t = [], eq = (name, got, want) => t.push({ name, got: String(got), want: String(want), pass: String(got) === String(want) });
-    eq('Good Friday 2026 is not a business day', isBusinessDay('2026-04-03'), false);
-    eq('Tue 07 Apr 2026 is a business day', isBusinessDay('2026-04-07'), true);
-    eq('Quarter end of 14 Feb 2026 → 31 Mar 2026', quarterEnd('2026-02-14'), '2026-03-31');
-    eq('Q1-2026 due date spans Easter → 16 Apr 2026', cf30DueDate('2026-03-31'), '2026-04-16');
-    eq('Q4-2026 due date spans New Year → 15 Jan 2027', cf30DueDate('2026-12-31'), '2027-01-15');
-    eq('T-5BD before 16 Apr 2026 → 09 Apr', addBusinessDays('2026-04-16', -5), '2026-04-09');
-    eq('T+20BD after 16 Apr skips May Day → 15 May', addBusinessDays('2026-04-16', 20), '2026-05-15');
-    eq('Risk 5 → GREEN', riskBand([1,1,1,1,1]).band, 'GREEN');
-    eq('Risk 8 → AMBER', riskBand([2,2,2,1,1]).band, 'AMBER');
-    eq('Risk 11 → AMBER (upper bound)', riskBand([3,3,2,2,1]).band, 'AMBER');
-    eq('Risk 12 → RED (lower bound)', riskBand([3,3,2,2,2]).band, 'RED');
-    eq('CPD 22/35h, 3 months left → strike 1', cpdStrike({ hours: 22, monthsLeft: 3 }), 1);
-    eq('CPD 34/35h, 1 month left → no strike', cpdStrike({ hours: 34, monthsLeft: 1 }), 0);
-    eq('CPD 20/35h past deadline → strike 3', cpdStrike({ hours: 20, monthsLeft: 0 }), 3);
-    eq('Audit retention 6 yr', retentionEnd('2026-04-16', 'audit'), '2032-04-16');
-    eq('Agent-run retention 7 yr', retentionEnd('2026-04-16', 'agent_run'), '2033-04-16');
-    eq('AR records retained indefinitely', retentionEnd('2026-04-16', 'ar_record'), 'indefinite');
-    eq('Art 33: 72h clock', art33Deadline('2026-04-11T08:30:00Z'), '2026-04-14T08:30:00.000Z');
-    return t;
-  }
+## Phase 0 — Scaffold
+**Prompt to Claude Code:**
+> Read CLAUDE.md and README.md. Scaffold a Next.js (App Router) + TypeScript + Tailwind project called `ccs-portal`. Add Prisma (Postgres), Auth.js, and Zod. Set up a `docker-compose.yml` with Postgres for local dev. Create a `.env.example` listing every secret we'll need (DATABASE_URL, AUTH_* for the OIDC provider, ANTHROPIC_API_KEY, BLOB_* storage creds). Configure Tailwind with the light-theme design tokens from README.md as CSS variables. Do not build features yet.
 
-  const api = { isBusinessDay, addBusinessDays, quarterEnd, cf30DueDate, escalationLadder, riskBand, cpdStrike, retentionEnd, art33Deadline, runTests, fmt };
-  root.CCSEngine = api;
-  if (typeof module !== 'undefined' && module.exports) module.exports = api;
-})(typeof window !== 'undefined' ? window : globalThis);
+**Verify:** `npm run dev` serves a blank themed page; `npx prisma migrate dev` runs against local Postgres.
+
+---
+
+## Phase 1 — Data model
+**Prompt:**
+> From the register objects in the HTML reference (REG_AR, REG_AGREE, REG_PERM, REG_CMP, REG_ANN, REG_PAD, REG_GE, REG_COI, REG_TC, REG_AML, REG_COMP, REG_BR, REG_WB, REG_CF30, REG_CERT, REG_MAR, REG_RES, REG_PIPE, MANUAL_MAP, POLICY_REG, FORMS, TRAINING, DATA_BREACH, SAR, RTM, ATTEST, CAL, FP, AUDIT, CF30_RISK), design a normalised Prisma schema. Core entities: AppointedRep, Person, User (with role + arId), FinancialPromotion, PromotionDocument, AuditEvent (append-only), CF30Return, RiskScore, plus a table per register. Add enums for status/severity/RAG. AuditEvent and AgentRun are append-only — no update/delete in the API layer. Seed with the reference data for SIX, Drake Star, Codrington only.
+
+**Verify:** migrate + seed succeed; `prisma studio` shows the three ARs and seeded registers.
+
+---
+
+## Phase 2 — Auth & tenancy
+**Prompt:**
+> Add Auth.js with an OIDC provider (Entra ID; make it swappable to Okta via env). Three roles: AR, COMPLIANCE, SMF. Store role + arId on the user. Implement middleware + a query helper that enforces row-level scoping: AR users can read/write only rows where arId = their firm; COMPLIANCE reads all + drafts; SMF has sign-off authority. Add a role-aware layout: the sidebar and available actions render per role. AR-facing pages show Razlin branding; internal pages may show CCS.
+
+**Verify:** log in as each role; an AR user cannot fetch another firm's data (test it).
+
+---
+
+## Phase 3 — UI (recreate the portal)
+**Prompt:**
+> Recreate the modules from CCS AR Oversight Portal Light.html as React components, pixel-faithful to the reference (tokens in README.md), reading from the API instead of in-file consts. Start with: Oversight Dashboard (health ring, KPIs, priority queue, deadlines, RAG matrix), then the generic register table + add/delete, then all conduct/people/data registers. Keep the sidebar nav structure. Remove all localStorage — state comes from the DB.
+
+**Verify:** every nav item renders live data; add/delete a register row persists to Postgres.
+
+---
+
+## Phase 4 — FP submission channel + documents + audit
+**Prompt:**
+> Build the Financial Promotions module: AR submission form (identification, audience, COBS 4 checklist, reviewer notes) with drag-and-drop multi-file upload. On upload, stream the file to Blob storage with an immutability policy, compute SHA-256 server-side, and store {name,size,hash,blobUrl}. Submission creates a FinancialPromotion (status PENDING) and writes AuditEvents (SUBMITTED, DOCS ATTACHED). SMF Adopt/Reject updates status and writes an AuditEvent. Render the immutable audit trail card + per-submission detail modal (doc manifest with hashes + filtered history). Add CSV export of the trail. Type filter tabs: research/teaser/deck/marketing/advisory.
+
+**Verify:** submit as an AR with files → appears in SMF queue with hashed docs → Adopt writes an immutable audit row; audit rows cannot be edited/deleted via API.
+
+---
+
+## Phase 5 — Server-side AI review
+**Prompt:**
+> Add a server route POST /api/fp/:id/ai-review that calls Claude with the COBS 4 / MAR review prompt from the reference (keep the wording), using ANTHROPIC_API_KEY from env. Return a structured verdict (APPROVE / APPROVE WITH CONDITIONS / REFER / REJECT) + findings. Render it in the inline AI panel. Log an AI REVIEW AuditEvent. The verdict is advisory only — final authority is the SMF sign-off.
+
+**Verify:** AI review runs from the server; no key in client bundle (grep the build output).
+
+---
+
+## Phase 6 — Deterministic engine
+**Prompt:**
+> Implement a pure, unit-tested module for all date/threshold logic: quarter-end + 10-business-day due dates, the T-5BD…T+20BD escalation ladder, retention clocks (6/7 yr), CPD 35h/yr, and the 5-factor risk banding (5-7 bi-annual / 8-11 quarterly / 12-15 quarterly+ad hoc). No LLM involvement. Wire CF30 Returns and Risk Scoring to it.
+
+**Verify:** unit tests green, including UK bank-holiday edge cases and quarter boundaries.
+
+---
+
+## Phase 7 — Agent runtime
+**Prompt:**
+> Implement the seven agents with the Anthropic Agent SDK, headless. For each: a versioned system prompt, a strict tool whitelist, and a Zod-validated JSON output schema (mirror CCS-AGENT-SPECS-001). Shared runner: validate input → render prompt → call model with ONLY whitelisted tools → validate output → write an immutable AgentRun log (agent id, version, prompt+input hash, model, tokens, output) → on any error/ambiguity, fail-closed and enqueue an OPERATOR REVIEW flag. The only egress tool available to any agent is enqueue_for_signoff; send-email/file-regulatory/persist-final must be unreachable. Triggers: CRON agent-quarterly-cycle (06:00), agent-anomaly (02:00), agent-cpd-tracker (06:00); WEBHOOK agent-consolidator (on return submit), agent-notification-drafter (on flagged event); ON-DEMAND agent-pre-meeting-prep, agent-evidence-packer. Build them in MANUAL-TRIGGER mode first (an operator button), not scheduled.
+
+**Verify:** trigger each agent manually; drafts land in the Sign-Off Queue; a test proving an agent cannot invoke a withheld tool; a forced error fails closed with an OPERATOR REVIEW flag.
+
+---
+
+## Phase 8 — Go-live
+**Prompt:**
+> Add monitoring (agent failures alert; queue-age + uptime dashboard). Wire the CRON/webhook triggers behind a feature flag so agents can be switched from manual to autonomous per environment. Write a runbook: how to onboard an AR, rotate keys, and review agent output quarterly. Prepare deploy config for Azure (web tier + Functions for agents + Postgres + Blob with immutability).
+
+**Verify:** run one full simulated quarter with agents autonomous in staging; audit trail complete; then enable in production per the Go-Live Checklist gates.
+
+---
+
+## Environment variables (.env)
+```
+DATABASE_URL=postgres://...
+AUTH_ISSUER=...            # Entra/Okta OIDC
+AUTH_CLIENT_ID=...
+AUTH_CLIENT_SECRET=...
+ANTHROPIC_API_KEY=...      # server only
+BLOB_ACCOUNT=... BLOB_KEY=... BLOB_CONTAINER=ccs-docs   # immutability policy ON
+AGENTS_AUTONOMOUS=false    # flip to true only after Gate 5
+```
+
+## Definition of done (regulated tool)
+- [ ] AR sees only own firm; SMF is sole sign-off; no agent egress beyond the queue.
+- [ ] Every submission/upload/decision/agent-run is in the append-only audit; docs are WORM + SHA-256.
+- [ ] Dates/thresholds are code-computed and unit-tested.
+- [ ] No secret in any client bundle.
+- [ ] DPA (CCS↔Razlin) and a pen test completed before real AR data (Phase 5 of the Go-Live Checklist).
