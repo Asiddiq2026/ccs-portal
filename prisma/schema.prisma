@@ -212,6 +212,33 @@ model PersonCpd {
   @@map("person_cpd")
 }
 
+// Training Completions (evidence feeding person_cpd). Each row is one passed
+// (or attempted) training module for one person, ingested from the training
+// platform. It is FACTUAL EVIDENCE, not an oversight decision: rows are written
+// append-only (no UPDATE/DELETE grant — see prisma/rls.sql) and tenant-isolated
+// on arId like the registers. Credited CPD hours are NOT stored here; they are
+// derived in code from the coded module→hours map (Invariant 7), then the
+// three-strike person_cpd row is DRAFTED for SMF sign-off by agent-cpd-tracker.
+model TrainingCompletion {
+  id            String   @id @default(cuid())
+  arId          String
+  person        String
+  moduleId      String   @map("module_id")
+  moduleTitle   String   @map("module_title")
+  quarter       String
+  score         Int
+  outOf         Int      @map("out_of")
+  pct           Int
+  passed        Boolean
+  certificateId String?  @map("certificate_id")
+  completedAt   DateTime @map("completed_at")
+  recordedAt    DateTime @default(now()) @map("recorded_at")
+  source        String   @default("training_platform")
+
+  @@index([arId, person])
+  @@map("training_completion")
+}
+
 // Sign-Off Queue. The API tool layer never writes a FINAL register row: every
 // agent/API write lands here as a PENDING draft (write_register_entry) and is
 // routed to human review (enqueue_for_signoff). Only an audited SMF sign-off

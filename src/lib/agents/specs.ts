@@ -48,6 +48,9 @@ export const AGENT_SPECS: readonly AgentSpec[] = Object.freeze([
     version: "v2",
     trigger: "CRON",
     schedule: "Daily · 06:00",
+    // Reads training_completion evidence, credits CPD hours via compute_thresholds
+    // (engine-coded, never the model), and drafts the three-strike person_cpd row
+    // for SMF sign-off. Source data is ingested at POST /api/training/completions.
     description: "CPD 35h three-strike tracking against coded thresholds.",
     tools: ["query_database", "compute_thresholds", "write_register_entry", "enqueue_for_signoff"],
   },

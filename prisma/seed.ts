@@ -69,6 +69,14 @@ async function main() {
           certExpiry: new Date("2026-12-31T00:00:00Z"),
         },
       });
+
+      // Training-completion evidence feeding person_cpd (m1 + m2 = 8 credited h).
+      await tx.trainingCompletion.createMany({
+        data: [
+          { arId: ar.arId, person: "Approved Person", moduleId: "m1", moduleTitle: "Regulatory Framework", quarter: "Q1", score: 6, outOf: 6, pct: 100, passed: true, completedAt: new Date("2026-02-10T10:00:00Z") },
+          { arId: ar.arId, person: "Approved Person", moduleId: "m2", moduleTitle: "SM&CR and Fitness & Propriety", quarter: "Q1", score: 4, outOf: 5, pct: 80, passed: true, completedAt: new Date("2026-02-12T10:00:00Z") },
+        ],
+      });
     }
 
     // A financial promotion for Codrington (matches the AR-portal reference).

@@ -45,4 +45,21 @@ describe.runIf(RUN)("RLS tenant isolation (Invariant 5)", () => {
     const rows = await prisma.appointedRep.findMany();
     expect(rows).toHaveLength(0);
   });
+
+  it("an AR sees only its own training_completion evidence", async () => {
+    const rows = await withTenant({ role: "AR", arId: "ar_six" }, (tx) =>
+      tx.trainingCompletion.findMany(),
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.arId === "ar_six")).toBe(true);
+  });
+
+  it("training_completion is append-only — UPDATE is denied to ccs_app", async () => {
+    // REVOKE UPDATE means Postgres refuses the write regardless of RLS policy.
+    await expect(
+      withTenant({ role: "COMPLIANCE", arId: "" }, (tx) =>
+        tx.trainingCompletion.updateMany({ data: { pct: 0 } }),
+      ),
+    ).rejects.toThrow();
+  });
 });

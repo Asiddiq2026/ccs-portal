@@ -91,6 +91,33 @@ export function cpdStrike(args: { hours: number; required?: number; monthsLeft: 
   return 0;
 }
 
+// CPD-hour credit per training module (coded — confirm with RAZ at Gate 1).
+// The eight quarterly modules sum to the 35h/yr requirement, so a person who
+// passes the full programme is exactly compliant. Credited hours are derived
+// here, NEVER taken from the training platform's own numbers (Invariant 7).
+export const MODULE_CPD_HOURS: Record<string, number> = {
+  m1: 4, m2: 4, m3: 5, m4: 5, m5: 4, m6: 5, m7: 4, m8: 4,
+};
+
+/**
+ * Credited CPD hours from a set of training completions. Only PASSED modules
+ * earn credit; each distinct module counts once (a retake does not double-count);
+ * an unknown module earns zero. Deterministic — the single source of truth for
+ * how completions become hours.
+ */
+export function creditedCpdHours(
+  completions: ReadonlyArray<{ moduleId: string; passed: boolean }>,
+): number {
+  const counted = new Set<string>();
+  let total = 0;
+  for (const c of completions) {
+    if (!c.passed || counted.has(c.moduleId)) continue;
+    counted.add(c.moduleId);
+    total += MODULE_CPD_HOURS[c.moduleId] ?? 0;
+  }
+  return total;
+}
+
 /** Retention clocks. Returns "indefinite" for AR / approved-person records. */
 export function retentionEnd(dateStr: string, kind: RetentionKind): string {
   const years: number | undefined = { doc: 6, audit: 6, agent_run: 7 }[kind as string];

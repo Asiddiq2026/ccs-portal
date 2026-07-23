@@ -147,6 +147,23 @@ CREATE POLICY tenant_isolation ON "sign_off_item"
     OR "arId" = current_setting('app.ar_id', true)
   );
 
+-- training_completion — HYBRID: tenant-isolated per AR (like the registers) AND
+-- append-only (like the audit log). SELECT/INSERT are scoped to the caller's
+-- firm; UPDATE/DELETE/TRUNCATE are revoked so completion evidence is immutable.
+ALTER TABLE "training_completion" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "training_completion" FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON "training_completion" FROM ccs_app;
+DROP POLICY IF EXISTS tenant_isolation ON "training_completion";
+CREATE POLICY tenant_isolation ON "training_completion"
+  USING (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+    OR "arId" = current_setting('app.ar_id', true)
+  )
+  WITH CHECK (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+    OR "arId" = current_setting('app.ar_id', true)
+  );
+
 -- ---------------------------------------------------------------------------
 -- Network-scoped append-only registers
 -- Network-wide read for COMPLIANCE + SMF only; INSERT allowed; no UPDATE/DELETE.
