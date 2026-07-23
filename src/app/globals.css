@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * CCS internal screens — light theme design tokens.
+ * Source: design_handoff_ccs_platform/README.md § Design Tokens.
+ */
+:root {
+  /* Surfaces */
+  --ccs-bg: #F3F5F8;
+  --ccs-card: #FFFFFF;
+  --ccs-border: #E3E7EE;
+  --ccs-panel: #F5F7FA;
+
+  /* Text */
+  --ccs-text: #101828;
+  --ccs-text-secondary: #4E576A;
+  --ccs-text-muted: #8A93A6;
+
+  /* Accent */
+  --ccs-accent: #0891B2;
+  --ccs-accent-hover: #0E7490;
+  --ccs-header-grad-from: #0E7490;
+  --ccs-header-grad-to: #155E75;
+  --ccs-cta-grad-from: #06B6D4;
+  --ccs-cta-grad-to: #0891B2;
+
+  /* Status */
+  --ccs-success: #15803D;
+  --ccs-warn: #B45309;
+  --ccs-danger: #B91C1C;
+  --ccs-info: #1D4ED8;
+  --ccs-ai: #7E22CE;
+  --ccs-live: #65A30D;
+
+  /* Razlin AR portal deltas */
+  --razlin-header: #0F2E3D;
+  --razlin-accent: #0E7490;
+
+  /* Fonts (populated by next/font in layout.tsx) */
+  --font-sora: "Sora", sans-serif;
+  --font-manrope: "Manrope", sans-serif;
+  --font-jetbrains: "JetBrains Mono", monospace;
+}
+
+body {
+  background: var(--ccs-bg);
+  color: var(--ccs-text);
+  font-family: var(--font-manrope);
+}

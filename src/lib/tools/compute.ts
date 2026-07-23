@@ -1,0 +1,64 @@
+import { z } from "zod";
+import type { Tool } from "./types";
+import {
+  quarterEnd,
+  cf30DueDate,
+  escalationLadder,
+  riskBand,
+  cpdStrike,
+} from "../engine";
+
+/**
+ * compute_dates — COMPUTE. Pure, deterministic date arithmetic backed by the
+ * ported engine (Invariant 7: the model never does date maths). No DB access.
+ */
+export const computeDates: Tool = {
+  name: "compute_dates",
+  kind: "COMPUTE",
+  input: z.object({
+    quarterEndDate: z.string(),
+  }),
+  output: z.object({
+    quarterEnd: z.string(),
+    cf30Due: z.string(),
+    ladder: z.array(
+      z.object({ step: z.string(), date: z.string(), action: z.string() }),
+    ),
+  }),
+  async run(input) {
+    const qe = quarterEnd(input.quarterEndDate);
+    const due = cf30DueDate(qe);
+    return { quarterEnd: qe, cf30Due: due, ladder: escalationLadder(due) };
+  },
+};
+
+/**
+ * compute_thresholds — COMPUTE. Pure risk-band + CPD-strike calculators backed
+ * by the engine. No DB access.
+ */
+export const computeThresholds: Tool = {
+  name: "compute_thresholds",
+  kind: "COMPUTE",
+  input: z.object({
+    riskFactors: z.array(z.number()).optional(),
+    cpd: z
+      .object({
+        hours: z.number(),
+        required: z.number().optional(),
+        monthsLeft: z.number(),
+      })
+      .optional(),
+  }),
+  output: z.object({
+    risk: z
+      .object({ total: z.number(), band: z.string(), cadence: z.string() })
+      .optional(),
+    cpdStrike: z.number().optional(),
+  }),
+  async run(input) {
+    return {
+      risk: input.riskFactors ? riskBand(input.riskFactors) : undefined,
+      cpdStrike: input.cpd ? cpdStrike(input.cpd) : undefined,
+    };
+  },
+};

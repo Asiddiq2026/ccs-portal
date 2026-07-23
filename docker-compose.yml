@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ccs-postgres
+    restart: unless-stopped
+    environment:
+      # Superuser used only to bootstrap the database + app role.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ccs-pgdata:/var/lib/postgresql/data
+      # Runs once on first cluster init: creates the ccs database + ccs_app role.
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ccs-pgdata:

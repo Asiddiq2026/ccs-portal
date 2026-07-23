@@ -1,0 +1,275 @@
+// CCS AR Oversight Platform — Phase 1 data model.
+//
+// Scope: the 8 register tables modelled in the design (Backend & Data
+// Infrastructure screen). Column names mirror the reference `cols` arrays
+// exactly so the inspect-modal SQL and the live schema agree. Row-level
+// security is layered on top of these tables in prisma/rls.sql (Prisma does
+// not manage RLS policies).
+//
+// Tables split into two RLS classes:
+//   per-AR   — tenant-isolated on `arId` (appointed_rep, cf30_return,
+//              financial_promotion, risk_score, data_breach, person_cpd)
+//   network  — append-only, network-wide read (audit_event, agent_run)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------------------------------------
+// Enums
+// --------------------------------------------------------------------------
+
+// Actor roles carried on the SSO session (used by RLS + API layer).
+enum Role {
+  AR
+  COMPLIANCE
+  SMF
+}
+
+// Register write lifecycle. Rows written by the API tool layer land PENDING;
+// only an audited SMF sign-off flips them to FINAL.
+enum WriteStatus {
+  PENDING
+  FINAL
+}
+
+// Appointed representative lifecycle status (SUP 12).
+enum ARStatus {
+  ONBOARDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+// 5-factor risk banding (5-7 GREEN / 8-11 AMBER / 12-15 RED).
+enum RiskBand {
+  GREEN
+  AMBER
+  RED
+}
+
+// Financial promotion category (COBS 4). Mirrors the AR portal type chips.
+enum FPType {
+  RESEARCH
+  TEASER
+  DECK
+  MARKETING
+  ADVISORY
+}
+
+// FP submission lifecycle: PENDING -> ADOPTED | REJECTED.
+enum FPStatus {
+  PENDING
+  ADOPTED
+  REJECTED
+}
+
+// Data breach lifecycle (UK GDPR Art 33).
+enum BreachStatus {
+  PENDING
+  REPORTED
+  CLOSED
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// Sign-off queue item lifecycle. A draft is PENDING until an SMF acts on it.
+enum SignOffStatus {
+  PENDING
+  SIGNED_OFF
+  RETURNED
+}
+
+// --------------------------------------------------------------------------
+// Per-AR tenant-isolated registers
+// --------------------------------------------------------------------------
+
+// AR Register (SUP 12). One row per appointed representative. `arId` is the
+// tenant discriminator and equals the row's own id — an AR user can read only
+// their own row.
+model AppointedRep {
+  id          String    @id @default(cuid())
+  frn         String    @unique
+  legalName   String    @map("legal_name")
+  status      ARStatus  @default(ONBOARDING)
+  onboardedAt DateTime  @map("onboarded_at")
+  riskBand    RiskBand? @map("risk_band")
+  arId        String
+
+  @@index([arId])
+  @@map("appointed_rep")
+}
+
+// CF30 Quarterly Returns. Due dates are computed by the deterministic engine,
+// never by an agent (Invariant 7).
+model Cf30Return {
+  id         String      @id @default(cuid())
+  arId       String
+  quarter    String // e.g. "2026-Q1"
+  receivedAt DateTime?   @map("received_at")
+  status     WriteStatus @default(PENDING)
+  dueDate    DateTime    @map("due_date")
+  exceptions Int         @default(0)
+
+  @@index([arId])
+  @@map("cf30_return")
+}
+
+// Financial Promotions (COBS 4). AR submits PENDING with a COBS 4 checklist and
+// hashed document manifest; only SMF Adopt/Reject transitions status, each
+// writing an AuditEvent. Every doc is WORM-stored + SHA-256'd (see
+// PromotionDocument). `ref` is the human-facing id shown in the portal (FP-####).
+model FinancialPromotion {
+  id            String               @id @default(cuid())
+  arId          String
+  ref           String               @unique
+  type          FPType
+  title         String
+  audience      String
+  cobs          Json // COBS 4 checklist: [{ label, checked }]
+  status        FPStatus             @default(PENDING)
+  submittedBy   String               @map("submitted_by")
+  submittedAt   DateTime             @default(now()) @map("submitted_at")
+  reviewedBy    String?              @map("reviewed_by")
+  reviewerNotes String?              @map("reviewer_notes")
+  decidedAt     DateTime?            @map("decided_at")
+  documents     PromotionDocument[]
+
+  @@index([arId])
+  @@map("financial_promotion")
+}
+
+// A document attached to a financial promotion. Content-addressed by SHA-256
+// and stored in WORM blob storage (immutability policy ON); the DB holds only
+// the manifest {name,size,sha256,blobUrl}, never the bytes. Tenant-isolated on
+// arId so the manifest is scoped exactly like its parent promotion.
+model PromotionDocument {
+  id          String             @id @default(cuid())
+  arId        String
+  promotionId String             @map("promotion_id")
+  name        String
+  size        Int
+  sha256      String
+  blobUrl     String             @map("blob_url")
+  uploadedAt  DateTime           @default(now()) @map("uploaded_at")
+  promotion   FinancialPromotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([arId])
+  @@index([promotionId])
+  @@map("promotion_document")
+}
+
+// AR Risk Scoring. 5-factor banding computed in code.
+model RiskScore {
+  id         String   @id @default(cuid())
+  arId       String
+  factors    Json
+  total      Int
+  band       RiskBand
+  cadence    String
+  computedAt DateTime @map("computed_at")
+
+  @@index([arId])
+  @@map("risk_score")
+}
+
+// Data Breaches (ICO). Art 33 72-hour clock started server-side on log.
+model DataBreach {
+  id         String       @id @default(cuid())
+  arId       String
+  ref        String       @unique
+  detectedAt DateTime     @map("detected_at")
+  art33Clock DateTime     @map("art33_clock")
+  status     BreachStatus @default(PENDING)
+  severity   Severity
+
+  @@index([arId])
+  @@map("data_breach")
+}
+
+// CPD & Certification. 35h/yr tracked; three-strike escalation against coded
+// thresholds.
+model PersonCpd {
+  id         String   @id @default(cuid())
+  arId       String
+  person     String
+  cpdHours   Int      @default(0) @map("cpd_hours")
+  required   Int      @default(35)
+  strikes    Int      @default(0)
+  certExpiry DateTime @map("cert_expiry")
+
+  @@index([arId])
+  @@map("person_cpd")
+}
+
+// Sign-Off Queue. The API tool layer never writes a FINAL register row: every
+// agent/API write lands here as a PENDING draft (write_register_entry) and is
+// routed to human review (enqueue_for_signoff). Only an audited SMF sign-off
+// materialises the payload into its target register as FINAL (Invariants 1 & 3;
+// materialisation lands in a later phase). Tenant-isolated on arId.
+model SignOffItem {
+  id        String        @id @default(cuid())
+  arId      String
+  register  String // target per-AR register table (e.g. "cf30_return")
+  payload   Json // proposed row data, held PENDING until sign-off
+  summary   String
+  status    SignOffStatus @default(PENDING)
+  agentId   String?       @map("agent_id")
+  createdBy String        @map("created_by")
+  createdAt DateTime      @default(now()) @map("created_at")
+  decidedBy String?       @map("decided_by")
+  decidedAt DateTime?     @map("decided_at")
+  // FINAL register row id written on SIGNED_OFF; the sign-off rationale (required
+  // on RETURN so the AR/agent knows why a draft was rejected).
+  registerId String?      @map("register_id")
+  notes      String?
+
+  @@index([arId])
+  @@index([status])
+  @@map("sign_off_item")
+}
+
+// --------------------------------------------------------------------------
+// Network-scoped append-only registers
+// --------------------------------------------------------------------------
+
+// Audit Trail. Append-only — no UPDATE/DELETE is granted to the app role
+// (Invariant 4). Retention 6yr. `hashPrev` chains rows for tamper evidence.
+model AuditEvent {
+  id       String   @id @default(cuid())
+  actor    String
+  action   String
+  entity   String
+  entityId String?  @map("entity_id")
+  ts       DateTime @default(now())
+  hashPrev String?  @map("hash_prev")
+
+  @@index([entity, entityId])
+  @@map("audit_event")
+}
+
+// Agent Run Log. Immutable record of every headless agent invocation.
+// Retention 7yr.
+model AgentRun {
+  id         String   @id @default(cuid())
+  agentId    String   @map("agent_id")
+  version    String
+  promptHash String   @map("prompt_hash")
+  inputHash  String   @map("input_hash")
+  tokens     Int
+  output     Json
+  ts         DateTime @default(now())
+
+  @@index([agentId])
+  @@map("agent_run")
+}
