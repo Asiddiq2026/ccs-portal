@@ -20,11 +20,16 @@ const prisma = new PrismaClient(
 async function main() {
   const sql = readFileSync(join(process.cwd(), "prisma", "rls.sql"), "utf8");
 
-  // Split into individual statements. rls.sql intentionally contains no
-  // function bodies or dollar-quoting, so a naive semicolon split is safe.
+  // Split into individual statements. Strip `--` line comments FIRST, then
+  // split on `;`: comment text can itself contain semicolons (e.g. the header's
+  // "COMPLIANCE read-all + draft; SMF sign-off."), which would otherwise split
+  // into bogus fragments like "SMF sign-off." and fail with a syntax error.
+  // rls.sql intentionally has no dollar-quoting and no string literals
+  // containing `;` or `--`, so comment-strip-then-split is safe.
   const statements = sql
+    .replace(/--.*$/gm, "")
     .split(";")
-    .map((s) => s.replace(/--.*$/gm, "").trim())
+    .map((s) => s.trim())
     .filter((s) => s.length > 0);
 
   for (const stmt of statements) {
