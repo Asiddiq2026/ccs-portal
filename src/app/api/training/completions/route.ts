@@ -14,7 +14,6 @@
 import { NextResponse } from "next/server";
 import type { TenantContext } from "@/lib/db";
 import { requireTenant } from "@/lib/session";
-import { prismaAudit } from "@/lib/tools/prisma-adapters";
 import { prismaTrainingStore } from "@/lib/training/prisma-adapter";
 import { recordCompletions, TrainingError } from "@/lib/training/service";
 import { parseTokenRegistry, serviceTokenTenant } from "@/lib/training/service-token";
@@ -55,11 +54,7 @@ export async function POST(req: Request): Promise<Response> {
   try {
     // The service (and RLS) enforce firm scope: an AR-scoped token or AR session
     // whose arId differs from the body's arId is rejected 403.
-    const result = await recordCompletions(
-      { store: prismaTrainingStore, audit: prismaAudit },
-      tenant,
-      body,
-    );
+    const result = await recordCompletions({ store: prismaTrainingStore }, tenant, body);
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
     const status = err instanceof TrainingError ? err.status : 500;

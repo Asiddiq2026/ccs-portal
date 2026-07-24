@@ -5,19 +5,26 @@ import {
   TrainingError,
   type TrainingDeps,
   type TrainingCompletionRow,
+  type BatchAudit,
 } from "./service";
 import { creditedCpdHours } from "../engine";
 import type { Tenant } from "../tools/types";
 
-// In-memory stubs — no DB, no network. Capture what the service persists.
+// In-memory stubs — no DB, no network. Capture what the service persists. The
+// store records the whole batch in one call, mirroring the single-transaction
+// adapter, so `batchCalls` also proves the completions + audit go together.
 function makeDeps() {
   const rows: TrainingCompletionRow[] = [];
-  const audits: Array<{ actor: string; action: string; entity: string; entityId?: string }> = [];
+  const audits: BatchAudit[] = [];
+  let batchCalls = 0;
   const deps: TrainingDeps = {
     store: {
-      async appendCompletion(row) {
-        rows.push(row);
-        return { id: `tc_${rows.length}` };
+      async recordBatch({ rows: batch, audit }) {
+        batchCalls += 1;
+        const ids = batch.map((_, i) => `tc_${rows.length + i + 1}`);
+        rows.push(...batch);
+        audits.push(audit);
+        return { ids };
       },
       async listCompletions(filter) {
         return rows
@@ -25,14 +32,8 @@ function makeDeps() {
           .map((r) => ({ person: r.person, moduleId: r.moduleId, passed: r.passed }));
       },
     },
-    audit: {
-      async append(e) {
-        audits.push(e);
-        return { id: `a_${audits.length}` };
-      },
-    },
   };
-  return { deps, rows, audits };
+  return { deps, rows, audits, batchCalls: () => batchCalls };
 }
 
 const OPERATOR: Tenant = { role: "COMPLIANCE", arId: "" };
@@ -54,8 +55,8 @@ function completion(over: Partial<Record<string, unknown>> = {}) {
 }
 
 describe("recordCompletions — append-only ingest", () => {
-  it("writes one training_completion per item and a single batch audit (never person_cpd)", async () => {
-    const { deps, rows, audits } = makeDeps();
+  it("writes the batch + a single audit atomically (one store call, never person_cpd)", async () => {
+    const { deps, rows, audits, batchCalls } = makeDeps();
     const res = await recordCompletions(deps, OPERATOR, {
       arId: "ar_codrington",
       completions: [completion(), completion({ moduleId: "m3", moduleTitle: "Fin Prom" })],
@@ -63,9 +64,10 @@ describe("recordCompletions — append-only ingest", () => {
 
     expect(res.recorded).toBe(2);
     expect(res.ids).toHaveLength(2);
+    // A single recordBatch call carries all rows + the audit — one atomic unit.
+    expect(batchCalls()).toBe(1);
     expect(rows.every((r) => r.arId === "ar_codrington")).toBe(true);
     expect(rows.every((r) => r.source === "training_platform")).toBe(true);
-    // Exactly one audit event for the batch, and it targets the evidence table.
     expect(audits).toHaveLength(1);
     expect(audits[0].action).toBe("TRAINING COMPLETIONS RECORDED");
     expect(audits[0].entity).toBe("training_completion");

@@ -14,7 +14,7 @@
 // DB-free: depends only on injected interfaces so it unit-tests with in-memory
 // stubs. The Prisma-backed TrainingStore lives in ./prisma-adapter.
 import { z } from "zod";
-import type { AuditWriter, Tenant } from "../tools/types";
+import type { Tenant } from "../tools/types";
 import { creditedCpdHours, cpdStrike } from "../engine";
 
 /** Domain error carrying an HTTP-ish status so the route can map it directly. */
@@ -58,9 +58,24 @@ export interface TrainingCompletionRow extends CompletionInput {
   source: string;
 }
 
+/** The append-only audit entry written atomically with a completion batch. */
+export interface BatchAudit {
+  actor: string;
+  action: string;
+  entity: string;
+  entityId?: string;
+}
+
 export interface TrainingStore {
-  /** Append one completion (INSERT only — the table has no UPDATE/DELETE grant). */
-  appendCompletion(row: TrainingCompletionRow, tenant: Tenant): Promise<{ id: string }>;
+  /**
+   * Append a batch of completions AND its audit entry in a SINGLE transaction
+   * (all INSERT — the tables have no UPDATE/DELETE grant). All-or-nothing: a
+   * failure rolls back the whole batch, so a partial import can never persist.
+   */
+  recordBatch(
+    input: { rows: TrainingCompletionRow[]; audit: BatchAudit },
+    tenant: Tenant,
+  ): Promise<{ ids: string[] }>;
   /** All completions for a firm (optionally one person), scoped by RLS. */
   listCompletions(
     filter: { arId: string; person?: string },
@@ -70,7 +85,6 @@ export interface TrainingStore {
 
 export interface TrainingDeps {
   store: TrainingStore;
-  audit: AuditWriter;
 }
 
 function actorOf(tenant: Tenant): string {
@@ -92,9 +106,9 @@ export interface RecordResult {
 }
 
 /**
- * Record a batch of training completions as append-only evidence. Writes one
- * training_completion row per item and a single append-only audit event for the
- * batch. Never touches person_cpd.
+ * Record a batch of training completions as append-only evidence. All rows plus
+ * a single audit event are written in one transaction (see TrainingStore.
+ * recordBatch) — a partial import can never persist. Never touches person_cpd.
  */
 export async function recordCompletions(
   deps: TrainingDeps,
@@ -111,21 +125,20 @@ export async function recordCompletions(
   const { arId, completions } = parsed.data;
   assertFirmScope(tenant, arId);
 
-  const ids: string[] = [];
-  for (const c of completions) {
-    const { id } = await deps.store.appendCompletion(
-      { ...c, arId, source: "training_platform" },
-      tenant,
-    );
-    ids.push(id);
-  }
-
-  await deps.audit.append(
+  const rows: TrainingCompletionRow[] = completions.map((c) => ({
+    ...c,
+    arId,
+    source: "training_platform",
+  }));
+  const { ids } = await deps.store.recordBatch(
     {
-      actor: actorOf(tenant),
-      action: "TRAINING COMPLETIONS RECORDED",
-      entity: "training_completion",
-      entityId: arId,
+      rows,
+      audit: {
+        actor: actorOf(tenant),
+        action: "TRAINING COMPLETIONS RECORDED",
+        entity: "training_completion",
+        entityId: arId,
+      },
     },
     tenant,
   );
