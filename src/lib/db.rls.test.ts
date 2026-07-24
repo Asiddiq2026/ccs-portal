@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { prisma, withTenant } from "./db";
+import { prismaAudit } from "./tools/prisma-adapters";
 
 // Integration proof that RLS actually isolates tenants — not just that the app
 // *intends* to. It talks to a real Postgres as the NOBYPASSRLS `ccs_app` role,
@@ -61,5 +62,20 @@ describe.runIf(RUN)("RLS tenant isolation (Invariant 5)", () => {
         tx.trainingCompletion.updateMany({ data: { pct: 0 } }),
       ),
     ).rejects.toThrow();
+  });
+
+  it("a non-operator (AR) can append audit despite the operator-only read policy", async () => {
+    // Regression: audit_event's SELECT policy is operator-only, so INSERT ...
+    // RETURNING (Prisma .create) fails for an AR. prismaAudit uses createMany
+    // (no RETURNING), so an AR-scoped writer — e.g. a service-token ingest — can
+    // still append. Count under a COMPLIANCE context (AR cannot read audit).
+    const before = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) => tx.auditEvent.count());
+    const res = await prismaAudit.append(
+      { actor: "AR:ar_six", action: "TEST APPEND", entity: "training_completion" },
+      { role: "AR", arId: "ar_six" },
+    );
+    expect(res.id).toBeTruthy();
+    const after = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) => tx.auditEvent.count());
+    expect(after).toBe(before + 1);
   });
 });

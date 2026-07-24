@@ -1,6 +1,7 @@
 // Production wiring: RegisterStore + AuditWriter backed by Prisma, each call
 // scoped through withTenant() so RLS binds the caller's app.role / app.ar_id.
 // The tools themselves never import Prisma — only these adapters do.
+import { randomUUID } from "node:crypto";
 import { withTenant } from "../db";
 import type { AuditWriter, RegisterStore, ToolDeps } from "./types";
 import { stubFeedScreener } from "./feeds";
@@ -81,10 +82,17 @@ export const prismaStore: RegisterStore = {
 export const prismaAudit: AuditWriter = {
   async append(e, tenant) {
     return withTenant(tenant, async (tx) => {
-      const row = await tx.auditEvent.create({
-        data: { actor: e.actor, action: e.action, entity: e.entity, entityId: e.entityId },
+      // createMany issues INSERT without RETURNING. audit_event's SELECT policy
+      // (network_read) is operator-only, and INSERT ... RETURNING is gated by the
+      // SELECT policy — so a non-operator writer (an AR, or an AR-scoped service
+      // token) cannot read back its own row and .create() would fail. We generate
+      // the id here and skip RETURNING; the append-only WITH CHECK(true) still
+      // passes for any role. Keeps audit strictly operator-readable.
+      const id = `evt_${randomUUID()}`;
+      await tx.auditEvent.createMany({
+        data: [{ id, actor: e.actor, action: e.action, entity: e.entity, entityId: e.entityId }],
       });
-      return { id: row.id };
+      return { id };
     });
   },
 };

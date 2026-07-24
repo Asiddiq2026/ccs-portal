@@ -1,36 +1,48 @@
-// POST /api/training/completions — operator import (Phase 1, option B) of
-// training-completion evidence from the training platform. An operator
-// (COMPLIANCE/SMF) uploads a batch; each row is written append-only to
-// training_completion. This does NOT touch person_cpd — the three-strike CPD
-// row is drafted for SMF sign-off separately by agent-cpd-tracker, which reads
-// this evidence (Invariants 1, 3, 4).
+// POST /api/training/completions — ingest training-completion evidence from the
+// training platform. Two authenticated paths, both landing append-only rows in
+// training_completion (Invariants 1, 3, 4); person_cpd is drafted for SMF
+// sign-off separately by agent-cpd-tracker, which reads this evidence.
+//
+//   1. Service token (Phase 2) — `Authorization: Bearer <token>`. Resolves to an
+//      AR-scoped machine tenant (a token can only write its own firm), for
+//      real-time posting by the training platform.
+//   2. Operator import (Phase 1) — a COMPLIANCE/SMF session uploads a batch.
 //
 // Body (JSON): { arId, completions: [{ person, moduleId, moduleTitle, quarter,
 //   score, outOf, pct, passed, certificateId?, completedAt }] }.
 // Errors: 401 · 403 · 400. Success: 201 { arId, recorded, ids }.
-//
-// Phase 2 will add a service-token endpoint so the training platform can post in
-// real time; for now ingest is operator-driven and human-scoped.
 import { NextResponse } from "next/server";
+import type { TenantContext } from "@/lib/db";
 import { requireTenant } from "@/lib/session";
 import { prismaAudit } from "@/lib/tools/prisma-adapters";
 import { prismaTrainingStore } from "@/lib/training/prisma-adapter";
 import { recordCompletions, TrainingError } from "@/lib/training/service";
+import { parseTokenRegistry, serviceTokenTenant } from "@/lib/training/service-token";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request): Promise<Response> {
-  let tenant;
-  try {
-    tenant = await requireTenant();
-  } catch {
-    return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  }
+  const authHeader = req.headers.get("authorization");
+  let tenant: TenantContext;
 
-  // Operator import only in Phase 1. ARs and the real-time service-token path
-  // arrive in Phase 2.
-  if (tenant.role !== "COMPLIANCE" && tenant.role !== "SMF") {
-    return NextResponse.json({ error: "operators only" }, { status: 403 });
+  if (authHeader) {
+    // Service-token path. A present-but-invalid bearer token is 401 — we never
+    // fall back to a session when a token was offered.
+    const machine = serviceTokenTenant(authHeader, parseTokenRegistry(process.env.TRAINING_INGEST_TOKENS));
+    if (!machine) {
+      return NextResponse.json({ error: "invalid service token" }, { status: 401 });
+    }
+    tenant = machine;
+  } else {
+    // Operator-import path (COMPLIANCE/SMF session).
+    try {
+      tenant = await requireTenant();
+    } catch {
+      return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+    }
+    if (tenant.role !== "COMPLIANCE" && tenant.role !== "SMF") {
+      return NextResponse.json({ error: "operators only" }, { status: 403 });
+    }
   }
 
   let body: unknown;
@@ -41,6 +53,8 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
+    // The service (and RLS) enforce firm scope: an AR-scoped token or AR session
+    // whose arId differs from the body's arId is rejected 403.
     const result = await recordCompletions(
       { store: prismaTrainingStore, audit: prismaAudit },
       tenant,
