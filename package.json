@@ -14,7 +14,7 @@
     "db:migrate": "prisma migrate dev",
     "db:rls": "tsx scripts/apply-rls.ts",
     "db:seed": "tsx prisma/seed.ts",
-    "db:setup": "prisma migrate dev --name init && npm run db:rls && npm run db:seed",
+    "db:setup": "prisma migrate deploy && npm run db:rls && npm run db:seed",
     "prisma:studio": "prisma studio"
   },
   "prisma": {
