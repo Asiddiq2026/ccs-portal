@@ -54,6 +54,22 @@ CREATE POLICY network_read ON "${table}"
   );`;
 }
 
+// Hybrid: tenant-isolated per AR AND append-only (training evidence tables).
+function appendOnlyPerArPolicy(table: string): string {
+  return `ALTER TABLE "${table}" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON "${table}" FROM ccs_app;
+CREATE POLICY tenant_isolation ON "${table}"
+  USING (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+    OR "arId" = current_setting('app.ar_id', true)
+  )
+  WITH CHECK (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+    OR "arId" = current_setting('app.ar_id', true)
+  );`;
+}
+
 const REG_6YR = "6 yr · SYSC 9";
 
 // Static table metadata (schema-derived). Row counts are filled in at request
@@ -67,6 +83,8 @@ const TABLE_META: Omit<TableInfo, "rows">[] = [
   { table: "data_breach", model: "DataBreach", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation", policy: perArPolicy("data_breach"), appendOnly: false, columns: ["id", "arId", "ref", "detected_at", "art33_clock", "status", "severity"] },
   { table: "person_cpd", model: "PersonCpd", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation", policy: perArPolicy("person_cpd"), appendOnly: false, columns: ["id", "arId", "person", "cpd_hours", "required", "strikes", "cert_expiry"] },
   { table: "sign_off_item", model: "SignOffItem", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation", policy: perArPolicy("sign_off_item"), appendOnly: false, columns: ["id", "arId", "register", "payload", "summary", "status", "agent_id", "created_by", "created_at", "decided_by", "decided_at", "register_id", "notes"] },
+  { table: "training_completion", model: "TrainingCompletion", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation + append-only", policy: appendOnlyPerArPolicy("training_completion"), appendOnly: true, columns: ["id", "arId", "person", "module_id", "module_title", "quarter", "score", "out_of", "pct", "passed", "certificate_id", "completed_at", "recorded_at", "source"] },
+  { table: "training_certificate", model: "TrainingCertificate", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation + append-only", policy: appendOnlyPerArPolicy("training_certificate"), appendOnly: true, columns: ["id", "arId", "person", "module_id", "certificate_id", "name", "sha256", "size", "blob_url", "stored_at"] },
   { table: "audit_event", model: "AuditEvent", scope: "network", retention: "6 yr · append-only", policyName: "append_only + network_read", policy: networkPolicy("audit_event"), appendOnly: true, columns: ["id", "actor", "action", "entity", "entity_id", "ts", "hash_prev"] },
   { table: "agent_run", model: "AgentRun", scope: "network", retention: "7 yr · append-only", policyName: "append_only + network_read", policy: networkPolicy("agent_run"), appendOnly: true, columns: ["id", "agent_id", "version", "prompt_hash", "input_hash", "tokens", "output", "ts"] },
 ];
@@ -104,6 +122,8 @@ export default async function InfraPage() {
       dataBreach,
       personCpd,
       signOffItem,
+      trainingCompletion,
+      trainingCertificate,
       auditEvent,
       agentRun,
     ] = await Promise.all([
@@ -115,6 +135,8 @@ export default async function InfraPage() {
       anyTx.dataBreach.count(),
       anyTx.personCpd.count(),
       anyTx.signOffItem.count(),
+      anyTx.trainingCompletion.count(),
+      anyTx.trainingCertificate.count(),
       anyTx.auditEvent.count(),
       anyTx.agentRun.count(),
     ]);
@@ -140,6 +162,8 @@ export default async function InfraPage() {
         data_breach: dataBreach,
         person_cpd: personCpd,
         sign_off_item: signOffItem,
+        training_completion: trainingCompletion,
+        training_certificate: trainingCertificate,
         audit_event: auditEvent,
         agent_run: agentRun,
       } as Record<string, number>,

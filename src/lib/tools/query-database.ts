@@ -2,14 +2,16 @@ import { z } from "zod";
 import {
   NETWORK_READ_TABLES,
   PER_AR_REGISTERS,
+  READONLY_QUERY_TABLES,
   ToolDeniedError,
   type Tool,
 } from "./types";
 
-const QUERYABLE = [...PER_AR_REGISTERS, ...NETWORK_READ_TABLES] as [
-  string,
-  ...string[],
-];
+const QUERYABLE = [
+  ...PER_AR_REGISTERS,
+  ...READONLY_QUERY_TABLES,
+  ...NETWORK_READ_TABLES,
+] as [string, ...string[]];
 
 /**
  * query_database — READ. Scoped reads only. Row-level security applies the

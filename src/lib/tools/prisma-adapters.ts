@@ -14,6 +14,8 @@ const DELEGATE: Record<string, string> = {
   risk_score: "riskScore",
   data_breach: "dataBreach",
   person_cpd: "personCpd",
+  training_completion: "trainingCompletion",
+  training_certificate: "trainingCertificate",
   audit_event: "auditEvent",
   agent_run: "agentRun",
 };

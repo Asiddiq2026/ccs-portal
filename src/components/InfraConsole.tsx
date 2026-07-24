@@ -90,6 +90,7 @@ const TIERS = [
 export function InfraConsole(props: InfraProps) {
   const { role, tables, callable, withheld, reserved, stats, recentAudit, wormDocs } = props;
   const [selected, setSelected] = useState<TableInfo | null>(null);
+  const tenantTableCount = tables.filter((t) => t.scope === "per-AR").length;
 
   return (
     <div>
@@ -107,7 +108,7 @@ export function InfraConsole(props: InfraProps) {
       </div>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Stat label="Register rows" value={String(stats.totalRows)} sub="across 8 tenant tables" tone="text-accent" />
+        <Stat label="Register rows" value={String(stats.totalRows)} sub={`across ${tenantTableCount} tenant tables`} tone="text-accent" />
         <Stat
           label="Pending sign-off"
           value={String(stats.pendingSignoff)}

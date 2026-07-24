@@ -25,6 +25,12 @@ export type PerArRegister = (typeof PER_AR_REGISTERS)[number];
 // Network-scoped, internal-only reads (COMPLIANCE/SMF).
 export const NETWORK_READ_TABLES = ["audit_event", "agent_run"] as const;
 
+// Per-AR, append-only EVIDENCE tables. Readable via query_database (scoped by
+// RLS, so an AR sees only its own) but deliberately NOT in PER_AR_REGISTERS —
+// they are written only by their dedicated ingest services (training completions
+// / certificates), never by write_register_entry.
+export const READONLY_QUERY_TABLES = ["training_completion", "training_certificate"] as const;
+
 // ---- Injected dependencies -------------------------------------------------
 
 export interface RegisterStore {
