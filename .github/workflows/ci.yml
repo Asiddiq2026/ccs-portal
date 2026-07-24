@@ -1,0 +1,75 @@
+name: CI
+
+# Runs the full test suite (including the RLS/DB integration tests against a
+# real Postgres) and the production build on every push / PR to main. Mirrors
+# the local verify flow: bootstrap the ccs_app role → db push → apply RLS →
+# seed → RUN_DB_TESTS=true test → build.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # App connects as the non-superuser ccs_app role so RLS is actually
+      # enforced (matches docker/postgres/init.sql and .env.example).
+      DATABASE_URL: postgresql://ccs_app:ccs_app@localhost:5432/ccs?schema=public
+      AUTH_SECRET: ci-not-a-real-secret
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Create the NOBYPASSRLS app role that owns the database, so FORCE ROW
+      # LEVEL SECURITY policies bind (psql ships on the ubuntu-latest runner).
+      - name: Bootstrap ccs_app role + database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE ccs_app WITH LOGIN PASSWORD 'ccs_app' NOSUPERUSER NOCREATEROLE NOBYPASSRLS;" \
+            -c "ALTER ROLE ccs_app CREATEDB;" \
+            -c "CREATE DATABASE ccs OWNER ccs_app;"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client + push schema
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+
+      - name: Apply RLS policies + seed
+        run: |
+          npm run db:rls
+          npm run db:seed
+
+      - name: Test (unit + RLS/DB integration)
+        run: npm test
+        env:
+          RUN_DB_TESTS: "true"
+
+      - name: Build
+        run: npm run build
