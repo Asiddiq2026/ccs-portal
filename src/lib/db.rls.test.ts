@@ -64,6 +64,22 @@ describe.runIf(RUN)("RLS tenant isolation (Invariant 5)", () => {
     ).rejects.toThrow();
   });
 
+  it("an AR sees only its own training_certificate manifests", async () => {
+    const rows = await withTenant({ role: "AR", arId: "ar_six" }, (tx) =>
+      tx.trainingCertificate.findMany(),
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.arId === "ar_six")).toBe(true);
+  });
+
+  it("training_certificate is append-only — UPDATE is denied to ccs_app", async () => {
+    await expect(
+      withTenant({ role: "COMPLIANCE", arId: "" }, (tx) =>
+        tx.trainingCertificate.updateMany({ data: { size: 0 } }),
+      ),
+    ).rejects.toThrow();
+  });
+
   it("a non-operator (AR) can append audit despite the operator-only read policy", async () => {
     // Regression: audit_event's SELECT policy is operator-only, so INSERT ...
     // RETURNING (Prisma .create) fails for an AR. prismaAudit uses createMany

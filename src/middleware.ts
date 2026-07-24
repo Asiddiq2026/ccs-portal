@@ -8,8 +8,8 @@ export { auth as middleware } from "@/auth";
 export const config = {
   // Run on everything except the Auth.js endpoints, Next internals, and static
   // assets. Excluding /api/auth is required or the sign-in flow deadlocks.
-  // /api/training/completions is also excluded: it self-authenticates in its
-  // handler (a Bearer service token OR an operator session) and fails closed, so
-  // the coarse session-redirect gate must not intercept its token requests.
-  matcher: ["/((?!api/auth|api/training/completions|_next/static|_next/image|favicon.ico).*)"],
+  // /api/training/* is also excluded: those ingest routes self-authenticate in
+  // their handlers (a Bearer service token OR an operator session) and fail
+  // closed, so the coarse session-redirect gate must not intercept token requests.
+  matcher: ["/((?!api/auth|api/training|_next/static|_next/image|favicon.ico).*)"],
 };

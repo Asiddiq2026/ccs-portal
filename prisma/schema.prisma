@@ -239,6 +239,28 @@ model TrainingCompletion {
   @@map("training_completion")
 }
 
+// Training Certificates (WORM manifest). One row per stored certificate PDF.
+// The bytes live in the content-addressed WORM blob store (immutability policy
+// ON); the DB holds only the manifest {name, sha256, size, blobUrl}, never the
+// bytes — exactly like PromotionDocument. Per-AR tenant-isolated and append-only
+// (no UPDATE/DELETE grant — see prisma/rls.sql). A stored certificate is
+// referenceable as sign-off evidence via gather_docs (evidence_pack).
+model TrainingCertificate {
+  id            String   @id @default(cuid())
+  arId          String
+  person        String
+  moduleId      String   @map("module_id")
+  certificateId String   @map("certificate_id")
+  name          String
+  sha256        String
+  size          Int
+  blobUrl       String   @map("blob_url")
+  storedAt      DateTime @default(now()) @map("stored_at")
+
+  @@index([arId, person])
+  @@map("training_certificate")
+}
+
 // Sign-Off Queue. The API tool layer never writes a FINAL register row: every
 // agent/API write lands here as a PENDING draft (write_register_entry) and is
 // routed to human review (enqueue_for_signoff). Only an audited SMF sign-off

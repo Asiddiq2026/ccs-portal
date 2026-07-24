@@ -164,6 +164,22 @@ CREATE POLICY tenant_isolation ON "training_completion"
     OR "arId" = current_setting('app.ar_id', true)
   );
 
+-- training_certificate — HYBRID like training_completion: tenant-isolated per
+-- AR + append-only (WORM manifest is immutable once written).
+ALTER TABLE "training_certificate" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "training_certificate" FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON "training_certificate" FROM ccs_app;
+DROP POLICY IF EXISTS tenant_isolation ON "training_certificate";
+CREATE POLICY tenant_isolation ON "training_certificate"
+  USING (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+    OR "arId" = current_setting('app.ar_id', true)
+  )
+  WITH CHECK (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+    OR "arId" = current_setting('app.ar_id', true)
+  );
+
 -- ---------------------------------------------------------------------------
 -- Network-scoped append-only registers
 -- Network-wide read for COMPLIANCE + SMF only; INSERT allowed; no UPDATE/DELETE.

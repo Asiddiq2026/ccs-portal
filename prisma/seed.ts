@@ -77,6 +77,20 @@ async function main() {
           { arId: ar.arId, person: "Approved Person", moduleId: "m2", moduleTitle: "SM&CR and Fitness & Propriety", quarter: "Q1", score: 4, outOf: 5, pct: 80, passed: true, completedAt: new Date("2026-02-12T10:00:00Z") },
         ],
       });
+
+      // A stored training certificate (WORM manifest — bytes live in the blob store).
+      await tx.trainingCertificate.create({
+        data: {
+          arId: ar.arId,
+          person: "Approved Person",
+          moduleId: "m1",
+          certificateId: `CERT-${ar.arId}-m1`,
+          name: "m1-certificate.pdf",
+          sha256: `seedcert${ar.arId}`.padEnd(64, "0"),
+          size: 2048,
+          blobUrl: `mem://ccs-docs/seed-${ar.arId}-m1`,
+        },
+      });
     }
 
     // A financial promotion for Codrington (matches the AR-portal reference).
