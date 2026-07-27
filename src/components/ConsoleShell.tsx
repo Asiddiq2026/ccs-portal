@@ -11,6 +11,7 @@ const NAV_SECTIONS = [
     items: [
       { href: "/signoff", label: "Sign-Off Queue" },
       { href: "/fp", label: "Financial Promotions" },
+      { href: "/breaches", label: "Data Breaches" },
       { href: "/agents", label: "Agents" },
       { href: "/monitoring", label: "Go-Live Monitoring" },
     ],

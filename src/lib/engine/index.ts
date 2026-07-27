@@ -131,3 +131,27 @@ export function retentionEnd(dateStr: string, kind: RetentionKind): string {
 export function art33Deadline(detectedIso: string): string {
   return new Date(new Date(detectedIso).getTime() + 72 * 3600 * 1000).toISOString();
 }
+
+export type Art33State = "OVERDUE" | "CRITICAL" | "DUE" | "ON_TRACK";
+
+/**
+ * Where an Art 33 clock stands right now. The banding is coded, not judged by a
+ * model (Invariant 7): <0h OVERDUE, <12h CRITICAL, <24h DUE, else ON_TRACK.
+ * `hoursRemaining` is negative once the deadline has passed.
+ */
+export function art33Remaining(
+  deadlineIso: string,
+  nowIso: string,
+): { hoursRemaining: number; state: Art33State } {
+  const ms = new Date(deadlineIso).getTime() - new Date(nowIso).getTime();
+  const hoursRemaining = Math.round((ms / 3600000) * 10) / 10;
+  const state: Art33State =
+    hoursRemaining < 0
+      ? "OVERDUE"
+      : hoursRemaining < 12
+        ? "CRITICAL"
+        : hoursRemaining < 24
+          ? "DUE"
+          : "ON_TRACK";
+  return { hoursRemaining, state };
+}
