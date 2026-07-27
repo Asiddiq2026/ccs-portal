@@ -91,6 +91,23 @@ export function cpdStrike(args: { hours: number; required?: number; monthsLeft: 
   return 0;
 }
 
+/**
+ * Whole months remaining until a date (floored, never negative). Feeds
+ * cpdStrike's monthsLeft, so the strike ladder is driven by a coded clock
+ * rather than a judgement call.
+ */
+export function monthsUntil(targetIso: string, nowIso: string): number {
+  const target = new Date(targetIso);
+  const now = new Date(nowIso);
+  if (Number.isNaN(target.getTime()) || Number.isNaN(now.getTime())) return 0;
+  let months =
+    (target.getUTCFullYear() - now.getUTCFullYear()) * 12 +
+    (target.getUTCMonth() - now.getUTCMonth());
+  // Not a full month until the day-of-month is reached.
+  if (target.getUTCDate() < now.getUTCDate()) months -= 1;
+  return Math.max(0, months);
+}
+
 // CPD-hour credit per training module (coded — confirm with RAZ at Gate 1).
 // The eight quarterly modules sum to the 35h/yr requirement, so a person who
 // passes the full programme is exactly compliant. Credited hours are derived

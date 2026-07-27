@@ -12,6 +12,7 @@ const NAV_SECTIONS = [
       { href: "/signoff", label: "Sign-Off Queue" },
       { href: "/fp", label: "Financial Promotions" },
       { href: "/breaches", label: "Data Breaches" },
+      { href: "/cpd", label: "CPD & Certification" },
       { href: "/agents", label: "Agents" },
       { href: "/monitoring", label: "Go-Live Monitoring" },
     ],
