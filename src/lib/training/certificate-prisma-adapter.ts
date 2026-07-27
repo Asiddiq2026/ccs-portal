@@ -4,6 +4,7 @@
 // DELETE), so this adapter only creates and reads.
 import { randomUUID } from "node:crypto";
 import { withTenant } from "../db";
+import { appendAuditTx } from "../audit/append";
 import type { CertificateStore } from "./certificate";
 
 export const prismaCertificateStore: CertificateStore = {
@@ -25,16 +26,13 @@ export const prismaCertificateStore: CertificateStore = {
           },
         ],
       });
-      await tx.auditEvent.createMany({
-        data: [
-          {
-            id: `evt_${randomUUID()}`,
-            actor: audit.actor,
-            action: audit.action,
-            entity: audit.entity,
-            entityId: audit.entityId,
-          },
-        ],
+      // Chained writer — keeps certificate events inside the audit chain.
+      await appendAuditTx(tx, {
+        id: `evt_${randomUUID()}`,
+        actor: audit.actor,
+        action: audit.action,
+        entity: audit.entity,
+        entityId: audit.entityId,
       });
       return { id };
     });

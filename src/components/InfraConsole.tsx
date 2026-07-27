@@ -38,6 +38,8 @@ export type InfraProps = {
   callable: CallableTool[];
   withheld: string[];
   reserved: string[];
+  /** Result of re-verifying the audit hash chain server-side. */
+  chain?: { ok: boolean; checked: number; unchained: number; brokenAt?: string };
   stats: {
     totalRows: number;
     pendingSignoff: number;
@@ -88,7 +90,7 @@ const TIERS = [
 ];
 
 export function InfraConsole(props: InfraProps) {
-  const { role, tables, callable, withheld, reserved, stats, recentAudit, wormDocs } = props;
+  const { role, tables, callable, withheld, reserved, stats, recentAudit, wormDocs, chain } = props;
   const [selected, setSelected] = useState<TableInfo | null>(null);
   const tenantTableCount = tables.filter((t) => t.scope === "per-AR").length;
 
@@ -301,6 +303,25 @@ export function InfraConsole(props: InfraProps) {
             Append-only (Invariant 4). No UPDATE/DELETE grant; rows chain via hash_prev for tamper
             evidence. Newest {recentAudit.length} shown.
           </p>
+          {chain && (
+            <div
+              className={
+                "mb-3 px-3 py-2 border text-xs " +
+                (chain.ok
+                  ? "border-[rgba(21,128,61,0.3)] bg-[rgba(21,128,61,0.06)] text-status-success"
+                  : "border-[rgba(185,28,28,0.4)] bg-[rgba(185,28,28,0.07)] text-status-danger")
+              }
+            >
+              <span className="font-mono text-[10px] uppercase tracking-[1.1px]">
+                {chain.ok ? "Chain intact" : "Chain broken"}
+              </span>
+              <span className="ml-2 text-text-secondary">
+                {chain.checked} link{chain.checked === 1 ? "" : "s"} verified
+                {chain.unchained > 0 && ` · ${chain.unchained} pre-chain row${chain.unchained === 1 ? "" : "s"} unverifiable`}
+                {chain.brokenAt && ` · first break at ${chain.brokenAt}`}
+              </span>
+            </div>
+          )}
           {recentAudit.length === 0 ? (
             <p className="text-sm text-text-secondary">No audit events yet.</p>
           ) : (

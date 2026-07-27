@@ -6,6 +6,7 @@
 // AR-scoped writer (same reason as prismaAudit).
 import { randomUUID } from "node:crypto";
 import { withTenant } from "../db";
+import { appendAuditTx } from "../audit/append";
 import type { TrainingStore } from "./service";
 
 export const prismaTrainingStore: TrainingStore = {
@@ -30,16 +31,14 @@ export const prismaTrainingStore: TrainingStore = {
           source: r.source,
         })),
       });
-      await tx.auditEvent.createMany({
-        data: [
-          {
-            id: `evt_${randomUUID()}`,
-            actor: audit.actor,
-            action: audit.action,
-            entity: audit.entity,
-            entityId: audit.entityId,
-          },
-        ],
+      // Chained writer, so batch-ingest rows are part of the tamper-evident
+      // audit chain like every other event (Invariant 4).
+      await appendAuditTx(tx, {
+        id: `evt_${randomUUID()}`,
+        actor: audit.actor,
+        action: audit.action,
+        entity: audit.entity,
+        entityId: audit.entityId,
       });
       return { ids: withIds.map((r) => r.id) };
     });

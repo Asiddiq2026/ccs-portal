@@ -3,6 +3,7 @@
 // The tools themselves never import Prisma — only these adapters do.
 import { randomUUID } from "node:crypto";
 import { withTenant } from "../db";
+import { appendAuditTx } from "../audit/append";
 import type { AuditWriter, RegisterStore, ToolDeps } from "./types";
 import { stubFeedScreener } from "./feeds";
 
@@ -84,15 +85,15 @@ export const prismaStore: RegisterStore = {
 export const prismaAudit: AuditWriter = {
   async append(e, tenant) {
     return withTenant(tenant, async (tx) => {
-      // createMany issues INSERT without RETURNING. audit_event's SELECT policy
-      // (network_read) is operator-only, and INSERT ... RETURNING is gated by the
-      // SELECT policy — so a non-operator writer (an AR, or an AR-scoped service
-      // token) cannot read back its own row and .create() would fail. We generate
-      // the id here and skip RETURNING; the append-only WITH CHECK(true) still
-      // passes for any role. Keeps audit strictly operator-readable.
-      const id = `evt_${randomUUID()}`;
-      await tx.auditEvent.createMany({
-        data: [{ id, actor: e.actor, action: e.action, entity: e.entity, entityId: e.entityId }],
+      // Delegates to the single chained writer so every audit row links to its
+      // predecessor (Invariant 4 tamper evidence). See lib/audit/append.ts for
+      // why it locks and why it avoids RETURNING.
+      const { id } = await appendAuditTx(tx, {
+        id: `evt_${randomUUID()}`,
+        actor: e.actor,
+        action: e.action,
+        entity: e.entity,
+        entityId: e.entityId,
       });
       return { id };
     });

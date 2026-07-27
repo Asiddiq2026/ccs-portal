@@ -9,6 +9,8 @@ import { withTenant } from "@/lib/db";
 import { ConsoleShell, AccessPanel } from "@/components/ConsoleShell";
 import { InfraConsole, type TableInfo, type CallableTool, type AuditRow, type WormDoc } from "@/components/InfraConsole";
 import { TOOL_REGISTRY, WITHHELD_TOOLS, RESERVED_TOOLS } from "@/lib/tools/registry";
+import { verifyAuditChain } from "@/lib/audit/chain";
+import { toChainRow } from "@/lib/audit/append";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,6 +73,9 @@ CREATE POLICY tenant_isolation ON "${table}"
 }
 
 const REG_6YR = "6 yr · SYSC 9";
+
+/** How many of the newest audit rows to re-verify on each page load. */
+const CHAIN_WINDOW = 500;
 
 // Static table metadata (schema-derived). Row counts are filled in at request
 // time from the live database under withTenant().
@@ -147,6 +152,14 @@ export default async function InfraPage() {
       orderBy: { ts: "desc" },
       take: 12,
     });
+    // Re-verify the audit hash chain. Bounded to the newest CHAIN_WINDOW rows so
+    // the page cost stays flat as the log grows; the window's first row links to
+    // a row outside it and is reported unverifiable rather than broken.
+    const chainRows = await anyTx.auditEvent.findMany({
+      select: { id: true, actor: true, action: true, entity: true, entityId: true, ts: true, hashPrev: true },
+      orderBy: [{ ts: "desc" }, { id: "desc" }],
+      take: CHAIN_WINDOW,
+    });
     const wormRows = await anyTx.promotionDocument.findMany({
       select: { name: true, size: true, sha256: true, uploadedAt: true },
       orderBy: { uploadedAt: "desc" },
@@ -170,6 +183,7 @@ export default async function InfraPage() {
       pendingSignoff,
       toolDenied,
       recentAuditRows,
+      chainRows,
       wormRows,
     };
   });
@@ -204,6 +218,17 @@ export default async function InfraPage() {
     ts: a.ts.toISOString(),
   }));
 
+  // verifyAuditChain expects oldest-first; the query returned newest-first.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ordered = (data.chainRows as any[]).map(toChainRow).reverse();
+  const verification = verifyAuditChain(ordered);
+  const chain = {
+    ok: verification.ok,
+    checked: verification.checked,
+    unchained: verification.unchained,
+    brokenAt: verification.brokenAt?.id,
+  };
+
   const wormDocs: WormDoc[] = (
     data.wormRows as Array<{ name: string; size: number; sha256: string; uploadedAt: Date }>
   ).map((d) => ({ name: d.name, size: d.size, sha256: d.sha256, uploadedAt: d.uploadedAt.toISOString() }));
@@ -226,6 +251,7 @@ export default async function InfraPage() {
         }}
         recentAudit={recentAudit}
         wormDocs={wormDocs}
+        chain={chain}
       />
     </ConsoleShell>
   );
