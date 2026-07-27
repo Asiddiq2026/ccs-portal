@@ -77,7 +77,118 @@ const TOOL_SCHEMAS: Record<string, { description: string; input_schema: Record<s
       required: ["draftId"],
     },
   },
+  screen_feeds: {
+    description:
+      "Adverse-media / sanctions screening for named subjects. Returns CLEAR, FLAGGED, or OPERATOR_REVIEW (fail-closed when no provider is configured). Writes nothing.",
+    input_schema: {
+      type: "object",
+      properties: {
+        subjects: { type: "array", items: { type: "string" } },
+        arId: { type: "string" },
+      },
+      required: ["subjects"],
+    },
+  },
+  compile_pack: {
+    description:
+      "Compile an oversight-meeting prep pack from sections you have already established via query_database. Files it as a PENDING sign-off artifact — never a final record.",
+    input_schema: {
+      type: "object",
+      properties: {
+        arId: { type: "string" },
+        meetingDate: { type: "string" },
+        sections: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              heading: { type: "string" },
+              lines: { type: "array", items: { type: "string" } },
+            },
+            required: ["heading"],
+          },
+        },
+      },
+      required: ["arId", "sections"],
+    },
+  },
+  gather_docs: {
+    description:
+      "Assemble references to already-stored WORM documents into a PENDING evidence pack. References existing sha256 manifests only — it never uploads or creates documents.",
+    input_schema: {
+      type: "object",
+      properties: {
+        arId: { type: "string" },
+        purpose: { type: "string" },
+        docs: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              sha256: { type: "string" },
+              blobUrl: { type: "string" },
+              size: { type: "number" },
+            },
+            required: ["name", "sha256"],
+          },
+        },
+      },
+      required: ["arId", "purpose", "docs"],
+    },
+  },
 };
+
+/**
+ * The RETURN CHANNEL, not a capability. The model finishes a run by calling this
+ * pseudo-tool, whose input_schema mirrors AgentOutputSchema exactly — so the API
+ * validates the shape for us instead of us hoping for clean JSON in prose.
+ *
+ * It is intercepted here and NEVER passed to `callTool`, so it never reaches the
+ * gateway, has no registry entry, and performs no side effect of any kind. It
+ * grants the model nothing: the sole egress remains enqueue_for_signoff.
+ */
+const SUBMIT_TOOL = "submit_report";
+
+const SUBMIT_SCHEMA = {
+  name: SUBMIT_TOOL,
+  description:
+    "Submit your final result and end the run. Call this exactly once, as your last action. This does not send, file, or publish anything — it only returns your report to the platform.",
+  input_schema: {
+    type: "object",
+    properties: {
+      verdict: {
+        type: "string",
+        enum: ["DRAFT READY", "OPERATOR REVIEW"],
+        description:
+          "DRAFT READY only if you enqueued at least one draft for sign-off; otherwise OPERATOR REVIEW.",
+      },
+      summary: { type: "string", description: "One or two sentences. Required, non-empty." },
+      findings: { type: "array", items: { type: "string" } },
+      enqueued: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { draftId: { type: "string" }, register: { type: "string" } },
+          required: ["draftId", "register"],
+        },
+      },
+    },
+    required: ["verdict", "summary"],
+  },
+} as const;
+
+// Transport-specific output contract. Kept OUT of renderSystemPrompt so the
+// audited promptHash still identifies the agent's versioned instructions only;
+// this envelope describes how to return a result over the Messages API.
+const OUTPUT_PROTOCOL = `
+HOW TO FINISH (transport contract):
+- End the run by calling the ${SUBMIT_TOOL} tool exactly once. Do not answer in prose.
+- ${SUBMIT_TOOL} is a return channel, not an action: it sends, files and publishes nothing.
+- verdict must be exactly "DRAFT READY" or "OPERATOR REVIEW".
+- Use "DRAFT READY" only if you actually enqueued at least one draft via enqueue_for_signoff, and list each in enqueued as {draftId, register}.
+- If you did not enqueue anything — including when you are unsure, blocked, or a tool failed — use "OPERATOR REVIEW" and explain why in summary and findings.
+- summary is required and must be non-empty.`;
 
 interface Block {
   type: string;
@@ -102,15 +213,29 @@ export function createAnthropicAgentModel(): AgentModel {
         })
         .filter(Boolean);
 
+      // Always offer the return channel alongside the agent's whitelisted tools.
+      const offered = [...toolDefs, SUBMIT_SCHEMA];
+
       const messages: { role: string; content: unknown }[] = [
         { role: "user", content: JSON.stringify(input) },
       ];
       let tokens = 0;
+      let repaired = false;
 
       for (let turn = 0; turn < MAX_TURNS; turn++) {
-        const data = await call(apiKey, { model, system, tools: toolDefs, messages });
+        const data = await call(apiKey, {
+          model,
+          system: system + OUTPUT_PROTOCOL,
+          tools: offered,
+          messages,
+        });
         tokens += (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
         const blocks: Block[] = data.content ?? [];
+
+        // The model finished by calling the return channel — the API already
+        // shape-checked it, so this is the reliable path.
+        const submit = blocks.find((b) => b.type === "tool_use" && b.name === SUBMIT_TOOL);
+        if (submit) return { output: submit.input ?? {}, tokens, model };
 
         if (data.stop_reason === "tool_use") {
           messages.push({ role: "assistant", content: blocks });
@@ -118,6 +243,8 @@ export function createAnthropicAgentModel(): AgentModel {
           for (const b of blocks) {
             if (b.type !== "tool_use") continue;
             try {
+              // submit_report is handled above and never dispatched; every other
+              // name goes through the gateway.
               const out = await callTool(b.name!, b.input ?? {});
               results.push({ type: "tool_result", tool_use_id: b.id, content: JSON.stringify(out) });
             } catch (err) {
@@ -135,9 +262,39 @@ export function createAnthropicAgentModel(): AgentModel {
           continue;
         }
 
-        // Terminal turn — the final text block should be the JSON output.
-        const text = blocks.find((b) => b.type === "text")?.text ?? "";
-        return { output: parseJson(text), tokens, model };
+        // Fallback: the model answered in text. Accept well-formed JSON found
+        // anywhere in it (fenced or with prose around it).
+        const text = blocks.map((b) => (b.type === "text" ? b.text ?? "" : "")).join("\n");
+        const extracted = extractJson(text);
+        if (extracted !== undefined) return { output: extracted, tokens, model };
+
+        // One corrective turn before giving up — a truncated or prose-only reply
+        // is recoverable, and the alternative is discarding real work.
+        if (!repaired) {
+          repaired = true;
+          const why =
+            data.stop_reason === "max_tokens"
+              ? "Your previous reply was cut off before it was complete."
+              : "Your previous reply was not a tool call and contained no valid JSON object.";
+          messages.push({ role: "assistant", content: blocks.length ? blocks : "(no content)" });
+          messages.push({
+            role: "user",
+            content: `${why} Do not repeat your analysis. Call the ${SUBMIT_TOOL} tool now with your final result, and nothing else.`,
+          });
+          continue;
+        }
+
+        // Fail closed with the reason preserved for the operator.
+        return {
+          output: {
+            verdict: "OPERATOR REVIEW",
+            summary: `Model did not return a usable result (stop_reason: ${data.stop_reason ?? "unknown"}).`,
+            findings: text ? [text.slice(0, 500)] : [],
+            enqueued: [],
+          },
+          tokens,
+          model,
+        };
       }
 
       throw new ModelCallError(`agent exceeded ${MAX_TURNS} tool-use turns`);
@@ -164,7 +321,10 @@ async function call(
         "x-api-key": apiKey,
         "anthropic-version": ANTHROPIC_VERSION,
       },
-      body: JSON.stringify({ max_tokens: 1500, ...body }),
+      // 1500 was low enough that a reasoning-heavy turn could be cut off
+      // mid-JSON (stop_reason "max_tokens"), which then read as a malformed
+      // result. The loop also handles truncation explicitly.
+      body: JSON.stringify({ max_tokens: 4096, ...body }),
     });
   } catch (err) {
     throw new ModelCallError(`Anthropic request failed: ${(err as Error).message}`);
@@ -173,13 +333,43 @@ async function call(
   return (await resp.json()) as MessagesResponse;
 }
 
-/** Best-effort JSON parse; returns the raw string on failure so output validation flags it. */
-function parseJson(text: string): unknown {
-  try {
-    // Tolerate ```json fences.
-    const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-    return JSON.parse(cleaned);
-  } catch {
-    return { verdict: "OPERATOR REVIEW", summary: "Model did not return valid JSON.", raw: text };
+/**
+ * Pull the first well-formed JSON object out of a text reply. The model may wrap
+ * it in ```json fences or surround it with prose, so anchored trimming is not
+ * enough — we scan for a balanced object, ignoring braces inside strings.
+ * Returns undefined when there is nothing parseable, so the caller can repair
+ * or fail closed rather than fabricate a result.
+ */
+export function extractJson(text: string): unknown | undefined {
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] !== "{") continue;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let j = i; j < text.length; j++) {
+      const c = text[j];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (inString) {
+        if (c === "\\") escaped = true;
+        else if (c === '"') inString = false;
+        continue;
+      }
+      if (c === '"') inString = true;
+      else if (c === "{") depth++;
+      else if (c === "}") {
+        depth--;
+        if (depth === 0) {
+          try {
+            return JSON.parse(text.slice(i, j + 1));
+          } catch {
+            break; // Not valid from this "{" — try the next one.
+          }
+        }
+      }
+    }
   }
+  return undefined;
 }
