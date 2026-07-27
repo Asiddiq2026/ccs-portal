@@ -9,6 +9,7 @@ const NAV_SECTIONS = [
   {
     label: "Oversight",
     items: [
+      { href: "/ars", label: "AR Register" },
       { href: "/signoff", label: "Sign-Off Queue" },
       { href: "/fp", label: "Financial Promotions" },
       { href: "/breaches", label: "Data Breaches" },
