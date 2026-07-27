@@ -51,7 +51,10 @@ async function main() {
       await tx.riskScore.create({
         data: {
           arId: ar.arId,
-          factors: { conduct: 1, aml: 2, complaints: 1, cpd: 1, promotions: 1 },
+          // Canonical shape: scores 1-3 in RISK_FACTORS order
+          // [conduct, aml, complaints, cpd, promotions]. Stored as an array to
+          // match the risk_score register schema (a keyed object fails it).
+          factors: ar.riskBand === "AMBER" ? [2, 2, 2, 2, 1] : [1, 2, 1, 1, 1],
           total: ar.riskBand === "AMBER" ? 9 : 6,
           band: ar.riskBand,
           cadence: ar.riskBand === "AMBER" ? "quarterly" : "bi-annual",

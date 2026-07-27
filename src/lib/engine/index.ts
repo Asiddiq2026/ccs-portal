@@ -82,6 +82,14 @@ export function riskBand(factors: number[]): RiskBandResult {
   return { total, band: "RED", cadence: "Quarterly + ad-hoc monitoring" };
 }
 
+/**
+ * How often a band must be re-assessed, in months (coded, per the monitoring
+ * cadence riskBand assigns): GREEN bi-annual, AMBER/RED quarterly.
+ */
+export function riskReviewMonths(band: RiskBandName): number {
+  return band === "GREEN" ? 6 : 3;
+}
+
 /** CPD 35h/yr, three-strike rule (coded thresholds — confirm with RAZ at Gate 1). */
 export function cpdStrike(args: { hours: number; required?: number; monthsLeft: number }): number {
   const { hours, required = 35, monthsLeft } = args;
