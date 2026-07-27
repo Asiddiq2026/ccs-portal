@@ -99,6 +99,9 @@ export default async function MonitoringPage() {
     }),
   );
 
+  // DECLARED, not verified: gates 1-4 are assumed cleared per the design and
+  // gate 5 is a deploy-time flag. The platform holds no evidence for any of
+  // them, so the UI labels this as declared rather than as a cleared fact.
   const gatesCleared = process.env.GATE5_CLEARED === "true" ? 5 : 4;
   const snap = buildSnapshot({
     now: new Date(),
@@ -130,10 +133,17 @@ export default async function MonitoringPage() {
       </div>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* "Declared", not "cleared": gate clearance is a governance act recorded
+            in writing outside this platform. Nothing here evidences it, so the
+            tile must not read as a verified fact. */}
         <Stat
-          label="Gates cleared"
+          label="Gates declared"
           value={`${snap.gates.cleared}/${snap.gates.total}`}
-          sub={snap.gates.cleared >= 5 ? "autonomy authorised" : "pilot quarter running"}
+          sub={
+            snap.gates.cleared >= 5
+              ? "autonomy authorised · declared, not evidenced here"
+              : "pilot quarter · declared, not evidenced here"
+          }
           tone={snap.gates.cleared >= 5 ? "text-status-success" : "text-status-warn"}
         />
         <Stat
@@ -205,7 +215,8 @@ export default async function MonitoringPage() {
 
       <div className="mt-8 flex items-center justify-between">
         <p className="font-mono text-[9px] text-text-muted">
-          generated {snap.generatedAt} · gates cleared in writing by SMF16/17
+          generated {snap.generatedAt} · gate clearance is declared at deploy time
+          (GATE5_CLEARED); the signed SMF16/17 record is held outside this platform
         </p>
         <a
           href="/api/audit/export"

@@ -52,7 +52,9 @@ export async function GET(): Promise<Response> {
       ts: r.ts,
     }));
 
-    // Gate 5 clears 5/5; otherwise 4 (Gates 1–4 are cleared in the design).
+    // DECLARED, not verified: gates 1-4 are assumed cleared per the design and
+    // gate 5 is a deploy-time flag. The platform holds no evidence for any of
+    // them — consumers should treat `gates` as a declaration, not a finding.
     const gatesCleared = process.env.GATE5_CLEARED === "true" ? 5 : 4;
 
     const snapshot = buildSnapshot({
