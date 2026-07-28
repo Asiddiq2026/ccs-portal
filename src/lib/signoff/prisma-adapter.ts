@@ -6,6 +6,7 @@
 import { withTenant } from "../db";
 import { prismaAudit } from "../tools/prisma-adapters";
 import { SignOffError, type SignOffDeps, type SignOffStore } from "./service";
+import { identityWhere, isMaterialisable } from "./register-schemas";
 
 // Materialisable register -> Prisma delegate. financial_promotion is absent by
 // design (it has its own decision channel); an attempt is refused upstream.
@@ -40,9 +41,25 @@ export const signOffPrismaStore: SignOffStore = {
     return withTenant(tenant, async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyTx = tx as any;
+
       // Write the FINAL register row first; the guarded flip below rolls this
       // back if the item was decided by someone else in the meantime.
-      const row = await anyTx[delegate].create({ data });
+      //
+      // Identity decides INSERT vs UPDATE. For a current-position register
+      // (person_cpd, appointed_rep, cf30_return, data_breach) signing off
+      // REPLACES the entity's row: blindly inserting would duplicate the person
+      // or firm, and on appointed_rep would violate the unique FRN outright. For
+      // an event stream (risk_score) every sign-off appends. See REGISTER_IDENTITY.
+      const where = isMaterialisable(register) ? identityWhere(register, data) : null;
+      let row: { id: string };
+      if (where) {
+        const existing = await anyTx[delegate].findFirst({ where, select: { id: true } });
+        row = existing
+          ? await anyTx[delegate].update({ where: { id: existing.id }, data })
+          : await anyTx[delegate].create({ data });
+      } else {
+        row = await anyTx[delegate].create({ data });
+      }
       const upd = await anyTx.signOffItem.updateMany({
         where: { id, status: "PENDING" },
         data: {

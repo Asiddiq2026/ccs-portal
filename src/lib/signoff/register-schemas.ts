@@ -85,6 +85,53 @@ export function isMaterialisable(register: string): register is MaterialisableRe
   return register in REGISTER_SCHEMAS;
 }
 
+/**
+ * IDENTITY — what makes a materialised row "the same thing" as an existing one.
+ *
+ * Registers split into two kinds, and conflating them corrupts data:
+ *
+ *   CURRENT POSITION (identity declared) — the register holds one row per
+ *   entity, and signing off REPLACES that entity's position. A firm has one
+ *   appointment standing; a person has one CPD balance; a quarter has one CF30
+ *   return; a breach has one lifecycle status. Materialising these as new rows
+ *   duplicates the entity (and on appointed_rep, violates the unique FRN).
+ *
+ *   EVENT STREAM (identity null) — every sign-off is a new, additional fact and
+ *   history matters. A risk assessment is a point-in-time judgement; you want
+ *   the series, and readers take the latest.
+ *
+ * Fields name payload keys, which are validated by the schemas above before this
+ * is consulted, so a missing identity field cannot reach the database.
+ */
+export const REGISTER_IDENTITY: Record<MaterialisableRegister, readonly string[] | null> = {
+  appointed_rep: ["arId"],
+  cf30_return: ["arId", "quarter"],
+  person_cpd: ["arId", "person"],
+  data_breach: ["ref"],
+  risk_score: null,
+};
+
+/**
+ * The lookup that finds an existing row for this payload, or null when the
+ * register is an event stream and every sign-off appends.
+ */
+export function identityWhere(
+  register: MaterialisableRegister,
+  data: Record<string, unknown>,
+): Record<string, unknown> | null {
+  const fields = REGISTER_IDENTITY[register];
+  if (!fields) return null;
+  const where: Record<string, unknown> = {};
+  for (const f of fields) {
+    const v = data[f];
+    // Fail closed: an incomplete identity would silently match the wrong row
+    // (or every row), so append rather than guess.
+    if (v === undefined || v === null) return null;
+    where[f] = v;
+  }
+  return where;
+}
+
 export interface ValidatedPayload {
   ok: boolean;
   data?: Record<string, unknown>;
