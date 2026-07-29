@@ -20,9 +20,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
-  // Generous, because the local dev server compiles each route on FIRST visit —
-  // a cold page can take many seconds, which is latency, not failure. (CI runs
-  // the production build, where pages are precompiled.)
+  // Generous, because the dev server compiles each route on FIRST visit — a cold
+  // page can take many seconds, which is latency, not failure.
   timeout: 90_000,
   expect: { timeout: 20_000 },
 
@@ -35,9 +34,15 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 
   webServer: {
-    // CI runs the production build (closer to what ships); locally reuse the dev
-    // server if one is already up, otherwise start it.
-    command: process.env.CI ? "npm run start" : "npm run dev",
+    // Deliberately `next dev`, in CI too — NOT the production build.
+    //
+    // These tests sign in through the dev-login form, and that provider is
+    // hard-gated off when NODE_ENV === "production" (src/auth.ts). That gate is
+    // the point: a shipped build must not be loggable-into with a test form. So
+    // the suite runs against a development server rather than weakening the gate
+    // to suit the tests. `npm run build` still runs in CI as its own gate,
+    // covering the type-check and the production compile.
+    command: "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

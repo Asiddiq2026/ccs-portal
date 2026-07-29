@@ -78,9 +78,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      # E2E runs against the production build (playwright.config starts
-      # `npm run start` when CI is set), so pages are precompiled and the suite
-      # exercises what actually ships.
+      # E2E runs against `next dev` (see playwright.config.ts): the dev-login
+      # provider these tests use is hard-gated off in production builds, and that
+      # gate stays. The Build step above is the production gate.
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
