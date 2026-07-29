@@ -13,7 +13,15 @@ const MAX_TURNS = 8; // bound the loop — runaway tool use fails closed.
 // Minimal JSON Schemas for the *implemented* tools. Reserved (unimplemented)
 // tools have no entry, so they are never offered to the model; if an agent
 // needs one it will fail closed to OPERATOR REVIEW rather than act.
-const TOOL_SCHEMAS: Record<string, { description: string; input_schema: Record<string, unknown> }> = {
+// Exported so a test can assert every agent's whitelisted tools are actually
+// offerable. A tool missing here is silently unusable: the model never sees it,
+// so the agent cannot do its job and fails closed for a reason nobody can see
+// from the outside. That happened to three agents (screen_feeds, compile_pack,
+// gather_docs) before the gap was noticed.
+export const TOOL_SCHEMAS: Record<
+  string,
+  { description: string; input_schema: Record<string, unknown> }
+> = {
   query_database: {
     description: "Read rows from a register the caller is scoped to.",
     input_schema: {

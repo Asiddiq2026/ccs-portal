@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createAnthropicAgentModel, extractJson } from "./anthropic-agent-model";
+import { createAnthropicAgentModel, extractJson, TOOL_SCHEMAS } from "./anthropic-agent-model";
 import { MissingApiKeyError } from "../fp/anthropic-client";
+import { AGENT_SPECS } from "./specs";
+import { WITHHELD_TOOLS } from "../tools/registry";
 
 // Every test drives the adapter against a scripted fetch — no network, no API
 // key spend. Each queued item is one Messages API response.
@@ -170,6 +172,37 @@ describe("anthropic agent model — text fallback and repair", () => {
     expect(out.enqueued).toEqual([]);
     expect(out.summary).toMatch(/did not return a usable result/i);
     expect(out.findings[0]).toContain("more prose");
+  });
+});
+
+describe("every agent can actually use the tools it is granted", () => {
+  it("has a schema for every tool on every agent's whitelist", () => {
+    // A whitelisted tool with no schema is never offered to the model, so the
+    // agent silently cannot perform its task — the failure looks like the model
+    // being unhelpful rather than a missing wiring. This asserts the two lists
+    // cannot drift apart again.
+    const missing: string[] = [];
+    for (const spec of AGENT_SPECS) {
+      for (const tool of spec.tools) {
+        if (!(tool in TOOL_SCHEMAS)) missing.push(`${spec.id} -> ${tool}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it("offers no schema for a withheld tool", () => {
+    // Invariant 2: withheld tools have no implementation anywhere, so they must
+    // not be describable to a model either.
+    for (const tool of WITHHELD_TOOLS) {
+      expect(tool in TOOL_SCHEMAS).toBe(false);
+    }
+  });
+
+  it("describes every schema and gives it an object input", () => {
+    for (const [name, schema] of Object.entries(TOOL_SCHEMAS)) {
+      expect(schema.description, `${name} needs a description the model can act on`).toBeTruthy();
+      expect(schema.input_schema.type, `${name} input_schema`).toBe("object");
+    }
   });
 });
 

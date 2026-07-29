@@ -41,9 +41,12 @@ async function draftAndSignOff(
 
 describe.runIf(RUN)("sign-off materialisation semantics (real Postgres)", () => {
   afterAll(async () => {
-    // Leave the seeded roster as we found it; drop only our own rows.
+    // Leave the seeded data as we found it; drop only our own rows. Every
+    // fixture is prefixed "ZZ" or timestamped, so this cannot touch real rows.
     await withTenant(OPERATOR, async (tx) => {
       await tx.personCpd.deleteMany({ where: { person: TEST_PERSON } });
+      await tx.cf30Return.deleteMany({ where: { quarter: { startsWith: "ZZ-" } } });
+      await tx.dataBreach.deleteMany({ where: { ref: { startsWith: "ZZ-BR-" } } });
       await tx.appointedRep.updateMany({ where: { arId: "ar_drakestar" }, data: { status: "ACTIVE" } });
     });
     await prisma.$disconnect();
@@ -129,6 +132,52 @@ describe.runIf(RUN)("sign-off materialisation semantics (real Postgres)", () => 
 
     expect(a).not.toBe(b); // distinct rows, not an overwrite
     expect(await countFor()).toBe(before + 2);
+  });
+
+  it("cf30_return: one return per quarter — re-signing the same quarter replaces it", async () => {
+    const quarter = `ZZ-${Date.now()}`; // unique per run
+    const base = {
+      arId: "ar_six",
+      quarter,
+      dueDate: new Date("2026-04-16T00:00:00.000Z"),
+    };
+
+    const firstId = await draftAndSignOff("cf30_return", "ar_six", { ...base, exceptions: 0 });
+    const secondId = await draftAndSignOff("cf30_return", "ar_six", { ...base, exceptions: 3 });
+
+    expect(secondId).toBe(firstId);
+    const rows = await withTenant(OPERATOR, (tx) => tx.cf30Return.findMany({ where: { quarter } }));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].exceptions).toBe(3);
+
+    // A DIFFERENT quarter is a different return, so it must not overwrite.
+    const otherId = await draftAndSignOff("cf30_return", "ar_six", {
+      ...base,
+      quarter: `${quarter}-b`,
+      exceptions: 1,
+    });
+    expect(otherId).not.toBe(firstId);
+  });
+
+  it("data_breach: status transitions land on the same breach, keyed by ref", async () => {
+    const ref = `ZZ-BR-${Date.now()}`;
+    const base = {
+      arId: "ar_six",
+      ref,
+      detectedAt: new Date("2026-07-01T09:00:00.000Z"),
+      art33Clock: new Date("2026-07-04T09:00:00.000Z"),
+      severity: "HIGH" as const,
+    };
+
+    const firstId = await draftAndSignOff("data_breach", "ar_six", { ...base, status: "PENDING" });
+    // Reporting it to the ICO is a transition on the SAME breach — a second row
+    // would mean one incident appearing twice in the register.
+    const secondId = await draftAndSignOff("data_breach", "ar_six", { ...base, status: "REPORTED" });
+
+    expect(secondId).toBe(firstId);
+    const rows = await withTenant(OPERATOR, (tx) => tx.dataBreach.findMany({ where: { ref } }));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].status).toBe("REPORTED");
   });
 
   it("the sign-off item records the FINAL row it produced", async () => {
