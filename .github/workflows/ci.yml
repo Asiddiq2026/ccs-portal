@@ -35,6 +35,10 @@ jobs:
       DATABASE_URL: postgresql://ccs_app:ccs_app@localhost:5432/ccs?schema=public
       AUTH_SECRET: ci-not-a-real-secret
       NEXT_TELEMETRY_DISABLED: "1"
+      # The E2E suite signs in through the dev-login form. Hard-gated to
+      # non-production in the app itself, so this is safe in CI only.
+      AUTH_DEV_LOGIN: "true"
+      AUTH_URL: http://localhost:3000
 
     steps:
       - uses: actions/checkout@v4
@@ -73,3 +77,20 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # E2E runs against the production build (playwright.config starts
+      # `npm run start` when CI is set), so pages are precompiled and the suite
+      # exercises what actually ships.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (Playwright)
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
