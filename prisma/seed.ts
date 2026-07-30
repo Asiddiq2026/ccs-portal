@@ -9,6 +9,7 @@
 // the real AR FRNs before any real data. Dates are illustrative; CF30 due
 // dates are computed by the deterministic engine in Phase 6, not hardcoded.
 import { PrismaClient } from "@prisma/client";
+import { buildCf30Return } from "../src/lib/models/cf30";
 
 const prisma = new PrismaClient();
 
@@ -38,14 +39,12 @@ async function main() {
         },
       });
 
+      // Derived by the engine, NOT hand-typed (Invariant 7). This used to
+      // hardcode 2026-04-14 while the engine computes 2026-04-16 for Q1 2026 —
+      // a live agent run halted to OPERATOR REVIEW over the contradiction
+      // rather than drafting a chase against a due date it could not trust.
       await tx.cf30Return.create({
-        data: {
-          arId: ar.arId,
-          quarter: "2026-Q1",
-          status: "PENDING",
-          dueDate: new Date("2026-04-14T00:00:00Z"),
-          exceptions: 0,
-        },
+        data: buildCf30Return({ arId: ar.arId, referenceDate: "2026-03-31", exceptions: 0 }).data,
       });
 
       await tx.riskScore.create({

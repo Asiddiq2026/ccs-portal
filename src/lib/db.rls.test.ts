@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { prisma, withTenant } from "./db";
 import { prismaAudit } from "./tools/prisma-adapters";
+import { cf30DueDate, quarterEnd } from "./engine";
 
 // Integration proof that RLS actually isolates tenants — not just that the app
 // *intends* to. It talks to a real Postgres as the NOBYPASSRLS `ccs_app` role,
@@ -78,6 +79,23 @@ describe.runIf(RUN)("RLS tenant isolation (Invariant 5)", () => {
         tx.trainingCertificate.updateMany({ data: { size: 0 } }),
       ),
     ).rejects.toThrow();
+  });
+
+  it("seeded CF30 due dates agree with the deterministic engine", async () => {
+    // A live agent run halted to OPERATOR REVIEW because the seeded due date
+    // (2026-04-14) contradicted compute_dates (2026-04-16). Data that disagrees
+    // with the engine is unusable by design — the agent is right to refuse it —
+    // so the seed must derive dates rather than hand-type them (Invariant 7).
+    const rows = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) =>
+      tx.cf30Return.findMany({ select: { quarter: true, dueDate: true } }),
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      const expected = cf30DueDate(quarterEnd(`${r.quarter.slice(0, 4)}-03-31`));
+      if (r.quarter.endsWith("Q1")) {
+        expect(r.dueDate.toISOString().slice(0, 10)).toBe(expected);
+      }
+    }
   });
 
   it("a non-operator (AR) can append audit despite the operator-only read policy", async () => {
