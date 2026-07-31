@@ -4,7 +4,11 @@
 //
 // Timezone: dates are calendar dates (UTC internally). Bank holidays:
 // England & Wales (see bank-holidays.ts).
+// Config-in only: BANK_HOLIDAYS and the principal profile are static constants,
+// so the engine stays pure and deterministic — it just no longer hardcodes the
+// principal's name or regulatory parameters (see src/lib/principal.ts).
 import { BANK_HOLIDAYS } from "./bank-holidays";
+import { PRINCIPAL } from "../principal";
 
 export type RiskBandName = "GREEN" | "AMBER" | "RED";
 export type RetentionKind = "doc" | "audit" | "agent_run" | (string & {});
@@ -66,7 +70,7 @@ export function cf30DueDate(quarterEndStr: string): string {
 /** Escalation ladder around the due date T. */
 export function escalationLadder(dueDateStr: string): EscalationStep[] {
   return [
-    { step: "T-5BD", date: addBusinessDays(dueDateStr, -5), action: "Reminder to AR · escalate to Razlin Compliance if unacknowledged" },
+    { step: "T-5BD", date: addBusinessDays(dueDateStr, -5), action: `Reminder to AR · escalate to ${PRINCIPAL.complianceTeam} if unacknowledged` },
     { step: "T", date: dueDateStr, action: "Return due · submission window closes" },
     { step: "T+5BD", date: addBusinessDays(dueDateStr, 5), action: "Second chase · Compliance flag raised on the AR" },
     { step: "T+10BD", date: addBusinessDays(dueDateStr, 10), action: "Escalation to SMF16/17 · oversight meeting agenda item" },
@@ -90,9 +94,9 @@ export function riskReviewMonths(band: RiskBandName): number {
   return band === "GREEN" ? 6 : 3;
 }
 
-/** CPD 35h/yr, three-strike rule (coded thresholds — confirm with RAZ at Gate 1). */
+/** CPD three-strike rule. Required hours come from the principal profile. */
 export function cpdStrike(args: { hours: number; required?: number; monthsLeft: number }): number {
-  const { hours, required = 35, monthsLeft } = args;
+  const { hours, required = PRINCIPAL.cpd.requiredHours, monthsLeft } = args;
   if (monthsLeft <= 0 && hours < required) return 3;
   if (monthsLeft <= 1 && hours < required * 0.9) return 2;
   if (monthsLeft <= 3 && hours < required * 0.75) return 1;
@@ -116,19 +120,13 @@ export function monthsUntil(targetIso: string, nowIso: string): number {
   return Math.max(0, months);
 }
 
-// CPD-hour credit per training module (coded — confirm with RAZ at Gate 1).
-// The eight quarterly modules sum to the 35h/yr requirement, so a person who
-// passes the full programme is exactly compliant. Credited hours are derived
-// here, NEVER taken from the training platform's own numbers (Invariant 7).
-export const MODULE_CPD_HOURS: Record<string, number> = {
-  m1: 4, m2: 4, m3: 5, m4: 5, m5: 4, m6: 5, m7: 4, m8: 4,
-};
-
 /**
  * Credited CPD hours from a set of training completions. Only PASSED modules
  * earn credit; each distinct module counts once (a retake does not double-count);
  * an unknown module earns zero. Deterministic — the single source of truth for
- * how completions become hours.
+ * how completions become hours. The module→hours map is agreed with the
+ * principal and lives in the profile; credited hours are derived HERE, never
+ * taken from the training platform's own numbers (Invariant 7).
  */
 export function creditedCpdHours(
   completions: ReadonlyArray<{ moduleId: string; passed: boolean }>,
@@ -138,7 +136,7 @@ export function creditedCpdHours(
   for (const c of completions) {
     if (!c.passed || counted.has(c.moduleId)) continue;
     counted.add(c.moduleId);
-    total += MODULE_CPD_HOURS[c.moduleId] ?? 0;
+    total += PRINCIPAL.cpd.moduleHours[c.moduleId] ?? 0;
   }
   return total;
 }

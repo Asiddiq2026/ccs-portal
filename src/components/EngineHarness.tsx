@@ -19,6 +19,7 @@ import {
   fmt,
 } from "@/lib/engine";
 import { BANK_HOLIDAYS } from "@/lib/engine/bank-holidays";
+import { PRINCIPAL } from "@/lib/principal";
 
 const Q_ENDS = ["2026-03-31", "2026-06-30", "2026-09-30", "2026-12-31"] as const;
 const FACTOR_NAMES = [
@@ -269,7 +270,7 @@ export function EngineHarness() {
 
       <p className="font-mono text-[9px] text-text-muted tracking-wide pb-5">
         deterministic-engine (src/lib/engine) is the single source of date/threshold truth · CPD strike thresholds
-        to be confirmed with Razlin at Gate 1
+        to be confirmed with {PRINCIPAL.shortName} at Gate 1
       </p>
     </div>
   );

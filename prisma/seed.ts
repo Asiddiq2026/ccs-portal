@@ -10,6 +10,7 @@
 // dates are computed by the deterministic engine in Phase 6, not hardcoded.
 import { PrismaClient } from "@prisma/client";
 import { buildCf30Return } from "../src/lib/models/cf30";
+import { PRINCIPAL } from "../src/lib/principal";
 
 const prisma = new PrismaClient();
 
@@ -66,7 +67,7 @@ async function main() {
           arId: ar.arId,
           person: "Approved Person",
           cpdHours: 18,
-          required: 35,
+          required: PRINCIPAL.cpd.requiredHours,
           strikes: 0,
           certExpiry: new Date("2026-12-31T00:00:00Z"),
         },

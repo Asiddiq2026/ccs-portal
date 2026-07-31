@@ -2,12 +2,13 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { Provider } from "next-auth/providers";
 import type { TenantRole } from "@/lib/db";
+import { PRINCIPAL } from "@/lib/principal";
 
 // Fixed dev users so tenancy can be exercised locally without a real IdP.
 // AR is scoped to one firm; COMPLIANCE/SMF are network-scoped.
 const DEV_USERS: Record<string, { id: string; name: string; role: TenantRole; arId: string }> = {
   ar: { id: "u-ar", name: "SIX AR user", role: "AR", arId: "ar_six" },
-  compliance: { id: "u-comp", name: "Razlin Compliance", role: "COMPLIANCE", arId: "" },
+  compliance: { id: "u-comp", name: PRINCIPAL.complianceTeam, role: "COMPLIANCE", arId: "" },
   smf: { id: "u-smf", name: "SMF16/17", role: "SMF", arId: "" },
 };
 

@@ -6,6 +6,7 @@
 // 9). Dates arrive as ISO strings in JSON, so we coerce; unknown keys are
 // stripped so a draft can never smuggle extra columns into a register.
 import { z } from "zod";
+import { PRINCIPAL } from "../principal";
 
 const RiskBand = z.enum(["GREEN", "AMBER", "RED"]);
 
@@ -38,7 +39,7 @@ const personCpd = z
     arId: z.string().min(1),
     person: z.string().min(1),
     cpdHours: z.coerce.number().int().nonnegative().default(0),
-    required: z.coerce.number().int().positive().default(35),
+    required: z.coerce.number().int().positive().default(PRINCIPAL.cpd.requiredHours),
     strikes: z.coerce.number().int().nonnegative().default(0),
     certExpiry: z.coerce.date(),
   })

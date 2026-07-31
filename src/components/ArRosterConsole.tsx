@@ -6,6 +6,7 @@
 // machine, so an unlawful move is never even presented.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PRINCIPAL } from "@/lib/principal";
 
 export type ArStatus = "ONBOARDING" | "ACTIVE" | "SUSPENDED" | "TERMINATED";
 
@@ -85,7 +86,7 @@ export function ArRosterConsole({ rows, transitionNotes }: ArRosterConsoleProps)
       <div className="mb-6">
         <h2 className="font-heading font-bold text-xl">Appointed Representatives</h2>
         <p className="text-sm text-text-secondary mt-1">
-          The SUP 12 register of firms Razlin is responsible for. Appointing, suspending and
+          The SUP 12 register of firms {PRINCIPAL.shortName} is responsible for. Appointing, suspending and
           terminating carry FCA notification consequences, so a status change is proposed for SMF
           sign-off — never applied here.
         </p>

@@ -11,10 +11,11 @@
 // All arithmetic — credited hours, months remaining, strike level — comes from
 // the engine, never from a model (Invariant 7). DB-free: injected interfaces.
 import { creditedCpdHours, cpdStrike, monthsUntil } from "../engine";
+import { PRINCIPAL } from "../principal";
 import type { AuditWriter, RegisterStore, Tenant } from "../tools/types";
 import type { TrainingStore } from "../training/service";
 
-export const DEFAULT_REQUIRED_HOURS = 35;
+export const DEFAULT_REQUIRED_HOURS = PRINCIPAL.cpd.requiredHours;
 
 export class CpdError extends Error {
   constructor(

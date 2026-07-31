@@ -4,6 +4,7 @@
 // Server component — reads the session directly; no client JS.
 import Link from "next/link";
 import { requireTenant } from "@/lib/session";
+import { PRINCIPAL } from "@/lib/principal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ interface Dest {
 function destsFor(role: string): Dest[] {
   if (role === "AR") {
     return [
-      { href: "/portal", label: "Open the Razlin Partner Portal", primary: true },
+      { href: "/portal", label: `Open the ${PRINCIPAL.shortName} Partner Portal`, primary: true },
       { href: "/fp/submit", label: "Submit a Financial Promotion" },
     ];
   }

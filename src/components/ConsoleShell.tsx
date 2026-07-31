@@ -4,6 +4,7 @@
 // the CCS Shard mark, a 238px white left sidebar with a 2px accent left-border
 // active state, on the CCS light theme tokens from tailwind.config.ts.
 import Link from "next/link";
+import { PRINCIPAL } from "@/lib/principal";
 
 const NAV_SECTIONS = [
   {
@@ -95,7 +96,7 @@ export function ConsoleShell({
           <div className="flex flex-col">
             <span className="text-[12.5px] font-semibold leading-none">AR Oversight Platform</span>
             <span className="font-mono text-[8px] tracking-[1.3px] uppercase text-text-muted mt-[3px]">
-              Razlin Ltd · FRN 730805
+              {PRINCIPAL.consoleName} · FRN {PRINCIPAL.frn}
             </span>
           </div>
         </div>

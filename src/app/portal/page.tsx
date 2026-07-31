@@ -1,15 +1,16 @@
-// Razlin AR Portal — the appointed representative's home. Server component:
-// resolves the tenant, loads the firm's own data under withTenant (RLS scopes
-// every read to the caller's arId), computes the quarter/due-date via the
-// deterministic engine, and hands a plain snapshot to the client portal. An AR
-// sees ONLY its own firm; an operator previewing must pass ?arId=… (still
-// RLS-visible to them network-wide).
+// Principal-branded AR Portal — the appointed representative's home. Server
+// component: resolves the tenant, loads the firm's own data under withTenant
+// (RLS scopes every read to the caller's arId), computes the quarter/due-date
+// via the deterministic engine, and hands a plain snapshot to the client
+// portal. An AR sees ONLY its own firm; an operator previewing must pass
+// ?arId=… (still RLS-visible to them network-wide).
 import { auth } from "@/auth";
 import { requireTenant } from "@/lib/session";
 import { withTenant } from "@/lib/db";
 import { AccessPanel } from "@/components/ConsoleShell";
-import { RazlinPortal, type PortalSubmission } from "@/components/RazlinPortal";
+import { PartnerPortal, type PortalSubmission } from "@/components/PartnerPortal";
 import { quarterEnd, cf30DueDate, fmt } from "@/lib/engine";
+import { PRINCIPAL } from "@/lib/principal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export default async function PortalPage({
     return (
       <AccessPanel
         title="Sign in required"
-        body="The Razlin partner portal is restricted to signed-in appointed representatives."
+        body={`The ${PRINCIPAL.shortName} partner portal is restricted to signed-in appointed representatives.`}
       />
     );
   }
@@ -131,7 +132,7 @@ export default async function PortalPage({
   const cpdPerson = (data.cpd?.person as string | undefined) ?? displayName;
 
   return (
-    <RazlinPortal
+    <PartnerPortal
       firmName={firmName}
       arId={arId}
       personName={displayName}

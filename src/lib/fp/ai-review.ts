@@ -6,6 +6,7 @@
 // reference (COBS 4 / MAR 7 / s.21 FSMA framing).
 import type { AuditWriter, Tenant } from "../tools/types";
 import type { FpRecord } from "./service";
+import { PRINCIPAL, principalLegalWithFrn } from "../principal";
 
 export type Verdict =
   | "APPROVE"
@@ -33,7 +34,7 @@ export interface AiReviewResult {
 
 const ADVISORY =
   "AI analysis is advisory only and prepared by CCS (not FCA authorised). " +
-  "Final approval authority rests with Razlin Limited's SMF16/17 holder as the " +
+  `Final approval authority rests with ${PRINCIPAL.legalName}'s SMF16/17 holder as the ` +
   "FCA-authorised principal firm.";
 
 /** Build the review prompt. Framing + instruction are verbatim from the reference. */
@@ -41,7 +42,7 @@ export function buildReviewPrompt(fp: FpRecord): string {
   const checklist = fp.cobs
     .map((c) => `- [${c.checked ? "x" : " "}] ${c.label}`)
     .join("\n");
-  return `You are a senior compliance analyst at CCS (Comprehensive Compliance Solutions), a compliance consultancy that is not itself FCA authorised. You are reviewing a financial promotion on behalf of your client, Razlin Limited (FRN 730805), the FCA-authorised principal firm responsible for approving the promotion under s.21 FSMA and COBS 4. The originating firm is an appointed representative of Razlin, and all promotions are restricted to per se professional clients (COBS 3.5) and eligible counterparties (COBS 3.6) — no retail.
+  return `You are a senior compliance analyst at CCS (Comprehensive Compliance Solutions), a compliance consultancy that is not itself FCA authorised. You are reviewing a financial promotion on behalf of your client, ${principalLegalWithFrn()}, the FCA-authorised principal firm responsible for approving the promotion under s.21 FSMA and COBS 4. The originating firm is an appointed representative of ${PRINCIPAL.shortName}, and all promotions are restricted to per se professional clients (COBS 3.5) and eligible counterparties (COBS 3.6) — no retail.
 
 Promotion Reference: ${fp.ref}
 Title: ${fp.title}
@@ -51,7 +52,7 @@ Intended Audience: ${fp.audience}
 COBS 4 checklist (self-certified by the AR):
 ${checklist}
 
-Conduct a structured compliance review covering: COBS 4.2.1R (fair, clear and not misleading); COBS 4.5 (risk warnings); COBS 4.6 (past performance, if applicable); MAR 7 / COBS 12 (research independence and conflicts, if research); s.21 FSMA and Art 19 FPO (exempt communication pathway, with Razlin as approver); and audience restriction to professionals/ECPs only. For each relevant area give a brief finding of one to two sentences. Then give an overall verdict: APPROVE, APPROVE WITH CONDITIONS, REFER FOR FURTHER REVIEW, or REJECT. Keep the whole response under 320 words, plain compliance prose, no markdown headers or bullet symbols.`;
+Conduct a structured compliance review covering: COBS 4.2.1R (fair, clear and not misleading); COBS 4.5 (risk warnings); COBS 4.6 (past performance, if applicable); MAR 7 / COBS 12 (research independence and conflicts, if research); s.21 FSMA and Art 19 FPO (exempt communication pathway, with ${PRINCIPAL.shortName} as approver); and audience restriction to professionals/ECPs only. For each relevant area give a brief finding of one to two sentences. Then give an overall verdict: APPROVE, APPROVE WITH CONDITIONS, REFER FOR FURTHER REVIEW, or REJECT. Keep the whole response under 320 words, plain compliance prose, no markdown headers or bullet symbols.`;
 }
 
 /**

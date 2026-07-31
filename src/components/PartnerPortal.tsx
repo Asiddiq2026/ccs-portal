@@ -1,16 +1,19 @@
 "use client";
 
-// Razlin-branded Appointed-Representative portal. This is the AR's surface, not
-// the CCS operator console — different chrome (Razlin header/sidebar), but the
-// same invariants: an AR *submits*, nothing is published, nothing becomes FINAL
-// without Razlin's SMF sign-off. Financial promotions post multipart to
-// POST /api/fp (documents hashed server-side into WORM); a NIL quarterly return
-// posts to POST /api/cf30/nil, which creates a PENDING sign-off draft routed to
-// Razlin — the "FILED" chip means "filed for Razlin adoption", never FINAL.
+// Principal-branded Appointed-Representative portal (branding comes from the
+// principal profile — golden rule 4: AR-facing output carries the principal's
+// marks only; CCS marks are internal). This is the AR's surface, not the CCS
+// operator console — different chrome, but the same invariants: an AR
+// *submits*, nothing is published, nothing becomes FINAL without the
+// principal's SMF sign-off. Financial promotions post multipart to POST /api/fp
+// (documents hashed server-side into WORM); a NIL quarterly return posts to
+// POST /api/cf30/nil, which creates a PENDING sign-off draft — the "FILED" chip
+// means "filed for adoption", never FINAL.
 import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { COBS_CHECKLIST, FP_TYPES } from "@/lib/fp/cobs";
 import { NIL_SECTIONS } from "@/lib/cf30/service";
+import { PRINCIPAL, principalFooterLine } from "@/lib/principal";
 
 export interface PortalSubmission {
   id: string;
@@ -76,7 +79,7 @@ const NAV = [
   { label: "Training & CPD", active: false },
 ];
 
-export function RazlinPortal(props: PortalProps) {
+export function PartnerPortal(props: PortalProps) {
   const router = useRouter();
 
   const [submissions, setSubmissions] = useState<PortalSubmission[]>(props.submissions);
@@ -160,7 +163,7 @@ export function RazlinPortal(props: PortalProps) {
         ...cur,
       ]);
       pushToast({
-        title: "Submitted to Razlin",
+        title: `Submitted to ${PRINCIPAL.shortName}`,
         sub: `${body.ref ?? "Promotion"} is PENDING sign-off — nothing is published.`,
         tone: "success",
       });
@@ -203,7 +206,7 @@ export function RazlinPortal(props: PortalProps) {
       setNilOpen(false);
       pushToast({
         title: "NIL return filed",
-        sub: `${body.quarter ?? props.quarterLabel} filed for Razlin adoption — awaiting sign-off.`,
+        sub: `${body.quarter ?? props.quarterLabel} filed for ${PRINCIPAL.shortName} adoption — awaiting sign-off.`,
         tone: "success",
       });
       router.refresh();
@@ -236,7 +239,9 @@ export function RazlinPortal(props: PortalProps) {
               >
                 R
               </span>
-              <span className="font-heading font-bold text-[17px] tracking-[3px] text-white">RAZLIN</span>
+              <span className="font-heading font-bold text-[17px] tracking-[3px] text-white">
+                {PRINCIPAL.shortName.toUpperCase()}
+              </span>
             </div>
             <div>
               <p className="text-[12.5px] font-semibold text-white leading-tight">Partner Portal</p>
@@ -288,8 +293,8 @@ export function RazlinPortal(props: PortalProps) {
             <p className="font-mono text-[8px] uppercase tracking-wide text-text-muted">
               Your compliance contact
             </p>
-            <p className="text-sm font-semibold mt-1">Razlin Compliance</p>
-            <p className="font-mono text-[10px] text-text-secondary">compliance@razlin.co.uk</p>
+            <p className="text-sm font-semibold mt-1">{PRINCIPAL.complianceTeam}</p>
+            <p className="font-mono text-[10px] text-text-secondary">{PRINCIPAL.complianceEmail}</p>
           </div>
         </aside>
 
@@ -297,13 +302,13 @@ export function RazlinPortal(props: PortalProps) {
         <main className="px-8 py-7">
           <h1 className="font-heading font-semibold text-[25px]">Good morning, {props.personName.split(" ")[0]}</h1>
           <p className="text-sm text-text-secondary mt-1">
-            {props.firmName} · appointed representative of Razlin Limited
+            {props.firmName} · appointed representative of {PRINCIPAL.legalName}
           </p>
 
           {/* Stats */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             <StatCard
-              label="Awaiting Razlin"
+              label={`Awaiting ${PRINCIPAL.shortName}`}
               value={String(pendingCount)}
               sub="promotions pending sign-off"
               bar="#B45309"
@@ -311,13 +316,13 @@ export function RazlinPortal(props: PortalProps) {
             <StatCard
               label="Adopted this quarter"
               value={String(adoptedCount)}
-              sub="cleared by Razlin SMF"
+              sub={`cleared by ${PRINCIPAL.shortName} SMF`}
               bar="#15803D"
             />
             <StatCard
               label={`${props.quarterLabel} return`}
               value={cf30Filed ? "FILED" : "DUE"}
-              sub={cf30Filed ? "awaiting Razlin adoption" : `due ${props.cf30Due}`}
+              sub={cf30Filed ? `awaiting ${PRINCIPAL.shortName} adoption` : `due ${props.cf30Due}`}
               bar="#0E7490"
             />
             <StatCard
@@ -343,7 +348,7 @@ export function RazlinPortal(props: PortalProps) {
                 </p>
                 <p className="text-xs text-text-secondary mt-0.5">
                   Nothing to report this quarter? File a NIL return across all {NIL_SECTIONS.length} SUP 12
-                  sections — it is held for Razlin sign-off, never auto-filed.
+                  sections — it is held for {PRINCIPAL.shortName} sign-off, never auto-filed.
                 </p>
               </div>
               <button
@@ -444,7 +449,7 @@ export function RazlinPortal(props: PortalProps) {
                 disabled={busy || !title.trim()}
                 className="mt-4 w-full px-4 py-2 text-sm font-semibold text-white bg-razlin-accent hover:bg-razlin-header disabled:opacity-50"
               >
-                {busy ? "Submitting…" : "Submit to Razlin for sign-off"}
+                {busy ? "Submitting…" : `Submit to ${PRINCIPAL.shortName} for sign-off`}
               </button>
             </form>
 
@@ -495,10 +500,10 @@ export function RazlinPortal(props: PortalProps) {
           {/* FCA footer */}
           <footer className="mt-10 pt-4 border-t border-border">
             <p className="font-mono text-[9px] text-text-muted">
-              Razlin Limited · Authorised and regulated by the Financial Conduct Authority · FRN 730805
+              {principalFooterLine()}
             </p>
             <p className="font-mono text-[9px] text-text-muted mt-0.5">
-              {props.firmName} is an appointed representative of Razlin Limited.
+              {props.firmName} is an appointed representative of {PRINCIPAL.legalName}.
             </p>
           </footer>
         </main>

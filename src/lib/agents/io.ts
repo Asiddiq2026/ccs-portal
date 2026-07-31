@@ -4,6 +4,10 @@
 // schema fails closed to OPERATOR REVIEW (never a silent partial write).
 import { z } from "zod";
 import type { AgentSpec } from "./specs";
+// Prompts are hash-audited per (agent, version). The profile interpolation
+// renders byte-identical text for the pilot principal (pinned in
+// src/lib/principal.test.ts), so historical prompt hashes remain valid.
+import { principalLegalWithFrn } from "../principal";
 
 /** Validated envelope handed to an agent. `payload` carries trigger-specific data. */
 export const AgentInputSchema = z.object({
@@ -46,7 +50,7 @@ export function getAgentIo(_agentId: string): AgentIo {
  * supplies the task. Kept deterministic so its hash is stable per (id, version).
  */
 export function renderSystemPrompt(spec: AgentSpec): string {
-  return `You are ${spec.id} (prompt ${spec.version}), a headless compliance agent for the CCS AR Oversight Platform operated for Razlin Limited (FRN 730805), an FCA-authorised principal firm.
+  return `You are ${spec.id} (prompt ${spec.version}), a headless compliance agent for the CCS AR Oversight Platform operated for ${principalLegalWithFrn()}, an FCA-authorised principal firm.
 
 Task: ${spec.description}
 

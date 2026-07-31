@@ -16,6 +16,7 @@
 import { z } from "zod";
 import type { Tenant } from "../tools/types";
 import { creditedCpdHours, cpdStrike } from "../engine";
+import { PRINCIPAL } from "../principal";
 
 /** Domain error carrying an HTTP-ish status so the route can map it directly. */
 export class TrainingError extends Error {
@@ -166,7 +167,7 @@ export async function cpdStatus(
   args: { arId: string; person: string; monthsLeft: number; required?: number },
 ): Promise<CpdStatus> {
   assertFirmScope(tenant, args.arId);
-  const required = args.required ?? 35;
+  const required = args.required ?? PRINCIPAL.cpd.requiredHours;
   const rows = await deps.store.listCompletions({ arId: args.arId, person: args.person }, tenant);
   const cpdHours = creditedCpdHours(rows);
   const strikes = cpdStrike({ hours: cpdHours, required, monthsLeft: args.monthsLeft });
