@@ -1,12 +1,48 @@
 # ccs-portal
 
-Production build of the CCS AR Oversight Platform for Razlin Limited (FRN 730805).
-Spec: `../design_handoff_ccs_platform/README.md` and `original_docs/BUILD_GUIDE.md`.
+Production build of the CCS AR Oversight Platform. The pilot principal is
+Razlin Limited (FRN 730805); everything principal-specific lives in ONE file,
+`src/lib/principal.ts` (see `docs/COMMERCIALISATION.md` for the
+single-tenant-fleet model). Spec: `../design_handoff_ccs_platform/README.md`
+and `original_docs/BUILD_GUIDE.md`.
 
 Stack: Next.js (App Router) + TypeScript + Tailwind · Prisma + Postgres (row-level
-security) · Auth.js · Zod.
+security) · Auth.js · Zod · Vitest + Playwright.
 
-## Status
+## Current state
+
+Golden rule throughout: **agents draft, humans decide, nothing leaves unsigned** —
+proven end to end against a live LLM (agent drafts → sign-off queue → SMF
+sign-off materialises FINAL).
+
+- **13 screens.** Operator console: sign-off queue, financial promotions,
+  data breaches (`/breaches`, engine-computed 72h Art 33 clock), CPD &
+  certification (`/cpd`, signed-off position vs training evidence with drift
+  flagging), AR risk scoring (`/risk`, five coded factors — the band is derived,
+  never chosen), AR register (`/ars`, SUP 12 status state machine), agents,
+  go-live monitoring, engine + backend diagnostics. AR-facing: the
+  principal-branded partner portal (`/portal`) and FP submission.
+- **Every register moves only via SMF sign-off**, with a per-register identity
+  model (`REGISTER_IDENTITY`) deciding replace-vs-append at materialisation.
+- **Tamper-evident audit chain**: every audit row hashes its predecessor
+  (`src/lib/audit/`); `/infra` re-verifies the newest 500 on load and reports
+  pre-chain rows as unverifiable rather than passing.
+- **Training integration** (`training-app/` + `src/lib/training/`): the
+  Codrington training app syncs completions and certificate PDFs cross-origin
+  into append-only evidence via AR-scoped service tokens (hashes only in
+  config); credited hours are recomputed by the engine, never self-asserted.
+- **Verified by running**: 267 unit/integration tests (incl. cross-tenant RLS
+  and sign-off materialisation against real Postgres) + 15 Playwright E2E +
+  the production build, all green in CI on every push
+  (`.github/workflows/ci.yml`). Committed Prisma migrations. Recovery tags:
+  `v0.1.0-pilot-ready`, `v0.2.0-principal-profile`.
+- **Not yet exercised anywhere**: real OIDC SSO and real Azure WORM writes —
+  see the deployment risk register, `docs/DEPLOY_AZURE.md` §7.
+
+## Status (historical build log)
+
+The phase-by-phase log below records how the platform was built and is kept as
+history; the section above is the current truth.
 
 - **Phase 0 — Scaffold:** done (themed app shell, Tailwind tokens, docker Postgres, `.env.example`).
 - **Phase 1 — Data model:** the 8 register tables + RLS policies. done.
@@ -176,13 +212,17 @@ security) · Auth.js · Zod.
   imported lazily, so it stays out of dev/test bundles. done. This unblocks the
   AR submission route/form.
 
-## The 8 register tables
+## The 12 register tables
 
 Per-AR (tenant-isolated on `arId`): `appointed_rep`, `cf30_return`,
-`financial_promotion`, `risk_score`, `data_breach`, `person_cpd`.
-Network / append-only: `audit_event`, `agent_run`.
+`financial_promotion`, `promotion_document`, `risk_score`, `data_breach`,
+`person_cpd`, `sign_off_item`, and the append-only training evidence
+`training_completion`, `training_certificate`.
+Network / append-only: `audit_event`, `agent_run` (hash-chained audit; no
+UPDATE/DELETE grant).
 
-Schema: `prisma/schema.prisma`. RLS: `prisma/rls.sql`.
+Schema: `prisma/schema.prisma`. RLS: `prisma/rls.sql`. Migrations:
+`prisma/migrations/`.
 
 ## Setup
 
@@ -194,8 +234,15 @@ npm run db:setup          # prisma migrate + apply RLS + seed
 npm run dev               # http://localhost:3000
 ```
 
-`db:setup` = `prisma migrate dev --name init` → `npm run db:rls` → `npm run db:seed`.
-Re-run `npm run db:rls` after any later migration (Prisma may drop the RLS grants).
+`db:setup` = `prisma migrate deploy` (committed migrations) → `npm run db:rls` →
+`npm run db:seed`. Re-run `npm run db:rls` after any later migration (Prisma may
+drop the RLS grants). Author new migrations with `npm run db:migrate`.
+
+Test suites: `RUN_DB_TESTS=true npm test` (267 unit/integration incl. RLS +
+materialisation against the DB) and `npm run test:e2e` (15 Playwright browser
+tests; runs against `next dev` because the dev-login provider is hard-gated off
+in production builds — do not relax that gate to point E2E at `next start`).
+The training app for the sync demo: `npm run training:app` → http://localhost:4173.
 
 ## Verify (Phase 1)
 
@@ -281,28 +328,23 @@ Re-run `npm run db:rls` after any later migration (Prisma may drop the RLS grant
 
 ## Go-live gap map
 
-Compliance spine (Phases 0–2) is in place. What stands between here and go-live:
+Everything buildable and verifiable without production credentials is done and
+CI-green. What stands between here and go-live is deployment and governance,
+tracked with per-risk detail in `docs/DEPLOY_AZURE.md` §7:
 
 | Area | State | Blocker to go-live |
 | --- | --- | --- |
-| Scaffold / data model / RLS | done | — |
-| Deterministic engine + CF30/Risk wiring | done (tests green) | — |
-| API tool layer + gateway + HTTP endpoint | done | — |
-| Sign-off decision path (draft → FINAL, SMF-only, atomic + audited) | done | sign-off queue UI (Phase 3); migration for new columns |
-| Auth & tenancy | done | real IdP app registration + mapped `role`/`arId` claims |
-| Financial-promotion channel (backend + submit + adopt/reject) | done | — (full loop: AR submits → SMF adopts/rejects) |
-| WORM storage (Azure Blob adapter, content-addressed, fail-closed) | done (code) | `npm install` + provision container w/ immutability; live smoke test |
-| AI review (Anthropic) | done (server-side, advisory) | — (inline AI panel UI shipped in FP screen) |
-| UI — sign-off queue + FP review + FP submit + monitoring + agents | done | — |
-| UI — Razlin AR Portal (`/portal`) + NIL CF30 filing (`/api/cf30/nil`) | done | — |
-| UI — internal console re-skin (sidebar/62px header) + inspection screens | done | Deterministic Engine harness + Backend & Data inspection (`/engine`, `/infra`) |
-| Agents as headless workers (fail-closed runner + manual trigger) | done | monitoring dashboard UI (Phase 3) |
+| Application (all channels, sign-off loop, agents, audit chain, tests) | done, CI-green | — |
+| OIDC SSO (Entra/Okta) | coded, never exercised | real app registration + mapped `role`/`arId` claims; smoke test on staging |
+| WORM storage (Azure Blob) | adapter coded, never exercised | provision container with immutability ON; live overwrite/delete refusal test |
+| Deployment (App Service/Container App + Key Vault + Flexible Server) | documented (`docs/DEPLOY_AZURE.md`) | Azure decisions: region, host, storage auth model |
+| Agent scheduling (CRON/WEBHOOK) | gated off, manual-only exercised | keep manual through the pilot quarter |
 | Autonomy gate (`AGENTS_AUTONOMOUS`) | done (gated off) | flip only after **Gate 5** |
-| Monitoring (metrics + `/api/monitoring`) + ops docs | done | dashboard UI (Phase 3) |
-| Deploy config (Azure) + WORM storage | documented + adapter coded | `npm install` new dep; run migrate/RLS/verify on a toolchain host |
 | **Human Track (non-code)** | outstanding | executed DPA, pen-test sign-off, clean pilot quarter → **Gate 5** (SMF16/17 written approval) |
 
 Nothing may run autonomously until Gate 5: `AGENTS_AUTONOMOUS` stays `false`.
+Commercialisation path (single-tenant fleet, metering, certification):
+`docs/COMMERCIALISATION.md`.
 
 ## Row-level security
 
