@@ -98,17 +98,28 @@ describe.runIf(RUN)("RLS tenant isolation (Invariant 5)", () => {
     }
   });
 
-  it("a non-operator (AR) can append audit despite the operator-only read policy", async () => {
-    // Regression: audit_event's SELECT policy is operator-only, so INSERT ...
-    // RETURNING (Prisma .create) fails for an AR. prismaAudit uses createMany
-    // (no RETURNING), so an AR-scoped writer — e.g. a service-token ingest — can
-    // still append. Count under a COMPLIANCE context (AR cannot read audit).
+  it("a non-operator (AR) appends audit AND the row is chained", async () => {
+    // Two regressions in one. (1) audit_event's SELECT policy is operator-only,
+    // so INSERT ... RETURNING (Prisma .create) fails for an AR — the writer must
+    // avoid RETURNING. (2) The same policy hid the chain tail from AR writers,
+    // so their rows silently carried hashPrev NULL — unverifiable holes in the
+    // chain, found live via the training-app sync. The writer now reads the
+    // tail under a scoped, restored elevation; this asserts the result.
     const before = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) => tx.auditEvent.count());
     const res = await prismaAudit.append(
       { actor: "AR:ar_six", action: "TEST APPEND", entity: "training_completion" },
       { role: "AR", arId: "ar_six" },
     );
     expect(res.id).toBeTruthy();
+
+    const row = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) =>
+      tx.auditEvent.findUnique({ where: { id: res.id } }),
+    );
+    expect(row).not.toBeNull();
+    // A prior row always exists here (the seed writes one), so an unchained
+    // append would mean the AR writer could not see the tail.
+    expect(row!.hashPrev).toMatch(/^[0-9a-f]{64}$/);
+
     const after = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) => tx.auditEvent.count());
     expect(after).toBe(before + 1);
   });

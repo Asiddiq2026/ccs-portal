@@ -8,9 +8,11 @@
 // FRNs below are PLACEHOLDERS pending confirmation from Razlin — replace with
 // the real AR FRNs before any real data. Dates are illustrative; CF30 due
 // dates are computed by the deterministic engine in Phase 6, not hardcoded.
+import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { buildCf30Return } from "../src/lib/models/cf30";
 import { PRINCIPAL } from "../src/lib/principal";
+import { appendAuditTx } from "../src/lib/audit/append";
 
 const prisma = new PrismaClient();
 
@@ -62,30 +64,65 @@ async function main() {
         },
       });
 
-      await tx.personCpd.create({
-        data: {
-          arId: ar.arId,
-          person: "Approved Person",
-          cpdHours: 18,
-          required: PRINCIPAL.cpd.requiredHours,
-          strikes: 0,
-          certExpiry: new Date("2026-12-31T00:00:00Z"),
-        },
-      });
+      // Person identity: the canonical `person` key is the FULL NAME exactly as
+      // the training platform's user table spells it (training-app/index.html
+      // USERS map) — that is what its sync posts, and cpdStanding joins
+      // person_cpd to training evidence on (arId, person). For the pilot AR
+      // (Codrington) we seed the real people; the other ARs keep a placeholder
+      // until their rosters are supplied.
+      if (ar.arId === "ar_codrington") {
+        const CODRINGTON_PEOPLE = [
+          "Nicholas James Cant",
+          "Stephen Codrington",
+          "Rob Tull",
+          "Craig Nelson",
+        ];
+        for (const person of CODRINGTON_PEOPLE) {
+          await tx.personCpd.create({
+            data: {
+              arId: ar.arId,
+              person,
+              cpdHours: 0,
+              required: PRINCIPAL.cpd.requiredHours,
+              strikes: 0,
+              certExpiry: new Date("2026-12-31T00:00:00Z"),
+            },
+          });
+        }
+        // Sample evidence for one real person, so drift is demonstrable out of
+        // the box (8h evidence vs 0h signed off).
+        await tx.trainingCompletion.createMany({
+          data: [
+            { arId: ar.arId, person: "Stephen Codrington", moduleId: "m1", moduleTitle: "Regulatory Framework", quarter: "Q1", score: 6, outOf: 6, pct: 100, passed: true, completedAt: new Date("2026-02-10T10:00:00Z") },
+            { arId: ar.arId, person: "Stephen Codrington", moduleId: "m2", moduleTitle: "SM&CR and Fitness & Propriety", quarter: "Q1", score: 4, outOf: 5, pct: 80, passed: true, completedAt: new Date("2026-02-12T10:00:00Z") },
+          ],
+        });
+      } else {
+        await tx.personCpd.create({
+          data: {
+            arId: ar.arId,
+            person: "Approved Person",
+            cpdHours: 18,
+            required: PRINCIPAL.cpd.requiredHours,
+            strikes: 0,
+            certExpiry: new Date("2026-12-31T00:00:00Z"),
+          },
+        });
 
-      // Training-completion evidence feeding person_cpd (m1 + m2 = 8 credited h).
-      await tx.trainingCompletion.createMany({
-        data: [
-          { arId: ar.arId, person: "Approved Person", moduleId: "m1", moduleTitle: "Regulatory Framework", quarter: "Q1", score: 6, outOf: 6, pct: 100, passed: true, completedAt: new Date("2026-02-10T10:00:00Z") },
-          { arId: ar.arId, person: "Approved Person", moduleId: "m2", moduleTitle: "SM&CR and Fitness & Propriety", quarter: "Q1", score: 4, outOf: 5, pct: 80, passed: true, completedAt: new Date("2026-02-12T10:00:00Z") },
-        ],
-      });
+        // Training-completion evidence feeding person_cpd (m1 + m2 = 8 credited h).
+        await tx.trainingCompletion.createMany({
+          data: [
+            { arId: ar.arId, person: "Approved Person", moduleId: "m1", moduleTitle: "Regulatory Framework", quarter: "Q1", score: 6, outOf: 6, pct: 100, passed: true, completedAt: new Date("2026-02-10T10:00:00Z") },
+            { arId: ar.arId, person: "Approved Person", moduleId: "m2", moduleTitle: "SM&CR and Fitness & Propriety", quarter: "Q1", score: 4, outOf: 5, pct: 80, passed: true, completedAt: new Date("2026-02-12T10:00:00Z") },
+          ],
+        });
+      }
 
       // A stored training certificate (WORM manifest — bytes live in the blob store).
       await tx.trainingCertificate.create({
         data: {
           arId: ar.arId,
-          person: "Approved Person",
+          person: ar.arId === "ar_codrington" ? "Stephen Codrington" : "Approved Person",
           moduleId: "m1",
           certificateId: `CERT-${ar.arId}-m1`,
           name: "m1-certificate.pdf",
@@ -115,9 +152,15 @@ async function main() {
       },
     });
 
-    // Append-only registers: a seed audit + agent-run row.
-    await tx.auditEvent.create({
-      data: { actor: "system", action: "SEED", entity: "appointed_rep", entityId: "ar_six" },
+    // Append-only registers: a seed audit + agent-run row. The audit row goes
+    // through the chain writer like every other append, so even the genesis
+    // database has no out-of-band audit writes.
+    await appendAuditTx(tx, {
+      id: `evt_${randomUUID()}`,
+      actor: "system",
+      action: "SEED",
+      entity: "appointed_rep",
+      entityId: "ar_six",
     });
     await tx.agentRun.create({
       data: {

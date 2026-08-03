@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codrington Compliance Training Platform</title>
+<style>
+:root {
+  --navy: #0F2144; --navy-mid: #152A50; --navy-lt: #1E3663;
+  --gold: #D4A94A; --gold-lt: #E9CB8A; --gold-bg: #FFF8E7;
+  --ink: #1A1A1A; --grey: #6B7280; --grey-lt: #9CA3AF;
+  --line: #E5E7EB; --bg: #F5F6F8; --white: #FFFFFF;
+  --green: #059669; --green-bg: #ECFDF5;
+  --red: #DC2626; --red-bg: #FEF2F2;
+  --shadow: 0 1px 3px rgba(15,33,68,0.08), 0 4px 12px rgba(15,33,68,0.06);
+  --shadow-lg: 0 10px 40px rgba(15,33,68,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg); color: var(--ink); line-height: 1.55; font-size: 15px; min-height: 100vh;
+}
+.hidden { display: none !important; }
+
+/* ═════ LOGIN VIEW ═════ */
+.login-page {
+  min-height: 100vh;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-lt) 100%);
+  position: relative; overflow: hidden;
+}
+.login-page::before, .login-page::after {
+  content: ""; position: absolute; border-radius: 50%;
+}
+.login-page::before {
+  width: 500px; height: 500px; top: -200px; right: -100px;
+  background: radial-gradient(circle, rgba(212,169,74,0.15) 0%, transparent 60%);
+}
+.login-page::after {
+  width: 400px; height: 400px; bottom: -150px; left: -100px;
+  background: radial-gradient(circle, rgba(212,169,74,0.12) 0%, transparent 60%);
+}
+.login-card {
+  background: white; border-radius: 14px; padding: 40px 44px;
+  max-width: 460px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  position: relative; z-index: 1;
+}
+.login-brand {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--line);
+}
+.brand-mark {
+  width: 52px; height: 52px; background: var(--gold);
+  border-radius: 10px; display: grid; place-items: center;
+  font-weight: 700; color: var(--navy); font-size: 22px; letter-spacing: -0.5px;
+}
+.login-brand-text .l1 { font-size: 17px; font-weight: 600; color: var(--navy); }
+.login-brand-text .l2 { font-size: 11px; color: var(--grey); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+.login-title { font-size: 24px; color: var(--navy); font-weight: 700; margin-bottom: 6px; letter-spacing: -0.3px; }
+.login-sub { color: var(--grey); font-size: 14px; margin-bottom: 28px; }
+
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block; font-size: 11px; font-weight: 600; color: var(--grey);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.form-group input, .form-group select {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--line); border-radius: 6px;
+  font-size: 14px; font-family: inherit; color: var(--ink);
+  transition: border-color 0.15s; background: white;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: var(--navy);
+}
+.login-btn {
+  width: 100%; padding: 13px;
+  background: var(--navy); color: white; border: none; border-radius: 6px;
+  font-family: inherit; font-weight: 600; font-size: 15px;
+  cursor: pointer; transition: all 0.15s; margin-top: 8px;
+}
+.login-btn:hover { background: var(--navy-lt); }
+.login-error {
+  color: var(--red); font-size: 13px; margin-top: 12px; padding: 10px 14px;
+  background: var(--red-bg); border-radius: 6px; display: none;
+}
+.login-error.show { display: block; }
+.login-hint {
+  text-align: center; margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--grey);
+}
+.demo-creds {
+  margin-top: 10px; padding: 10px; background: var(--gold-bg);
+  border-radius: 6px; font-size: 11px; color: #8B6914;
+  border: 1px dashed var(--gold);
+}
+.demo-creds strong { color: var(--navy); }
+
+/* ═════ HEADER (main app) ═════ */
+header.topbar {
+  background: var(--navy); color: white; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: sticky; top: 0; z-index: 50;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-mark-sm {
+  width: 44px; height: 44px; background: var(--gold); border-radius: 8px;
+  display: grid; place-items: center; font-weight: 700; color: var(--navy); font-size: 20px;
+}
+.brand-text { line-height: 1.15; }
+.brand-text .l1 { font-size: 15px; font-weight: 600; color: white; }
+.brand-text .l2 { font-size: 11px; color: var(--gold-lt); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+
+.user-menu { display: flex; align-items: center; gap: 20px; }
+.user-info { text-align: right; }
+.user-info .name { color: white; font-size: 14px; font-weight: 600; }
+.user-info .role { color: var(--gold-lt); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; }
+.user-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--gold); color: var(--navy);
+  display: grid; place-items: center; font-weight: 700; font-size: 16px;
+}
+.logout-btn {
+  background: transparent; color: var(--gold-lt); border: 1px solid rgba(212,169,74,0.3);
+  padding: 8px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.logout-btn:hover { background: rgba(212,169,74,0.1); color: white; }
+
+main.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* ═════ WELCOME / DASHBOARD ═════ */
+.dashboard-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lt) 100%);
+  color: white; border-radius: 12px; padding: 32px 40px; margin-bottom: 28px;
+  position: relative; overflow: hidden;
+}
+.dashboard-hero::before {
+  content: ""; position: absolute; top: -50%; right: -10%;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(212,169,74,0.15) 0%, transparent 60%);
+}
+.hero-greeting { font-size: 13px; color: var(--gold-lt); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 8px; }
+.hero-name { font-size: 28px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.3px; }
+.hero-msg { font-size: 14px; color: var(--gold-lt); }
+.progress-summary {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px; margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+.ps-stat .lab { font-size: 10px; color: var(--gold-lt); text-transform: uppercase; letter-spacing: 1.5px; }
+.ps-stat .val { font-size: 24px; font-weight: 700; margin-top: 4px; }
+
+.section-title {
+  font-size: 18px; font-weight: 700; color: var(--navy);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 12px;
+}
+.section-title::before {
+  content: ""; width: 4px; height: 18px; background: var(--gold); border-radius: 2px;
+}
+.section-subtitle { color: var(--grey); margin-bottom: 20px; font-size: 13px; }
+
+.quarter-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px; margin-bottom: 32px;
+}
+.quarter-card {
+  background: white; border-radius: 12px; padding: 22px;
+  border: 1.5px solid var(--line); box-shadow: var(--shadow);
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative; overflow: hidden;
+}
+.quarter-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 100%);
+}
+.q-tag { display: inline-block; background: var(--gold-bg); color: #8B6914;
+  padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px;
+}
+.q-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.q-desc { color: var(--grey); font-size: 12px; margin-bottom: 16px; }
+.q-modules { border-top: 1px solid var(--line); padding-top: 12px; }
+.q-mod-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; font-size: 13px; border-bottom: 1px dashed var(--line); cursor: pointer;
+  transition: background 0.1s; margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 4px;
+}
+.q-mod-item:hover { background: var(--bg); }
+.q-mod-item:last-child { border-bottom: none; }
+.q-mod-name { color: var(--ink); font-weight: 500; flex: 1; }
+.q-mod-status {
+  font-size: 10px; padding: 3px 8px; border-radius: 20px;
+  font-weight: 700; letter-spacing: 0.5px;
+}
+.q-mod-status.done { background: var(--green-bg); color: var(--green); }
+.q-mod-status.pending { background: var(--gold-bg); color: #8B6914; }
+
+/* ═════ BUTTONS ═════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border: none; border-radius: 6px;
+  font-family: inherit; font-weight: 600; font-size: 13px;
+  cursor: pointer; transition: all 0.15s; text-decoration: none;
+}
+.btn-primary { background: var(--navy); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--navy-lt); }
+.btn-primary:disabled { background: var(--grey-lt); cursor: not-allowed; }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-gold:hover { background: var(--gold-lt); }
+.btn-outline { background: white; color: var(--navy); border: 1.5px solid var(--navy); }
+.btn-outline:hover { background: var(--bg); }
+.btn-ghost { background: transparent; color: var(--navy); padding: 8px 12px; }
+.btn-ghost:hover { background: var(--bg); }
+
+/* ═════ MODULE PAGE ═════ */
+.module-page {
+  background: white; border-radius: 12px; padding: 0;
+  border: 1px solid var(--line); box-shadow: var(--shadow);
+  overflow: hidden; margin-bottom: 24px;
+}
+.module-header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  color: white; padding: 28px 36px; position: relative;
+}
+.module-header::after {
+  content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--gold);
+}
+.module-crumbs {
+  font-size: 12px; color: var(--gold-lt); margin-bottom: 8px;
+  letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600;
+}
+.module-header h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; }
+.module-header .subtitle { color: var(--gold-lt); font-size: 13px; margin-top: 6px; }
+.progress-strip {
+  background: var(--bg); padding: 12px 36px;
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 1px solid var(--line); font-size: 12px;
+}
+.progress-strip .pl { color: var(--grey); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.progress-bar-track { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-lt) 0%, var(--gold) 100%); transition: width 0.3s; }
+.progress-count { font-weight: 700; color: var(--navy); font-size: 13px; }
+
+.question-body { padding: 32px 36px; }
+.q-num {
+  display: inline-block; color: var(--gold); font-weight: 700;
+  font-size: 12px; letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase;
+}
+.q-stem { font-size: 16px; color: var(--ink); line-height: 1.5; margin-bottom: 20px; font-weight: 500; }
+
+.answers { display: flex; flex-direction: column; gap: 10px; }
+.answer-option {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 18px; border: 1.5px solid var(--line); border-radius: 8px;
+  cursor: pointer; transition: all 0.12s; background: white;
+  font-size: 13.5px; line-height: 1.5;
+}
+.answer-option:hover:not(.locked) { border-color: var(--navy-lt); background: var(--bg); }
+.answer-option.selected { border-color: var(--navy); background: rgba(15,33,68,0.03); }
+.answer-option.correct { border-color: var(--green); background: var(--green-bg); }
+.answer-option.incorrect { border-color: var(--red); background: var(--red-bg); }
+.answer-option.locked { cursor: default; }
+.answer-letter {
+  flex-shrink: 0; width: 26px; height: 26px;
+  border: 1.5px solid var(--grey-lt); border-radius: 50%;
+  display: grid; place-items: center; font-size: 13px; font-weight: 700;
+  color: var(--grey); background: white;
+}
+.answer-option.selected .answer-letter { border-color: var(--navy); color: var(--navy); }
+.answer-option.correct .answer-letter { border-color: var(--green); color: var(--green); }
+.answer-option.incorrect .answer-letter { border-color: var(--red); color: var(--red); }
+
+.feedback-box { margin-top: 20px; padding: 16px 20px; border-radius: 8px; font-size: 13px; line-height: 1.6; }
+.feedback-correct { background: var(--green-bg); border: 1px solid rgba(5,150,105,0.25); color: #064E3B; }
+.feedback-incorrect { background: var(--red-bg); border: 1px solid rgba(220,38,38,0.25); color: #7F1D1D; }
+.feedback-title { font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.feedback-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700; color: white; font-size: 13px;
+}
+.feedback-correct .feedback-icon { background: var(--green); }
+.feedback-incorrect .feedback-icon { background: var(--red); }
+.action-row {
+  padding: 18px 36px; border-top: 1px solid var(--line); background: var(--bg);
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+/* ═════ RESULTS ═════ */
+.results-header { text-align: center; padding: 36px 30px; color: white;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lt) 100%);
+  border-radius: 12px 12px 0 0;
+}
+.results-header.fail { background: linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%); }
+.results-header .icon-lg {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.3);
+  display: grid; place-items: center; margin: 0 auto 16px; font-size: 32px;
+}
+.results-header h2 { font-size: 26px; margin-bottom: 6px; letter-spacing: -0.3px; }
+.results-header p { color: var(--gold-lt); font-size: 14px; }
+.results-header.fail p { color: #FCA5A5; }
+.score-block {
+  background: white; padding: 24px 36px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.score-stat { text-align: center; }
+.score-stat .val { font-size: 32px; font-weight: 700; color: var(--navy); letter-spacing: -1px; }
+.score-stat .val.pass { color: var(--green); }
+.score-stat .val.fail { color: var(--red); }
+.score-stat .lab { color: var(--grey); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 2px; }
+.results-detail { padding: 28px 36px; }
+.review-item {
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 14px 18px; margin-bottom: 10px;
+}
+.review-item.wrong { border-left: 4px solid var(--red); }
+.review-item.right { border-left: 4px solid var(--green); }
+.review-item .q-title-r { font-weight: 600; color: var(--navy); font-size: 13px; margin-bottom: 6px; }
+.review-item .q-title-r .num { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-right: 8px; }
+.review-item .q-your { font-size: 12px; color: var(--grey); margin-top: 6px; }
+.review-item .q-your strong { color: var(--ink); }
+.review-item .q-explanation { margin-top: 8px; font-size: 12px; padding: 10px 12px; background: var(--bg); border-radius: 6px; color: var(--ink); line-height: 1.5; }
+
+/* ═════ CERTIFICATE ═════ */
+.certificate {
+  background: white; border: 4px solid var(--navy); border-radius: 8px;
+  padding: 44px 56px; text-align: center;
+  position: relative; max-width: 900px; margin: 0 auto;
+  box-shadow: var(--shadow-lg);
+}
+.certificate::before {
+  content: ""; position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;
+  border: 1.5px solid var(--gold); border-radius: 4px; pointer-events: none;
+}
+.cert-brand { color: var(--navy); font-size: 12px; letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-bottom: 18px; }
+.cert-title { font-size: 30px; color: var(--navy); font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+.cert-sub { color: var(--gold); font-size: 13px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700; margin-bottom: 36px; }
+.cert-award { color: var(--grey); font-size: 14px; font-style: italic; margin-bottom: 18px; }
+.cert-name {
+  font-size: 38px; color: var(--navy); font-weight: 700;
+  border-bottom: 2px solid var(--gold); padding-bottom: 10px; margin-bottom: 24px;
+  display: inline-block; min-width: 380px; letter-spacing: -0.5px;
+}
+.cert-course { font-size: 17px; color: var(--ink); margin-bottom: 6px; font-weight: 600; }
+.cert-details { color: var(--grey); font-size: 13px; margin-bottom: 36px; }
+.cert-footer {
+  display: flex; justify-content: space-around;
+  margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--grey);
+}
+.cert-sig { min-width: 200px; }
+.cert-sig .line { border-top: 1.5px solid var(--ink); margin-bottom: 6px; }
+.cert-sig .role { font-weight: 600; color: var(--navy); }
+.cert-print-controls { text-align: center; margin: 20px 0; }
+.cert-id { position: absolute; bottom: 14px; right: 24px; font-size: 9px; color: var(--grey-lt); font-family: monospace; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--navy); font-size: 13px; font-weight: 600;
+  margin-bottom: 20px; cursor: pointer; padding: 6px 12px;
+  border-radius: 6px; border: none; background: transparent; font-family: inherit;
+}
+.back-link:hover { background: white; }
+
+@media print {
+  body { background: white; }
+  header.topbar, .cert-print-controls, .btn, .back-link { display: none !important; }
+  .certificate { border-color: var(--navy); page-break-inside: avoid; box-shadow: none; }
+  main.wrap { padding: 0; }
+}
+
+/* ═════ ADMIN VIEW ═════ */
+.admin-panel {
+  background: white; border-radius: 12px; padding: 24px;
+  border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+.admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.admin-table th, .admin-table td {
+  padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.admin-table th { color: var(--grey); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; background: var(--bg); }
+.admin-table td { color: var(--ink); }
+.status-pill { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.status-pill.pass { background: var(--green-bg); color: var(--green); }
+.status-pill.fail { background: var(--red-bg); color: var(--red); }
+.status-pill.pending { background: var(--gold-bg); color: #8B6914; }
+
+footer.pagefoot {
+  text-align: center; padding: 30px 20px;
+  color: var(--grey); font-size: 12px; border-top: 1px solid var(--line); margin-top: 40px;
+}
+
+@media (max-width: 720px) {
+  main.wrap { padding: 16px; }
+  .dashboard-hero { padding: 24px; }
+  .module-header, .question-body, .action-row, .results-detail { padding-left: 20px; padding-right: 20px; }
+  .score-block { grid-template-columns: 1fr; gap: 12px; padding: 20px; }
+  .certificate { padding: 28px 20px; }
+  .cert-name { font-size: 24px; min-width: 0; }
+  .login-card { padding: 30px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═════════════════ LOGIN PAGE ═════════════════ -->
+<div id="viewLogin" class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-mark">CS</div>
+      <div class="login-brand-text">
+        <div class="l1">Compliance Solutions</div>
+        <div class="l2">Codrington Training Portal</div>
+      </div>
+    </div>
+    <div class="login-title">Sign in to continue</div>
+    <div class="login-sub">Access your quarterly compliance training and certifications.</div>
+
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" autocomplete="username" placeholder="e.g. ncant" />
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" placeholder="Enter your password" />
+    </div>
+    <button class="login-btn" onclick="handleLogin()">Sign In</button>
+    <div class="login-error" id="loginError">Invalid username or password.</div>
+
+    <div class="login-hint">
+      <div>Forgotten password? Contact Razlin Compliance at<br>adnan.siddiq@razlincapital.com</div>
+      <div class="demo-creds">
+        <strong>Demo credentials for testing:</strong><br>
+        Nick Cant → <strong>ncant</strong> / <strong>Codrington2026!</strong><br>
+        Stephen → <strong>scodrington</strong> / <strong>Codrington2026!</strong><br>
+        Rob Tull → <strong>rtull</strong> / <strong>Codrington2026!</strong><br>
+        Craig Nelson → <strong>cnelson</strong> / <strong>Codrington2026!</strong><br>
+        Admin (SMF16) → <strong>asiddiq</strong> / <strong>Razlin2026!</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════ MAIN APP ═════════════════ -->
+<div id="viewApp" class="hidden">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark-sm">CS</div>
+      <div class="brand-text">
+        <div class="l1">Compliance Solutions</div>
+        <div class="l2">Codrington Training Portal</div>
+      </div>
+    </div>
+    <div class="user-menu">
+      <div class="user-info">
+        <div class="name" id="hdrUserName">—</div>
+        <div class="role" id="hdrUserRole">—</div>
+      </div>
+      <div class="user-avatar" id="hdrAvatar">?</div>
+      <button class="logout-btn" onclick="handleLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Dashboard -->
+    <div id="viewDashboard">
+      <div class="dashboard-hero">
+        <div class="hero-greeting">Welcome back</div>
+        <div class="hero-name" id="heroName">—</div>
+        <div class="hero-msg" id="heroMsg">Complete your quarterly training to remain compliant with SYSC 27.</div>
+        <div class="progress-summary">
+          <div class="ps-stat"><div class="lab">Modules Passed</div><div class="val" id="stModPassed">0 / 8</div></div>
+          <div class="ps-stat"><div class="lab">Overall Progress</div><div class="val" id="stProgress">0%</div></div>
+          <div class="ps-stat"><div class="lab">Certificates Earned</div><div class="val" id="stCerts">0</div></div>
+          <div class="ps-stat"><div class="lab">Last Activity</div><div class="val" id="stLast" style="font-size:14px;">—</div></div>
+        </div>
+      </div>
+
+      <div id="adminSection" class="hidden" style="margin-bottom:32px;">
+        <h2 class="section-title">Team completion overview (SMF16 view)</h2>
+        <p class="section-subtitle">Live status of all training records across the Codrington AR team.</p>
+        <div class="admin-panel">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th><th>Role</th><th>Modules Passed</th><th>Progress</th><th>Last Activity</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 class="section-title">Your quarterly programme</h2>
+      <p class="section-subtitle">Two modules per quarter. Click any module to begin or continue.</p>
+      <div class="quarter-grid" id="quarterGrid"></div>
+    </div>
+
+    <!-- Module view -->
+    <div id="viewModule" class="hidden">
+      <button class="back-link" onclick="goDashboard()">← Back to dashboard</button>
+      <div class="module-page">
+        <div class="module-header">
+          <div class="module-crumbs" id="modCrumbs"></div>
+          <h2 id="modTitle"></h2>
+          <div class="subtitle" id="modSub"></div>
+        </div>
+        <div class="progress-strip">
+          <span class="pl">Progress</span>
+          <div class="progress-bar-track"><div class="progress-bar-fill" id="progBar" style="width:0%"></div></div>
+          <span class="progress-count" id="progCount">0 / 0</span>
+        </div>
+        <div class="question-body" id="questionBody"></div>
+        <div class="action-row">
+          <button class="btn btn-ghost" onclick="prevQuestion()" id="btnPrev">← Previous</button>
+          <button class="btn btn-primary" onclick="nextQuestion()" id="btnNext">Next question →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results view -->
+    <div id="viewResults" class="hidden">
+      <button class="back-link" onclick="goDashboard()">← Back to dashboard</button>
+      <div class="module-page">
+        <div class="results-header" id="resultsHeader">
+          <div class="icon-lg" id="resultsIcon">✓</div>
+          <h2 id="resultsTitle">Module complete</h2>
+          <p id="resultsSub"></p>
+        </div>
+        <div class="score-block">
+          <div class="score-stat"><div class="val" id="scoreVal">—</div><div class="lab">Your score</div></div>
+          <div class="score-stat"><div class="val" id="scoreOutOf">—</div><div class="lab">Out of possible</div></div>
+          <div class="score-stat"><div class="val" id="scorePct">—</div><div class="lab">Percentage</div></div>
+        </div>
+        <div class="results-detail">
+          <p id="syncStatus" style="display:none; font-size:12px; font-weight:600; margin-bottom:14px; padding:10px 14px; background:var(--bg); border-radius:6px;"></p>
+          <h3 style="color:var(--navy); font-size:15px; margin-bottom:14px;">Question-by-question review</h3>
+          <div id="reviewList"></div>
+          <div style="text-align:center; margin-top:24px; padding-top:20px; border-top:1px solid var(--line);">
+            <button class="btn btn-outline" onclick="retryModule()">↻ Retake module</button>
+            <button class="btn btn-gold" id="btnCert" onclick="showCertificate()" style="margin-left:10px;">View Certificate →</button>
+            <button class="btn btn-primary" onclick="goDashboard()" style="margin-left:10px;">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certificate view -->
+    <div id="viewCertificate" class="hidden">
+      <button class="back-link" onclick="showResultsFromCert()">← Back to results</button>
+      <div class="cert-print-controls">
+        <button class="btn btn-primary" onclick="window.print()">🖨  Print / Save as PDF</button>
+        <button class="btn btn-outline" onclick="emailCertificate()" style="margin-left:10px;">📧 Email to Razlin Compliance</button>
+      </div>
+      <div class="certificate" id="certificateBody">
+        <div class="cert-brand">Compliance Solutions · Training Portal</div>
+        <div class="cert-title">Certificate of Completion</div>
+        <div class="cert-sub">Codrington Compliance Training</div>
+        <div class="cert-award">This is to certify that</div>
+        <div class="cert-name" id="certName">—</div>
+        <div class="cert-course">has successfully completed</div>
+        <div class="cert-course" id="certModule" style="color:var(--navy); font-size:19px;">—</div>
+        <div class="cert-details" id="certDetails">—</div>
+        <div class="cert-footer">
+          <div class="cert-sig">
+            <div class="line"></div>
+            <div>Candidate</div>
+            <div class="role" id="certSigName">—</div>
+          </div>
+          <div class="cert-sig">
+            <div class="line"></div>
+            <div>Compliance Oversight</div>
+            <div class="role">Adnan Siddiq, SMF16 / SMF17</div>
+            <div>Razlin Limited (FRN 730805)</div>
+          </div>
+        </div>
+        <div class="cert-id" id="certId">—</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pagefoot">
+    Comprehensive Compliance Solutions Limited &nbsp;|&nbsp; Confidential &nbsp;|&nbsp; Codrington Training Portal v2.0 · July 2026<br>
+    <span style="color:var(--grey-lt); font-size:11px;">Completions and certificates sync automatically to the principal's oversight platform as append-only evidence; a local copy is kept in this browser. If a sync fails, the result screen says so — only then does the workbook need a manual entry.</span>
+  </footer>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// USER DATABASE (demo)
+// In production this would live on a secure server with proper password hashing.
+// This prototype uses plain-text credentials for demo purposes only.
+// ══════════════════════════════════════════════════════════════════════════
+
+const USERS = {
+  "ncant": {
+    password: "Codrington2026!",
+    name: "Nicholas James Cant",
+    role: "CF30 (Distributor)",
+    email: "[to be provided]",
+    isAdmin: false
+  },
+  "scodrington": {
+    password: "Codrington2026!",
+    name: "Stephen Codrington",
+    role: "CF1 (Director) / CF30",
+    email: "stephen@ccgj.com",
+    isAdmin: false
+  },
+  "rtull": {
+    password: "Codrington2026!",
+    name: "Rob Tull",
+    role: "Analyst (Japan-based)",
+    email: "[to be provided]",
+    isAdmin: false
+  },
+  "cnelson": {
+    password: "Codrington2026!",
+    name: "Craig Nelson",
+    role: "Analyst (Japan-based)",
+    email: "[to be provided]",
+    isAdmin: false
+  },
+  "asiddiq": {
+    password: "Razlin2026!",
+    name: "Adnan Siddiq",
+    role: "SMF16 / SMF17",
+    email: "adnan.siddiq@razlincapital.com",
+    isAdmin: true
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// CCS OVERSIGHT PLATFORM SYNC
+// Passing (or failing) a module posts the completion — and, on a pass, the
+// certificate PDF — to the principal's oversight platform as append-only
+// evidence. The register itself NEVER moves from here: credited hours are
+// recomputed by the platform's deterministic engine, and person_cpd only
+// changes when an SMF signs off the proposed update.
+//
+// ⚠ DEV TOKEN, DEV ONLY. A bearer token in browser JS is readable by every
+// user of this page. This token is scoped to exactly one capability — append
+// training evidence for ar_codrington — so the worst case is fabricated
+// evidence, which still cannot reach the CPD register without SMF sign-off
+// (and shows as drift until then). A production deployment must hold the
+// token server-side and proxy these calls through the training platform's
+// own backend.
+// ══════════════════════════════════════════════════════════════════════════
+
+const PLATFORM = {
+  url: "http://localhost:3000",
+  arId: "ar_codrington",
+  token: "dev-codrington-ingest-2026",
+};
+
+// The artifact runtime provided window.storage; a plain browser does not.
+// Shim it onto localStorage so records persist locally either way.
+if (!window.storage) {
+  window.storage = {
+    async get(key) {
+      const v = localStorage.getItem(key);
+      return v === null ? null : { value: v };
+    },
+    async set(key, value) { localStorage.setItem(key, String(value)); },
+    async list(prefix) {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefix)) keys.push(k);
+      }
+      return { keys };
+    },
+  };
+}
+
+/**
+ * Build a minimal, genuinely valid single-page PDF certificate (the platform's
+ * WORM store verifies the %PDF magic bytes and stores it content-addressed by
+ * SHA-256). ASCII-only by construction so string length === byte length and
+ * the xref offsets are exact.
+ */
+function buildCertificatePdf(fields) {
+  const sanitize = (s) => String(s).replace(/[^\x20-\x7E]/g, "?");
+  const esc = (s) => sanitize(s).replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+  const rows = [
+    ["/F1 20 Tf", "CERTIFICATE OF COMPLETION"],
+    ["/F1 10 Tf", "Codrington Compliance Training Programme"],
+    ["/F1 14 Tf", fields.name],
+    ["/F1 12 Tf", "has successfully completed: " + fields.module],
+    ["/F1 11 Tf", "Score " + fields.score + "  -  " + fields.date],
+    ["/F1 9 Tf", "Certificate ID: " + fields.certId],
+  ];
+  let stream = "BT\n72 720 Td\n";
+  rows.forEach(([font, text], i) => {
+    stream += font + "\n" + (i ? "0 -34 Td\n" : "") + "(" + esc(text) + ") Tj\n";
+  });
+  stream += "ET";
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+    "<< /Length " + stream.length + " >>\nstream\n" + stream + "\nendstream",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [];
+  objs.forEach((body, i) => {
+    offsets.push(pdf.length);
+    pdf += (i + 1) + " 0 obj\n" + body + "\nendobj\n";
+  });
+  const xref = pdf.length;
+  pdf +=
+    "xref\n0 " + (objs.length + 1) + "\n0000000000 65535 f \n" +
+    offsets.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("") +
+    "trailer\n<< /Size " + (objs.length + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF";
+  return btoa(pdf);
+}
+
+/**
+ * Post one attempt to the oversight platform: the completion always (failed
+ * attempts are evidence too — the platform credits only passes), plus the
+ * certificate PDF on a pass. Throws on any non-2xx so the caller can surface
+ * an honest "not synced" state; the local record is never blocked by this.
+ */
+async function syncToPlatform(record, module_, moduleId) {
+  const headers = {
+    "content-type": "application/json",
+    authorization: "Bearer " + PLATFORM.token,
+  };
+  const completion = {
+    person: currentUser.name,
+    moduleId: moduleId,
+    moduleTitle: module_.title,
+    quarter: module_.quarter,
+    score: record.score,
+    outOf: record.total,
+    pct: record.pct,
+    passed: record.passed,
+    completedAt: record.date,
+  };
+  if (record.passed) completion.certificateId = record.certId;
+
+  const res = await fetch(PLATFORM.url + "/api/training/completions", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ arId: PLATFORM.arId, completions: [completion] }),
+  });
+  if (!res.ok) throw new Error("completion sync failed (HTTP " + res.status + ")");
+
+  if (record.passed) {
+    const contentBase64 = buildCertificatePdf({
+      name: currentUser.name,
+      module: module_.title,
+      score: record.pct + "% (" + record.score + "/" + record.total + ")",
+      date: new Date(record.date).toLocaleDateString("en-GB"),
+      certId: record.certId,
+    });
+    const cres = await fetch(PLATFORM.url + "/api/training/certificates", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        arId: PLATFORM.arId,
+        person: currentUser.name,
+        moduleId: moduleId,
+        certificateId: record.certId,
+        filename: record.certId + ".pdf",
+        contentBase64,
+      }),
+    });
+    if (!cres.ok) throw new Error("certificate sync failed (HTTP " + cres.status + ")");
+    return { text: "Recorded with the principal's oversight platform — completion and certificate (WORM)." };
+  }
+  return { text: "Attempt recorded with the principal's oversight platform." };
+}
+
+function setSyncStatus(state_, text) {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  el.style.display = "block";
+  el.style.color = state_ === "ok" ? "var(--green)" : state_ === "pending" ? "var(--grey)" : "var(--red)";
+  el.textContent = text;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// COURSE DATA (same as prior module — abbreviated for space)
+// ══════════════════════════════════════════════════════════════════════════
+
+const COURSE = {
+  quarters: [
+    { code: "Q1", title: "Foundations", desc: "Regulatory framework and personal accountability.", modules: ["m1", "m2"] },
+    { code: "Q2", title: "Communications & Financial Crime", desc: "Client communications and financial crime.", modules: ["m3", "m4"] },
+    { code: "Q3", title: "Personal Conduct & Market Integrity", desc: "Conflicts, personal dealing, inside information.", modules: ["m5", "m6"] },
+    { code: "Q4", title: "Records & Operations", desc: "Data protection and framework documents.", modules: ["m7", "m8"] }
+  ],
+  modules: {
+    "m1": { title: "Regulatory Framework", subtitle: "FCA, FSMA, and the AR structure under SUP 12", quarter: "Q1", questions: [
+      { stem: "Who has ultimate supervisory responsibility for Codrington Associates Limited under the AR framework?", options: ["Codrington's board", "Razlin Limited as Principal", "The FCA directly", "Asymmetric Advisors"], correct: 1, why: "Under SUP 12, the Principal firm bears ultimate regulatory responsibility for its AR. Razlin (FRN 730805) is the Principal; Codrington is the AR. The FCA supervises Razlin's supervision of Codrington, not Codrington directly." },
+      { stem: "Under which sub-paragraph of FSMA s.21 does Razlin communicate CJP Notes?", options: ["s.21(2)(a) — Razlin as authorised communicator", "s.21(2)(b) — content approved by authorised person", "FPO Article 19(5)", "FPO Article 49(2)"], correct: 0, why: "s.21(2)(a) is the correct basis. Razlin is the authorised communicator acting through Codrington as AR under s.39 FSMA. FPO exemptions are for unauthorised persons and are belt-and-braces fallback only." },
+      { stem: "Is 'advising on investments' within Codrington's AR permitted activities?", options: ["Yes, expressly included", "Yes, implicit in arranging", "No — expressly out of scope of RAZ-ARA-002", "Only for existing clients"], correct: 2, why: "Advising on investments under RAO Article 53 is expressly excluded from Codrington's AR permissions. Advisory-leaning language crosses the perimeter and re-engages the s.19 general prohibition." },
+      { stem: "A new UK asset manager describes their firm as 'obviously an institutional investor' and asks for a CJP Note. What must you do before sending?", options: ["Send — institutional status is sufficient", "Verify COBS 3 classification, record in Verification Log, obtain SMF16 sign-off", "Send with retail warning disclaimer", "Refer to marketing team"], correct: 1, why: "Self-identification is not compliance. COBS 3 classification requires verification recorded in the Professional Client Verification Log with SMF16 written sign-off." },
+      { stem: "Which FCA Handbook chapter governs the AR framework?", options: ["COBS 12", "SUP 12", "SYSC 10", "COCON 2"], correct: 1, why: "SUP 12 governs the AR framework — Principal supervision, risk assessment, FCA notifications under SUP 15, and termination." },
+      { stem: "Under FSMA s.19, carrying on a regulated activity without authorisation is:", options: ["Civil breach only", "Criminal offence under s.23", "Permitted if professional client on notice", "Permitted for research only"], correct: 1, why: "s.19 breach is a criminal offence under s.23 FSMA. Agreements are void or unenforceable under s.26-27. AR framework under s.39 provides a limited exemption only within scope of appointment." }
+    ]},
+    "m2": { title: "SM&CR and Fitness & Propriety", subtitle: "Personal accountability under SM&CR", quarter: "Q1", questions: [
+      { stem: "Under the AR framework, are CF30 holders individually approved by the FCA?", options: ["Yes — FCA approves each CF30", "No — FCA notifies each CF30", "No — Razlin notifies FCA; Razlin bears the F&P assessment", "Only at directly authorised firms"], correct: 2, why: "Under AR, CF30 holders are notified by Razlin via FCA Connect. The FCA does not individually approve them. Razlin bears the F&P assessment." },
+      { stem: "Which is NOT one of the three FIT criteria?", options: ["Honesty, integrity, reputation (FIT 2.1)", "Competence and capability (FIT 2.2)", "Financial soundness (FIT 2.3)", "Marketing effectiveness (FIT 2.4)"], correct: 3, why: "There are only three FIT criteria: 2.1, 2.2, 2.3. 'Marketing effectiveness' is not one." },
+      { stem: "Rob is a Japan-based analyst producing CJP Notes, not CF30-notified. Do the Conduct Rules apply?", options: ["No — only to FCA-notified individuals", "Yes — his conduct is within AR scope, rules apply as if CF30-notified", "Only Rule 5 (market conduct)", "Only if he spends 50%+ on UK work"], correct: 1, why: "Analysts producing CJP Notes for UK distribution are within AR framework scope. FCA rules, UK MAR, and Conduct Rules apply regardless of CF30 status." },
+      { stem: "You become subject to a £8,000 CCJ for personal debt unrelated to work. What must you do?", options: ["Nothing — personal matters outside F&P", "Notify Razlin SMF16 without delay — FIT 2.3", "Disclose only if debt exceeds £25,000", "Notify only at annual F&P review"], correct: 1, why: "CCJs, IVAs, and bankruptcy fall within FIT 2.3 (financial soundness). Notification is immediate — delay is itself a Conduct Rule breach." },
+      { stem: "Which is the correct set of Tier 1 Conduct Rules?", options: ["Integrity; skill/care/diligence; openness; treat customers fairly; market conduct", "Confidentiality; punctuality; reporting; ethics; care", "Suitability; product governance; execution; conflicts; disclosure", "Only integrity and skill/care apply to non-CF30 staff"], correct: 0, why: "The five Tier 1 Individual Conduct Rules under COCON 2.1 apply to all staff within the AR framework's scope." }
+    ]},
+    "m3": { title: "Financial Promotions & Research Classification", subtitle: "COBS 4, 12.2/12.3, UK MAR Article 20, Path B", quarter: "Q2", questions: [
+      { stem: "A CJP Note contains: 'At the current price of ¥2,100, we see this as an attractive entry point.' Under the Policy:", options: ["Permitted under Path B with methodology disclosure", "Permitted with a disclaimer added", "Prohibited — advisory language crossing Article 53 RAO", "Permitted only for ECPs"], correct: 2, why: "'Attractive entry point' is advisory language crossing into Article 53 RAO 'advising on investments'. Even Path B does not permit this — it is a hard prohibition." },
+      { stem: "Are CJP Notes classified as independent or non-independent investment research?", options: ["Independent — produced by regulated analysts", "Non-independent — COBS 12.3, primarily due to Stephen's dual role", "Neither — outside COBS 12", "Depends on the issuer"], correct: 1, why: "The Article 37 MiFID Org Reg independence test requires structural elimination of conflicts. Stephen's producer/distributor dual role is a primary independence-defeater. Non-independent is the only defensible classification." },
+      { stem: "A CJP Note carries 'CJ FV: ¥2,850'. Under Path B, what is required?", options: ["Label as 'consensus' instead", "Methodology disclosed, CJ estimate marked, UK MAR Article 20 disclosures present", "Remove the fair value", "No disclosure needed"], correct: 1, why: "Path B permits CJ fair values, targets, and forecasts subject to: methodology disclosure, clear marking as CJ estimate, and UK MAR Article 20 recommendation disclosures." },
+      { stem: "You label a weekly commentary 'not investment research and not investment advice'. Does this take it outside COBS 4?", options: ["Yes — the label is definitive", "Yes if prominent", "No — self-applied labels have no legal effect (PERG 8.4.7)", "Only for ECPs"], correct: 2, why: "PERG 8.4.7 makes clear that the FCA applies a substantive test — labels are irrelevant. If the content is capable of influencing an investment decision, it is a financial promotion." },
+      { stem: "Which is a required UK MAR Article 20 disclosure on every CJP Note?", options: ["Historic 12-month price chart", "Producer identity, date/time, methodology, conflicts", "Statement that Note is unregulated", "Prohibition on onward forwarding"], correct: 1, why: "Article 20 UK MAR and Commission Delegated Regulation 2016/958 require: producer identity, date/time of production and dissemination, methodology behind any recommendation, and conflicts of interest disclosure." },
+      { stem: "A UK Professional Client asks Nick to also send them AA (Asymmetric Advisors) research notes. Correct response?", options: ["Send — Nick is AA Director", "Send with disclaimer added", "Decline and refer — AA Notes not in scope for UK; refer to AA's Asian distribution if applicable", "Send summary only"], correct: 2, why: "AA Notes are explicitly out of scope for UK distribution under RAZ-POL-RDP-001 and RAZ-EL-001 Clause 5.1. Nick cannot use his AA Director role to distribute AA content in the UK." }
+    ]},
+    "m4": { title: "AML & Financial Crime", subtitle: "MLR 2017, CDD/EDD, SARs", quarter: "Q2", questions: [
+      { stem: "A well-known UK institutional investor shows unusual jurisdictional routing inconsistent with prior profile. What do you do?", options: ["Nothing — reputation resolves the concern", "Contact the client to ask for explanation", "Report internally to Stephen in writing, do not discuss with client, continue only if MLRO confirms", "Cease distribution and email the client explaining why"], correct: 2, why: "Professional client status does not reduce AML obligations. Four-step process: identify red flag; report to Stephen (CF1); Stephen escalates to Razlin MLRO; withhold distribution. Never tip off — POCA s.333A criminal offence." },
+      { stem: "Under POCA s.333A, tipping-off carries a maximum penalty of:", options: ["Fine only", "Up to 2 years' imprisonment", "Up to 5 years' imprisonment", "Up to 10 years' imprisonment"], correct: 2, why: "Tipping-off under POCA s.333A carries up to 5 years' imprisonment. Applies to deliberate AND inadvertent disclosure." },
+      { stem: "Who is the MLRO for the Codrington AR?", options: ["Stephen Codrington", "Nicholas Cant", "Adnan Siddiq (SMF17, Razlin)", "The NCA directly"], correct: 2, why: "The MLRO function sits with Razlin as authorised firm. Adnan Siddiq holds SMF17 (MLRO)." },
+      { stem: "EDD under MLR 2017 is required for:", options: ["All new UK Professional Clients", "PEPs, high-risk jurisdictions, complex structures, unclear source of funds", "Only clients with assets under £1m", "Clients recommended by another regulated firm"], correct: 1, why: "EDD applies to higher-risk categories: PEPs, high-risk jurisdictions, opaque structures, unclear source of funds. Not routine measure." }
+    ]},
+    "m5": { title: "Conflicts & Personal Account Dealing", subtitle: "SYSC 10, structural conflicts, PAD", quarter: "Q3", questions: [
+      { stem: "Under SYSC 10.1.7R, when is disclosure of a conflict the appropriate response?", options: ["Always — primary tool", "As a last resort — firm must first prevent or manage", "Only when client asks", "Never — client should not be told"], correct: 1, why: "SYSC 10.1.7R is explicit: disclosure is a LAST RESORT. Firms must first take reasonable steps to prevent or manage through organisational arrangements." },
+      { stem: "Craig (analyst, not CF30-notified) owns 200 shares in a Japanese company. Stephen asks Craig to co-author a CJP Note on that company. Craig must:", options: ["Nothing — PAD only for CF30", "Sell shares before publication", "Disclose to SMF16 in writing before work begins; await assessment", "Include holding in a footnote"], correct: 2, why: "PAD extends to all persons involved in producing or distributing CJP Notes, regardless of CF30 status. Disclosure must be BEFORE work begins." },
+      { stem: "Which is NOT one of the three standing structural conflicts identified in the framework?", options: ["Stephen's dual role", "Nick's AA directorship", "AA/CJ Commercial Arrangement", "Razlin's Principal role"], correct: 3, why: "Razlin's role as Principal is a regulatory relationship, not a conflict. The three standing conflicts are Stephen's dual role, Nick's AA directorship, and the AA/CJ commercial arrangement." },
+      { stem: "'Front-running' is:", options: ["Publishing before a competitor", "Dealing in securities ahead of Note distribution to benefit from anticipated price impact", "Sending Notes to largest clients first", "Discussing Notes internally before external distribution"], correct: 1, why: "Front-running is dealing to benefit from anticipated market impact of research yet to be distributed. Criminal offence under UK MAR, not just policy breach." }
+    ]},
+    "m6": { title: "UK MAR & Inside Information", subtitle: "Article 7 test, criminal offences, MNPI protocol", quarter: "Q3", questions: [
+      { stem: "The Article 7 UK MAR definition requires ALL FOUR elements. Which set is correct?", options: ["Precise; non-public; relates to issuer/instrument; likely significant price effect", "Precise; confidential; issuer-related; may affect volume", "Verified; unpublished; issuer-related; certain to affect price", "Verifiable; restricted; issuer-related; would move markets"], correct: 0, why: "The four cumulative Article 7 elements: precise; non-public; relates directly or indirectly to issuer/instrument; likely significant price effect (reasonable investor test). All four required." },
+      { stem: "On an IR call, the CFO says off-record the board is likely to announce a strategic partnership next month. What is your first action?", options: ["Include as forward guidance", "Discuss with Stephen at earliest opportunity", "STOP — do not incorporate, deal, or share; escalate to SMF16 and Stephen within 24 hours; hold on issuer", "Note for reference but do not act"], correct: 2, why: "All four Article 7 elements likely met. This is inside information from the moment of receipt. Four-step protocol: STOP; escalate within 24 hours; hold on issuer; await written clearance." },
+      { stem: "Highest personal risk for an analyst with pre-publication access and IR meeting access?", options: ["Article 14(a) insider dealing", "Article 14(b) recommending/inducing", "Article 14(c) unlawful disclosure", "All equal"], correct: 2, why: "Article 14(c) unlawful disclosure is highest analyst risk. Easier to commit inadvertently — forwarding a Note, informal discussion, internal disclosure outside normal duties can trigger it." },
+      { stem: "Maximum UK MAR penalty for insider dealing under Article 14(a):", options: ["Fine only", "Up to 3 years", "Up to 7 years' imprisonment and unlimited fine", "Up to 10 years"], correct: 2, why: "Maximum penalty for UK MAR criminal offences including insider dealing: 7 years' imprisonment and unlimited fine. Cannot be delegated to firm." },
+      { stem: "AA emails to Stephen referencing covered issuers must be retained for:", options: ["Not required — informal", "Six years by Stephen; produced to SMF16 on request", "One year by AA", "Six months by Nick"], correct: 1, why: "Contractual obligation on AA under RAZ-EL-001 Clause 5.5 and policy obligation on Stephen. Six years minimum. Primary control against AA feedback being undetected MNPI channel." }
+    ]},
+    "m7": { title: "Data Protection & Record-Keeping", subtitle: "UK GDPR, DPA 2018, six-year retention", quarter: "Q4", questions: [
+      { stem: "Correct lawful basis under UK GDPR for processing recipient personal data?", options: ["Article 6(1)(a) consent", "Article 6(1)(b) contract and/or 6(1)(c) legal obligation", "Article 6(1)(d) vital interests", "Article 6(1)(f) legitimate interests"], correct: 1, why: "Article 6(1)(b) and/or (c). Consent is NOT appropriate — withdrawal conflicts with mandatory FCA and MLR retention obligations." },
+      { stem: "DSAR response time under UK GDPR:", options: ["72 hours", "1 week", "1 calendar month", "3 months"], correct: 2, why: "DSARs must be responded to within one calendar month. No standard fee unless manifestly unfounded or excessive." },
+      { stem: "Personal data breach: when to report to ICO?", options: ["Within 72 hours if risk to rights and freedoms", "Within 30 days regardless of severity", "Only if data subject complains", "Only if criminal"], correct: 0, why: "UK GDPR Article 33: within 72 hours of Razlin becoming aware, if the breach poses risk to individuals' rights and freedoms." },
+      { stem: "Minimum retention period for CJP distribution records under the Codrington framework:", options: ["3 years", "5 years", "6 years", "12 years"], correct: 2, why: "Six years minimum across all CJP records. Exceeds SYSC 3.2.20R five-year minimum by one year for defensibility." }
+    ]},
+    "m8": { title: "The Framework & Your Role", subtitle: "Six documents, role obligations, Go-Live", quarter: "Q4", questions: [
+      { stem: "Primary compliance control before any CJP Note is distributed:", options: ["Distribution List check", "Disclaimer check", "CJP Producer Self-Certification (RAZ-MNPI-CJP-001)", "Recipient email verification"], correct: 2, why: "The Self-Certification is the primary control. Stephen signs Section B; SMF16 signs Section C. No Self-Certification, no distribution." },
+      { stem: "Which departure from the Standing Format Authorisation requires SMF16 ad hoc review before distribution?", options: ["Minor typo in a standard-format Note", "New content type (e.g., new sector overview format)", "Note on a company already covered in standard format", "Note to an existing verified client"], correct: 1, why: "Any departure from SFA parameters — new format, new content type, borderline classification — requires SMF16 ad hoc review before distribution." },
+      { stem: "You identify a Note was distributed to a recipient before their verification was signed off. Reporting timeline?", options: ["Next quarterly SMF16 meeting", "To Razlin SMF16 and Stephen within 24 hours in writing", "Only if FCA asks", "Try to resolve first, then report if not resolved in 5 days"], correct: 1, why: "24-hour breach reporting is absolute. Self-resolution without reporting is itself a serious failure — a second breach." },
+      { stem: "You are a new CF30 candidate. Training complete, F&P complete. Client emails asking for research urgently. Can you send?", options: ["Yes — training/F&P complete", "Yes with delayed-distribution disclaimer", "No — no distribution until Razlin's written Go-Live Authorisation confirming FCA register updated", "Yes if Stephen signs off"], correct: 2, why: "Distribution before Go-Live is a s.21 FSMA offence. Requires Effective Date, SFA issued, FCA notified, register updated, and written Go-Live Authorisation. No exceptions for urgency." },
+      { stem: "A Professional Client asks Nick to forward a Note to a colleague at another firm. Correct response?", options: ["Forward — colleague works at professional firm", "Forward with additional disclaimer", "Decline forwarding; colleague must be COBS 3 classified, in Verification Log, SMF16 signed off before Distribution List addition", "Send summary only"], correct: 2, why: "No onward redistribution without Razlin's prior written confirmation. Colleague must go through Verification Log onboarding." }
+    ]}
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════
+// STATE & PERSISTENCE
+// ══════════════════════════════════════════════════════════════════════════
+
+let currentUser = null;
+let state = { currentModule: null, currentQIdx: 0, answers: {} };
+
+// window.storage is a persistent key-value store available in this environment.
+// In production this would be a database (PostgreSQL, DynamoDB, etc).
+
+async function saveUserData(username, data) {
+  try {
+    await window.storage.set("codrington:user:" + username, JSON.stringify(data));
+  } catch (e) { console.warn("Save failed:", e); }
+}
+
+async function loadUserData(username) {
+  try {
+    const result = await window.storage.get("codrington:user:" + username);
+    return result ? JSON.parse(result.value) : { completed: {}, lastActivity: null };
+  } catch (e) {
+    return { completed: {}, lastActivity: null };
+  }
+}
+
+async function loadAllUsers() {
+  try {
+    const list = await window.storage.list("codrington:user:");
+    const all = {};
+    if (list && list.keys) {
+      for (const k of list.keys) {
+        const username = k.replace("codrington:user:", "");
+        const data = await loadUserData(username);
+        all[username] = data;
+      }
+    }
+    return all;
+  } catch (e) { return {}; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════════════════════
+
+async function handleLogin() {
+  const u = document.getElementById("username").value.trim().toLowerCase();
+  const p = document.getElementById("password").value;
+  const err = document.getElementById("loginError");
+  err.classList.remove("show");
+
+  if (!USERS[u] || USERS[u].password !== p) {
+    err.textContent = "Invalid username or password.";
+    err.classList.add("show");
+    return;
+  }
+
+  currentUser = { username: u, ...USERS[u] };
+  currentUser.data = await loadUserData(u);
+  // Update last activity
+  currentUser.data.lastActivity = new Date().toISOString();
+  await saveUserData(u, currentUser.data);
+
+  document.getElementById("viewLogin").classList.add("hidden");
+  document.getElementById("viewApp").classList.remove("hidden");
+  renderHeader();
+  goDashboard();
+}
+
+function handleLogout() {
+  currentUser = null;
+  state = { currentModule: null, currentQIdx: 0, answers: {} };
+  document.getElementById("viewApp").classList.add("hidden");
+  document.getElementById("viewLogin").classList.remove("hidden");
+  document.getElementById("username").value = "";
+  document.getElementById("password").value = "";
+}
+
+// Handle Enter key on password
+document.getElementById("password").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") handleLogin();
+});
+document.getElementById("username").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") document.getElementById("password").focus();
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// UI RENDERING
+// ══════════════════════════════════════════════════════════════════════════
+
+function renderHeader() {
+  document.getElementById("hdrUserName").textContent = currentUser.name;
+  document.getElementById("hdrUserRole").textContent = currentUser.role;
+  document.getElementById("hdrAvatar").textContent = currentUser.name.split(" ").map(n => n[0]).slice(0, 2).join("");
+}
+
+async function goDashboard() {
+  showView("Dashboard");
+
+  document.getElementById("heroName").textContent = currentUser.name;
+  const completed = currentUser.data.completed || {};
+  const passed = Object.values(completed).filter(c => c.passed).length;
+  const totalMods = 8;
+  const pct = Math.round(passed / totalMods * 100);
+
+  document.getElementById("stModPassed").textContent = passed + " / " + totalMods;
+  document.getElementById("stProgress").textContent = pct + "%";
+  document.getElementById("stCerts").textContent = passed;
+  document.getElementById("stLast").textContent = currentUser.data.lastActivity
+    ? new Date(currentUser.data.lastActivity).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "First visit";
+
+  if (passed === 0) {
+    document.getElementById("heroMsg").textContent = "Ready to begin your training. Start with Q1 Module 1 below.";
+  } else if (passed < totalMods) {
+    document.getElementById("heroMsg").textContent = "You've passed " + passed + " module" + (passed > 1 ? "s" : "") + ". Keep going to complete the programme.";
+  } else {
+    document.getElementById("heroMsg").textContent = "Programme complete. Your training is up to date.";
+  }
+
+  // Admin view for SMF16
+  if (currentUser.isAdmin) {
+    document.getElementById("adminSection").classList.remove("hidden");
+    await renderAdminTable();
+  } else {
+    document.getElementById("adminSection").classList.add("hidden");
+  }
+
+  // Quarter grid
+  const grid = document.getElementById("quarterGrid");
+  grid.innerHTML = "";
+  COURSE.quarters.forEach(q => {
+    const card = document.createElement("div");
+    card.className = "quarter-card";
+    const modsHtml = q.modules.map(mid => {
+      const m = COURSE.modules[mid];
+      const done = completed[mid];
+      let status = "pending", statusLabel = "Available";
+      if (done && done.passed) { status = "done"; statusLabel = "PASSED · " + done.pct + "%"; }
+      else if (done) { statusLabel = "RETAKE · " + done.pct + "%"; }
+      return `<div class="q-mod-item" onclick="openModule('${mid}')">
+        <span class="q-mod-name">${m.title}</span>
+        <span class="q-mod-status ${status}">${statusLabel}</span>
+      </div>`;
+    }).join("");
+    card.innerHTML = `
+      <span class="q-tag">${q.code}</span>
+      <div class="q-title">${q.title}</div>
+      <div class="q-desc">${q.desc}</div>
+      <div class="q-modules">${modsHtml}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function renderAdminTable() {
+  const all = await loadAllUsers();
+  const tbody = document.getElementById("adminTableBody");
+  tbody.innerHTML = "";
+  Object.keys(USERS).forEach(username => {
+    if (USERS[username].isAdmin) return; // skip admin from list
+    const u = USERS[username];
+    const data = all[username] || { completed: {}, lastActivity: null };
+    const passed = Object.values(data.completed || {}).filter(c => c.passed).length;
+    const pct = Math.round(passed / 8 * 100);
+    const last = data.lastActivity ? new Date(data.lastActivity).toLocaleDateString("en-GB") : "Never";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${u.name}</strong></td>
+      <td style="color:var(--grey);">${u.role}</td>
+      <td>${passed} / 8</td>
+      <td>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="flex:1; max-width:120px; height:6px; background:var(--line); border-radius:3px; overflow:hidden;">
+            <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, var(--gold-lt), var(--gold));"></div>
+          </div>
+          <span style="font-size:12px; color:var(--navy); font-weight:600;">${pct}%</span>
+        </div>
+      </td>
+      <td style="color:var(--grey); font-size:12px;">${last}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MODULE / QUIZ FLOW
+// ══════════════════════════════════════════════════════════════════════════
+
+function openModule(mid) {
+  state.currentModule = mid;
+  state.currentQIdx = 0;
+  state.answers = {};
+  state.answers[mid] = [];
+  showView("Module");
+  const m = COURSE.modules[mid];
+  const q = COURSE.quarters.find(x => x.code === m.quarter);
+  document.getElementById("modCrumbs").textContent = q.code + " · " + q.title;
+  document.getElementById("modTitle").textContent = m.title;
+  document.getElementById("modSub").textContent = m.subtitle;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const m = COURSE.modules[state.currentModule];
+  const total = m.questions.length;
+  const idx = state.currentQIdx;
+  const q = m.questions[idx];
+  const answered = state.answers[state.currentModule];
+  const yourAnswer = answered[idx];
+  const showFeedback = yourAnswer !== undefined;
+
+  document.getElementById("progBar").style.width = ((idx + 1) / total * 100) + "%";
+  document.getElementById("progCount").textContent = (idx + 1) + " / " + total;
+
+  const letters = ["A", "B", "C", "D"];
+  const optionsHtml = q.options.map((opt, i) => {
+    let cls = "answer-option";
+    if (showFeedback) cls += " locked";
+    if (yourAnswer === i) cls += (i === q.correct ? " correct" : " incorrect");
+    else if (showFeedback && i === q.correct) cls += " correct";
+    return `<div class="${cls}" onclick="selectAnswer(${i})">
+      <div class="answer-letter">${letters[i]}</div>
+      <div>${opt}</div>
+    </div>`;
+  }).join("");
+
+  let feedback = "";
+  if (showFeedback) {
+    const correct = yourAnswer === q.correct;
+    feedback = `<div class="feedback-box ${correct ? 'feedback-correct' : 'feedback-incorrect'}">
+      <div class="feedback-title">
+        <span class="feedback-icon">${correct ? '✓' : '✕'}</span>
+        ${correct ? "Correct" : "Not quite — see explanation"}
+      </div>
+      <div>${q.why}</div>
+    </div>`;
+  }
+
+  document.getElementById("questionBody").innerHTML = `
+    <div class="q-num">Question ${idx + 1} of ${total}</div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="answers">${optionsHtml}</div>
+    ${feedback}
+  `;
+
+  document.getElementById("btnPrev").style.visibility = idx > 0 ? "visible" : "hidden";
+  const nb = document.getElementById("btnNext");
+  const isLast = idx === total - 1;
+  nb.disabled = yourAnswer === undefined;
+  nb.textContent = isLast ? "Submit module →" : "Next question →";
+}
+
+function selectAnswer(idx) {
+  const answered = state.answers[state.currentModule];
+  if (answered[state.currentQIdx] !== undefined) return;
+  answered[state.currentQIdx] = idx;
+  renderQuestion();
+}
+
+function nextQuestion() {
+  const m = COURSE.modules[state.currentModule];
+  if (state.currentQIdx === m.questions.length - 1) finishModule();
+  else { state.currentQIdx++; renderQuestion(); }
+}
+
+function prevQuestion() { if (state.currentQIdx > 0) { state.currentQIdx--; renderQuestion(); } }
+
+async function finishModule() {
+  const m = COURSE.modules[state.currentModule];
+  const answers = state.answers[state.currentModule];
+  let correct = 0;
+  answers.forEach((a, i) => { if (a === m.questions[i].correct) correct++; });
+  const total = m.questions.length;
+  const pct = Math.round(correct / total * 100);
+  const passed = pct >= 80;
+  const certId = "CERT-" + currentUser.username.toUpperCase() + "-" + state.currentModule.toUpperCase() + "-" +
+                  new Date().toISOString().replace(/[-:.T]/g, "").slice(0, 14);
+  const record = { score: correct, total, pct, passed, date: new Date().toISOString(), certId };
+
+  if (!currentUser.data.completed) currentUser.data.completed = {};
+  // Only save if it improves on existing (best-attempt wins)
+  const existing = currentUser.data.completed[state.currentModule];
+  if (!existing || pct > existing.pct) {
+    currentUser.data.completed[state.currentModule] = record;
+  }
+  currentUser.data.lastActivity = new Date().toISOString();
+  await saveUserData(currentUser.username, currentUser.data);
+
+  showResults(record);
+
+  // Sync to the oversight platform AFTER rendering results, and never let a
+  // sync failure block the local record — but surface it honestly rather than
+  // pretending it synced.
+  setSyncStatus("pending", "Syncing to the principal's oversight platform…");
+  syncToPlatform(record, m, state.currentModule)
+    .then((r) => setSyncStatus("ok", "✓ " + r.text))
+    .catch((err) =>
+      setSyncStatus("fail", "⚠ Not synced — recorded locally only (" + err.message + "). It will need manual entry."),
+    );
+}
+
+function showResults(record) {
+  showView("Results");
+  const m = COURSE.modules[state.currentModule];
+  const answers = state.answers[state.currentModule];
+  const header = document.getElementById("resultsHeader");
+  const icon = document.getElementById("resultsIcon");
+
+  if (record.passed) {
+    header.classList.remove("fail");
+    icon.innerHTML = "✓";
+    document.getElementById("resultsTitle").textContent = "Module passed";
+    document.getElementById("resultsSub").textContent = m.title + " — you scored above the 80% threshold";
+    document.getElementById("btnCert").classList.remove("hidden");
+  } else {
+    header.classList.add("fail");
+    icon.innerHTML = "!";
+    document.getElementById("resultsTitle").textContent = "Below pass threshold";
+    document.getElementById("resultsSub").textContent = "Review the answers below and retake the module";
+    document.getElementById("btnCert").classList.add("hidden");
+  }
+
+  document.getElementById("scoreVal").textContent = record.score;
+  document.getElementById("scoreVal").className = "val " + (record.passed ? "pass" : "fail");
+  document.getElementById("scoreOutOf").textContent = record.total;
+  document.getElementById("scorePct").textContent = record.pct + "%";
+  document.getElementById("scorePct").className = "val " + (record.passed ? "pass" : "fail");
+
+  const letters = ["A", "B", "C", "D"];
+  const list = document.getElementById("reviewList");
+  list.innerHTML = m.questions.map((q, i) => {
+    const yi = answers[i], ci = q.correct;
+    const isC = yi === ci;
+    return `<div class="review-item ${isC ? 'right' : 'wrong'}">
+      <div class="q-title-r"><span class="num">Q${i+1}</span>${q.stem}</div>
+      <div class="q-your"><strong>Your answer:</strong> ${letters[yi]}. ${q.options[yi]}
+        ${!isC ? '<br><strong style="color:var(--green);">Correct:</strong> ' + letters[ci] + '. ' + q.options[ci] : ''}
+      </div>
+      <div class="q-explanation">${q.why}</div>
+    </div>`;
+  }).join("");
+}
+
+function retryModule() {
+  state.answers[state.currentModule] = [];
+  state.currentQIdx = 0;
+  showView("Module");
+  renderQuestion();
+}
+
+function showCertificate() {
+  showView("Certificate");
+  const m = COURSE.modules[state.currentModule];
+  const rec = currentUser.data.completed[state.currentModule];
+  document.getElementById("certName").textContent = currentUser.name;
+  document.getElementById("certModule").textContent = m.title;
+  document.getElementById("certSigName").textContent = currentUser.name;
+  const dateStr = new Date(rec.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  document.getElementById("certDetails").innerHTML = "Module completed with a score of <strong style='color:var(--navy);'>" +
+    rec.pct + "%</strong> (" + rec.score + "/" + rec.total + ") &nbsp;·&nbsp; " + dateStr +
+    " &nbsp;·&nbsp; Role: " + currentUser.role;
+  document.getElementById("certId").textContent = "Certificate ID: " + rec.certId;
+}
+
+function showResultsFromCert() { showView("Results"); }
+
+function emailCertificate() {
+  const m = COURSE.modules[state.currentModule];
+  const rec = currentUser.data.completed[state.currentModule];
+  const subject = "Training completion certificate — " + currentUser.name + " — " + m.title;
+  const body = "This is to confirm training completion by " + currentUser.name + " (" + currentUser.role + ").\n\n" +
+               "Module: " + m.title + "\n" +
+               "Score: " + rec.pct + "% (" + rec.score + "/" + rec.total + ")\n" +
+               "Date: " + new Date(rec.date).toLocaleDateString("en-GB") + "\n" +
+               "Certificate ID: " + rec.certId + "\n\n" +
+               "Please record this completion in the RAZLIN Compliance Registers workbook under the Training tab.\n\n" +
+               "In production, this would attach a PDF of the certificate automatically.";
+  window.location.href = "mailto:adnan.siddiq@razlincapital.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
+
+function showView(name) {
+  ["Dashboard", "Module", "Results", "Certificate"].forEach(v => {
+    document.getElementById("view" + v).classList.add("hidden");
+  });
+  document.getElementById("view" + name).classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+</script>
+</body>
+</html>

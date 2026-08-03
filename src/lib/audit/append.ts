@@ -34,10 +34,35 @@ export async function appendAuditTx(
   // writers cannot both chain onto the same predecessor and fork the log.
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(${AUDIT_LOCK_KEY}::bigint)`;
 
-  const prev = await tx.auditEvent.findFirst({
-    orderBy: [{ ts: "desc" }, { id: "desc" }],
-    select: { id: true, actor: true, action: true, entity: true, entityId: true, ts: true, hashPrev: true },
-  });
+  // Read the tail under a briefly ELEVATED read context, then restore.
+  //
+  // Why: audit_event's SELECT policy is operator-only, so a non-operator writer
+  // (an AR session, or an AR-scoped service token) cannot see the newest row —
+  // and without this, its appends silently carried hashPrev NULL, punching
+  // permanent unverifiable holes in the chain. Found live: the training-app
+  // sync (AR token) wrote unchained rows while every operator-written row
+  // chained fine.
+  //
+  // Scope of the elevation: exactly one SELECT of the newest row, inside the
+  // advisory-locked chain writer, restored in `finally` (and the surrounding
+  // transaction rolls back on any throw regardless). It grants tail READ for
+  // chaining — never general audit read, never write.
+  let prev: {
+    id: string; actor: string; action: string; entity: string;
+    entityId: string | null; ts: Date; hashPrev: string | null;
+  } | null;
+  const [{ current_setting: callerRole }] = await tx.$queryRaw<
+    { current_setting: string | null }[]
+  >`SELECT current_setting('app.role', true)`;
+  await tx.$executeRaw`SELECT set_config('app.role', 'COMPLIANCE', true)`;
+  try {
+    prev = await tx.auditEvent.findFirst({
+      orderBy: [{ ts: "desc" }, { id: "desc" }],
+      select: { id: true, actor: true, action: true, entity: true, entityId: true, ts: true, hashPrev: true },
+    });
+  } finally {
+    await tx.$executeRaw`SELECT set_config('app.role', ${callerRole ?? ""}, true)`;
+  }
 
   const hashPrev = prev
     ? auditRowHash({

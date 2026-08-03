@@ -17,10 +17,19 @@ import { requireTenant } from "@/lib/session";
 import { prismaTrainingStore } from "@/lib/training/prisma-adapter";
 import { recordCompletions, TrainingError } from "@/lib/training/service";
 import { parseTokenRegistry, serviceTokenTenant } from "@/lib/training/service-token";
+import { corsHeadersFor, trainingPreflight } from "@/lib/training/cors";
 
 export const runtime = "nodejs";
 
+// The training platform is a browser app on its own origin; its POSTs carry an
+// Authorization header and therefore preflight. Origins are allowlisted via
+// TRAINING_CORS_ORIGINS (fail-closed when unset).
+export function OPTIONS(req: Request): Response {
+  return trainingPreflight(req);
+}
+
 export async function POST(req: Request): Promise<Response> {
+  const cors = corsHeadersFor(req.headers.get("origin")) ?? {};
   const authHeader = req.headers.get("authorization");
   let tenant: TenantContext;
 
@@ -29,7 +38,7 @@ export async function POST(req: Request): Promise<Response> {
     // fall back to a session when a token was offered.
     const machine = serviceTokenTenant(authHeader, parseTokenRegistry(process.env.TRAINING_INGEST_TOKENS));
     if (!machine) {
-      return NextResponse.json({ error: "invalid service token" }, { status: 401 });
+      return NextResponse.json({ error: "invalid service token" }, { status: 401, headers: cors });
     }
     tenant = machine;
   } else {
@@ -37,10 +46,10 @@ export async function POST(req: Request): Promise<Response> {
     try {
       tenant = await requireTenant();
     } catch {
-      return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+      return NextResponse.json({ error: "unauthenticated" }, { status: 401, headers: cors });
     }
     if (tenant.role !== "COMPLIANCE" && tenant.role !== "SMF") {
-      return NextResponse.json({ error: "operators only" }, { status: 403 });
+      return NextResponse.json({ error: "operators only" }, { status: 403, headers: cors });
     }
   }
 
@@ -48,16 +57,16 @@ export async function POST(req: Request): Promise<Response> {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON body" }, { status: 400, headers: cors });
   }
 
   try {
     // The service (and RLS) enforce firm scope: an AR-scoped token or AR session
     // whose arId differs from the body's arId is rejected 403.
     const result = await recordCompletions({ store: prismaTrainingStore }, tenant, body);
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(result, { status: 201, headers: cors });
   } catch (err) {
     const status = err instanceof TrainingError ? err.status : 500;
-    return NextResponse.json({ error: (err as Error).message }, { status });
+    return NextResponse.json({ error: (err as Error).message }, { status, headers: cors });
   }
 }
