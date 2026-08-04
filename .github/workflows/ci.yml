@@ -87,6 +87,14 @@ jobs:
       - name: E2E (Playwright)
         run: npm run test:e2e
 
+      # By this point every audit writer in the system has run: the DB
+      # integration tests append rows directly and the E2E sign-off flow
+      # appends through the app. Walk the ENTIRE log and fail the build on any
+      # broken or missing link — every push re-proves Invariant 4 instead of
+      # relying on someone remembering to run the verifier.
+      - name: Verify audit hash chain (full log)
+        run: npm run verify:audit
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
