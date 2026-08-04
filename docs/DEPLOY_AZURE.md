@@ -189,7 +189,16 @@ Manual smoke on staging (this is where the two unproven areas get exercised):
   connection singleton — size the Postgres connection pool for the instance
   count.
 - **Backups:** enable PITR on the Flexible Server. Audit/agent-run retention is
-  6/7 years — ensure backup retention and any archival tier meet that.
+  6/7 years — ensure backup retention and any archival tier meet that. On top
+  of PITR, take logical dumps with `scripts/db-backup.sh` (custom-format
+  pg_dump + SHA-256 manifest) and — this is the part that matters — rehearse
+  the restore with `scripts/db-restore-drill.sh`: it restores a dump into a
+  scratch database, walks the full audit chain there (`verify:audit`), compares
+  the chain tip against the source, and spot-checks that RLS still fails closed
+  in the restored copy. Record the printed tip hash outside the database (the
+  quarterly SMF review pack) — a doctored future restore cannot reproduce it.
+  The drill has been rehearsed against a local PostgreSQL 16.4 cluster
+  (2026-08-04, PASS); run it against the real Flexible Server as part of §4.
 - **Rotation:** secrets rotate ≤ 90 days — RUNBOOK §2.
 - **Monitoring:** alert on `failClosed.open > 0` and on any queue item breaching
   48h. Fail-closed alerts are reviewed, never auto-resolved.
