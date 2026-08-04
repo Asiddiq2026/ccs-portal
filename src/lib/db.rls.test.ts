@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { prisma, withTenant } from "./db";
 import { prismaAudit } from "./tools/prisma-adapters";
+import { prismaMeter } from "./metering/prisma-adapter";
 import { cf30DueDate, quarterEnd } from "./engine";
 
 // Integration proof that RLS actually isolates tenants — not just that the app
@@ -96,6 +97,26 @@ describe.runIf(RUN)("RLS tenant isolation (Invariant 5)", () => {
         expect(r.dueDate.toISOString().slice(0, 10)).toBe(expected);
       }
     }
+  });
+
+  it("model_usage: any role appends, only operators read, nothing updates", async () => {
+    // The metering ledger mirrors agent_run's posture: append-only + operator
+    // read. An AR-triggered path may record spend but must not see the ledger.
+    await prismaMeter.record(
+      { source: "agent_run", tokens: 123, arId: "ar_six" },
+      { role: "AR", arId: "ar_six" },
+    );
+    const asAr = await withTenant({ role: "AR", arId: "ar_six" }, (tx) => tx.modelUsage.count());
+    expect(asAr).toBe(0); // operator-only read
+    const asOp = await withTenant({ role: "COMPLIANCE", arId: "" }, (tx) => tx.modelUsage.count());
+    expect(asOp).toBeGreaterThan(0);
+    const mtd = await prismaMeter.monthToDate(new Date(), { role: "COMPLIANCE", arId: "" });
+    expect(mtd).toBeGreaterThanOrEqual(123);
+    await expect(
+      withTenant({ role: "COMPLIANCE", arId: "" }, (tx) =>
+        tx.modelUsage.updateMany({ data: { tokens: 0 } }),
+      ),
+    ).rejects.toThrow();
   });
 
   it("a non-operator (AR) appends audit AND the row is chained", async () => {

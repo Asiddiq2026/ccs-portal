@@ -7,6 +7,7 @@
 import type { AuditWriter, Tenant } from "../tools/types";
 import type { FpRecord } from "./service";
 import { PRINCIPAL, principalLegalWithFrn } from "../principal";
+import { BudgetExhaustedError, checkBudget, type MeterStore } from "../metering/service";
 
 export type Verdict =
   | "APPROVE"
@@ -14,14 +15,23 @@ export type Verdict =
   | "REFER FOR FURTHER REVIEW"
   | "REJECT";
 
+export interface ModelCompletion {
+  text: string;
+  /** Total tokens (input + output) the call consumed — feeds the usage ledger. */
+  tokens: number;
+}
+
 export interface ModelClient {
-  /** Single-shot completion: prompt in, assistant text out. */
-  complete(prompt: string): Promise<string>;
+  /** Single-shot completion: prompt in, assistant text + token usage out. */
+  complete(prompt: string): Promise<ModelCompletion>;
 }
 
 export interface AiReviewDeps {
   model: ModelClient;
   audit: AuditWriter;
+  /** Optional metering: record usage + enforce the monthly budget when set. */
+  meter?: MeterStore;
+  budget?: number | null;
 }
 
 export interface AiReviewResult {
@@ -79,6 +89,13 @@ export async function reviewPromotion(
   tenant: Tenant,
   fp: FpRecord,
 ): Promise<AiReviewResult> {
+  // Budget gate BEFORE any model call (429 when exhausted). Metering is
+  // optional so DB-free tests and unmetered deployments still work.
+  if (deps.meter && deps.budget != null) {
+    const decision = checkBudget(await deps.meter.monthToDate(new Date(), tenant), deps.budget);
+    if (!decision.allowed) throw new BudgetExhaustedError(decision);
+  }
+
   await deps.audit.append(
     {
       actor: "ai-review",
@@ -89,11 +106,17 @@ export async function reviewPromotion(
     tenant,
   );
 
-  const analysis = await deps.model.complete(buildReviewPrompt(fp));
+  const completion = await deps.model.complete(buildReviewPrompt(fp));
+  if (deps.meter && completion.tokens > 0) {
+    await deps.meter.record(
+      { source: "fp_ai_review", tokens: completion.tokens, arId: fp.arId },
+      tenant,
+    );
+  }
   return {
     ref: fp.ref,
-    verdict: parseVerdict(analysis),
-    analysis,
+    verdict: parseVerdict(completion.text),
+    analysis: completion.text,
     advisory: ADVISORY,
   };
 }

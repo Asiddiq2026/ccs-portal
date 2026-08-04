@@ -71,7 +71,10 @@ describe("buildReviewPrompt", () => {
 
 describe("reviewPromotion", () => {
   it("returns a structured advisory verdict and audits AI REVIEW", async () => {
-    const { deps, audited } = makeDeps(async () => "Findings... Overall verdict: APPROVE WITH CONDITIONS.");
+    const { deps, audited } = makeDeps(async () => ({
+      text: "Findings... Overall verdict: APPROVE WITH CONDITIONS.",
+      tokens: 500,
+    }));
     const out = await reviewPromotion(deps, SMF, FP);
     expect(out.ref).toBe("FP-0234");
     expect(out.verdict).toBe("APPROVE WITH CONDITIONS");
@@ -86,5 +89,33 @@ describe("reviewPromotion", () => {
     await expect(reviewPromotion(deps, SMF, FP)).rejects.toThrow(/529/);
     // Request was audited up front (fail-closed leaves a trail).
     expect(audited.some((a) => a.action === "AI REVIEW")).toBe(true);
+  });
+
+  it("records token usage in the ledger when a meter is wired", async () => {
+    const { deps } = makeDeps(async () => ({ text: "Verdict: APPROVE", tokens: 777 }));
+    const recorded: { source: string; tokens: number; arId?: string | null }[] = [];
+    deps.meter = {
+      record: async (u) => {
+        recorded.push(u);
+      },
+      monthToDate: async () => 0,
+    };
+    deps.budget = 10_000;
+    await reviewPromotion(deps, SMF, FP);
+    expect(recorded).toEqual([{ source: "fp_ai_review", tokens: 777, arId: FP.arId }]);
+  });
+
+  it("refuses BEFORE the model call when the monthly budget is exhausted (429)", async () => {
+    let modelCalled = false;
+    const { deps, audited } = makeDeps(async () => {
+      modelCalled = true;
+      return { text: "Verdict: APPROVE", tokens: 1 };
+    });
+    deps.meter = { record: async () => {}, monthToDate: async () => 10_000 };
+    deps.budget = 10_000;
+    await expect(reviewPromotion(deps, SMF, FP)).rejects.toMatchObject({ status: 429 });
+    expect(modelCalled).toBe(false);
+    // Nothing was audited either — the request never got that far.
+    expect(audited).toHaveLength(0);
   });
 });

@@ -307,6 +307,21 @@ model AuditEvent {
   @@map("audit_event")
 }
 
+// Model-usage ledger (ops/metering, NOT a regulatory register). One row per
+// model call, from every path that spends Anthropic tokens: agent runs and FP
+// AI reviews. Network-scoped and append-only like agent_run; the monthly
+// budget gate reads its month-to-date sum before allowing a model call.
+model ModelUsage {
+  id     String   @id @default(cuid())
+  source String // "agent_run" | "fp_ai_review"
+  tokens Int
+  arId   String?
+  ts     DateTime @default(now())
+
+  @@index([ts])
+  @@map("model_usage")
+}
+
 // Agent Run Log. Immutable record of every headless agent invocation.
 // Retention 7yr.
 model AgentRun {

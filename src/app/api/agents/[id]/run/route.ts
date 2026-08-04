@@ -4,6 +4,8 @@ import { prismaToolDeps } from "@/lib/tools/prisma-adapters";
 import { prismaAgentRunLog } from "@/lib/agents/prisma-run-log";
 import { createAnthropicAgentModel } from "@/lib/agents/anthropic-agent-model";
 import { runAgent, AgentError } from "@/lib/agents/runner";
+import { prismaMeter } from "@/lib/metering/prisma-adapter";
+import { parseMonthlyBudget } from "@/lib/metering/service";
 
 export const runtime = "nodejs";
 
@@ -43,6 +45,8 @@ export async function POST(
       deps: prismaToolDeps,
       model: createAnthropicAgentModel(),
       runLog: prismaAgentRunLog,
+      meter: prismaMeter,
+      modelBudget: parseMonthlyBudget(),
     });
     return NextResponse.json(result, { status: 200 });
   } catch (err) {

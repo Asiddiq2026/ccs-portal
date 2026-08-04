@@ -90,6 +90,7 @@ const TABLE_META: Omit<TableInfo, "rows">[] = [
   { table: "sign_off_item", model: "SignOffItem", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation", policy: perArPolicy("sign_off_item"), appendOnly: false, columns: ["id", "arId", "register", "payload", "summary", "status", "agent_id", "created_by", "created_at", "decided_by", "decided_at", "register_id", "notes"] },
   { table: "training_completion", model: "TrainingCompletion", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation + append-only", policy: appendOnlyPerArPolicy("training_completion"), appendOnly: true, columns: ["id", "arId", "person", "module_id", "module_title", "quarter", "score", "out_of", "pct", "passed", "certificate_id", "completed_at", "recorded_at", "source"] },
   { table: "training_certificate", model: "TrainingCertificate", scope: "per-AR", retention: REG_6YR, policyName: "tenant_isolation + append-only", policy: appendOnlyPerArPolicy("training_certificate"), appendOnly: true, columns: ["id", "arId", "person", "module_id", "certificate_id", "name", "sha256", "size", "blob_url", "stored_at"] },
+  { table: "model_usage", model: "ModelUsage", scope: "network", retention: "ops ledger · not regulatory", policyName: "append_only + network_read", policy: networkPolicy("model_usage"), appendOnly: true, columns: ["id", "source", "tokens", "arId", "ts"] },
   { table: "audit_event", model: "AuditEvent", scope: "network", retention: "6 yr · append-only", policyName: "append_only + network_read", policy: networkPolicy("audit_event"), appendOnly: true, columns: ["id", "actor", "action", "entity", "entity_id", "ts", "hash_prev"] },
   { table: "agent_run", model: "AgentRun", scope: "network", retention: "7 yr · append-only", policyName: "append_only + network_read", policy: networkPolicy("agent_run"), appendOnly: true, columns: ["id", "agent_id", "version", "prompt_hash", "input_hash", "tokens", "output", "ts"] },
 ];
@@ -129,6 +130,7 @@ export default async function InfraPage() {
       signOffItem,
       trainingCompletion,
       trainingCertificate,
+      modelUsage,
       auditEvent,
       agentRun,
     ] = await Promise.all([
@@ -142,6 +144,7 @@ export default async function InfraPage() {
       anyTx.signOffItem.count(),
       anyTx.trainingCompletion.count(),
       anyTx.trainingCertificate.count(),
+      anyTx.modelUsage.count(),
       anyTx.auditEvent.count(),
       anyTx.agentRun.count(),
     ]);
@@ -177,6 +180,7 @@ export default async function InfraPage() {
         sign_off_item: signOffItem,
         training_completion: trainingCompletion,
         training_certificate: trainingCertificate,
+        model_usage: modelUsage,
         audit_event: auditEvent,
         agent_run: agentRun,
       } as Record<string, number>,

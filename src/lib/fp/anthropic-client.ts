@@ -31,7 +31,7 @@ export class ModelCallError extends Error {
 export function createAnthropicClient(): ModelClient {
   const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
   return {
-    async complete(prompt: string): Promise<string> {
+    async complete(prompt: string) {
       const apiKey = process.env.ANTHROPIC_API_KEY;
       if (!apiKey) throw new MissingApiKeyError();
 
@@ -60,10 +60,13 @@ export function createAnthropicClient(): ModelClient {
 
       const data = (await resp.json()) as {
         content?: { type: string; text?: string }[];
+        usage?: { input_tokens?: number; output_tokens?: number };
       };
       const text = data.content?.find((b) => b.type === "text")?.text;
       if (!text) throw new ModelCallError("Anthropic response contained no text block");
-      return text;
+      // Token usage feeds the model_usage ledger (metering).
+      const tokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
+      return { text, tokens };
     },
   };
 }

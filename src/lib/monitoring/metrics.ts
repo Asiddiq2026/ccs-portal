@@ -73,6 +73,7 @@ export function openFailClosedCount(runs: readonly AgentRunSummary[]): number {
 export interface MonitoringSnapshot {
   generatedAt: string;
   autonomous: boolean;
+  usage: { monthTokens: number; budget: number | null };
   gates: { cleared: number; total: number };
   queue: {
     open: number;
@@ -93,6 +94,8 @@ export interface SnapshotInput {
   gatesCleared: number;
   queue: readonly QueueItem[];
   runs: readonly AgentRunSummary[];
+  /** Model-token metering: month-to-date spend + the configured cap (null = unmetered). */
+  usage?: { monthTokens: number; budget: number | null };
 }
 
 /** Assemble the full monitoring snapshot from loaded rows. */
@@ -102,6 +105,7 @@ export function buildSnapshot(input: SnapshotInput): MonitoringSnapshot {
   return {
     generatedAt: input.now.toISOString(),
     autonomous: input.autonomous,
+    usage: input.usage ?? { monthTokens: 0, budget: null },
     gates: { cleared: input.gatesCleared, total: GATES_TOTAL },
     queue: {
       open: ages.length,

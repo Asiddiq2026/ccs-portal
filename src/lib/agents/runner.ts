@@ -11,6 +11,7 @@ import { invokeTool } from "../tools/gateway";
 import type { ToolDeps, Tenant } from "../tools/types";
 import { getAgentSpec, type AgentSpec } from "./specs";
 import { getAgentIo, renderSystemPrompt, type AgentOutput } from "./io";
+import { checkBudget, type MeterStore } from "../metering/service";
 
 const sha256 = (s: string): string => createHash("sha256").update(s).digest("hex");
 
@@ -60,6 +61,9 @@ export interface RunAgentArgs {
   deps: ToolDeps;
   model: AgentModel;
   runLog: AgentRunWriter;
+  /** Optional metering: enforce the monthly token budget + record usage. */
+  meter?: MeterStore;
+  modelBudget?: number | null;
 }
 
 export interface AgentRunResult {
@@ -110,6 +114,29 @@ export async function runAgent(args: RunAgentArgs): Promise<AgentRunResult> {
   const callTool = (name: string, toolArgs: unknown) =>
     invokeTool({ agentId: spec.id, tenant: args.tenant, deps: args.deps }, name, toolArgs);
 
+  // Monthly token-budget gate — refused BEFORE any model call, so an exhausted
+  // budget costs nothing. Fail-closed to OPERATOR REVIEW like every other halt.
+  if (args.meter && args.modelBudget != null) {
+    const decision = checkBudget(
+      await args.meter.monthToDate(new Date(), args.tenant),
+      args.modelBudget,
+    );
+    if (!decision.allowed) {
+      return finalize(args, spec, {
+        promptHash,
+        inputHash,
+        tokens: 0,
+        operatorReview: true,
+        output: {
+          verdict: "OPERATOR REVIEW",
+          summary: `Monthly model-token budget exhausted (${decision.spent} of ${decision.budget} used) — run refused before any model call.`,
+          findings: ["Raise MODEL_TOKEN_BUDGET_MONTHLY or wait for the new month."],
+          enqueued: [],
+        },
+      });
+    }
+  }
+
   try {
     const { output, tokens } = await args.model.run({
       system,
@@ -117,6 +144,20 @@ export async function runAgent(args: RunAgentArgs): Promise<AgentRunResult> {
       tools: spec.tools,
       callTool,
     });
+
+    // Record spend in the usage ledger regardless of whether the output
+    // validates — the tokens are consumed either way. Never mask the run result
+    // with a metering failure.
+    if (args.meter && tokens > 0) {
+      try {
+        await args.meter.record(
+          { source: "agent_run", tokens, arId: parsedInput.data.arId ?? null },
+          args.tenant,
+        );
+      } catch {
+        // Ledger write failure is an ops problem, not a run failure.
+      }
+    }
 
     const parsedOutput = io.output.safeParse(output);
     if (!parsedOutput.success) {

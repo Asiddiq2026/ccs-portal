@@ -4,6 +4,8 @@ import { prismaAudit } from "@/lib/tools/prisma-adapters";
 import { fpPrismaStore } from "@/lib/fp/prisma-adapter";
 import { reviewPromotion } from "@/lib/fp/ai-review";
 import { createAnthropicClient } from "@/lib/fp/anthropic-client";
+import { prismaMeter } from "@/lib/metering/prisma-adapter";
+import { parseMonthlyBudget } from "@/lib/metering/service";
 
 // Anthropic call + Prisma need the Node runtime, and the API key stays here —
 // never in the client bundle.
@@ -33,7 +35,12 @@ export async function POST(
 
   try {
     const result = await reviewPromotion(
-      { model: createAnthropicClient(), audit: prismaAudit },
+      {
+        model: createAnthropicClient(),
+        audit: prismaAudit,
+        meter: prismaMeter,
+        budget: parseMonthlyBudget(),
+      },
       tenant,
       fp,
     );

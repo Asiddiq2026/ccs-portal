@@ -14,6 +14,8 @@ import {
   type QueueBand,
 } from "@/lib/monitoring/metrics";
 import { ConsoleShell, AccessPanel } from "@/components/ConsoleShell";
+import { prismaMeter } from "@/lib/metering/prisma-adapter";
+import { parseMonthlyBudget } from "@/lib/metering/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,12 +105,17 @@ export default async function MonitoringPage() {
   // gate 5 is a deploy-time flag. The platform holds no evidence for any of
   // them, so the UI labels this as declared rather than as a cleared fact.
   const gatesCleared = process.env.GATE5_CLEARED === "true" ? 5 : 4;
+  const now = new Date();
   const snap = buildSnapshot({
-    now: new Date(),
+    now,
     autonomous: autonomousEnabled(),
     gatesCleared,
     queue: queueItems,
     runs: runSummaries,
+    usage: {
+      monthTokens: await prismaMeter.monthToDate(now, tenant),
+      budget: parseMonthlyBudget(),
+    },
   });
 
   return (
@@ -145,6 +152,24 @@ export default async function MonitoringPage() {
               : "pilot quarter · declared, not evidenced here"
           }
           tone={snap.gates.cleared >= 5 ? "text-status-success" : "text-status-warn"}
+        />
+        {/* Model spend (COGS): month-to-date tokens vs the configured cap. An
+            unmetered deployment is called out, not hidden. */}
+        <Stat
+          label="Model tokens · MTD"
+          value={snap.usage.monthTokens.toLocaleString("en-GB")}
+          sub={
+            snap.usage.budget === null
+              ? "no budget set — unmetered"
+              : `cap ${snap.usage.budget.toLocaleString("en-GB")} · ${Math.max(0, snap.usage.budget - snap.usage.monthTokens).toLocaleString("en-GB")} left`
+          }
+          tone={
+            snap.usage.budget === null
+              ? "text-status-warn"
+              : snap.usage.monthTokens >= snap.usage.budget * 0.8
+                ? "text-status-danger"
+                : "text-status-success"
+          }
         />
         <Stat
           label="Median queue age"

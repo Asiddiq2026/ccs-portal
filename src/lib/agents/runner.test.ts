@@ -245,4 +245,68 @@ describe("runAgent — fail-closed agent runner", () => {
     expect(err.status).toBe(404);
     expect(err).toBeInstanceOf(Error);
   });
+
+  it("refuses a run BEFORE calling the model when the token budget is exhausted", async () => {
+    const { deps } = makeDeps();
+    const { runLog, rows } = makeRunLog();
+    let modelCalled = false;
+    const model: AgentModel = {
+      async run() {
+        modelCalled = true;
+        return { output: { verdict: "DRAFT READY", summary: "x" }, tokens: 1, model: "test" };
+      },
+    };
+
+    const result = await runAgent({
+      agentId: "agent-quarterly-cycle",
+      tenant: COMPLIANCE,
+      input: { trigger: "MANUAL", payload: {} },
+      deps,
+      model,
+      runLog,
+      meter: { record: async () => {}, monthToDate: async () => 1_000_000 },
+      modelBudget: 1_000_000,
+    });
+
+    expect(modelCalled).toBe(false); // the refusal costs nothing
+    expect(result.verdict).toBe("OPERATOR REVIEW");
+    expect(result.summary).toMatch(/budget exhausted \(1000000 of 1000000/);
+    expect(result.tokens).toBe(0);
+    // Still logged as an immutable run, so the refusal is auditable.
+    expect(rows).toHaveLength(1);
+  });
+
+  it("records model spend in the usage ledger after a run", async () => {
+    const { deps } = makeDeps();
+    const { runLog } = makeRunLog();
+    const usage: { source: string; tokens: number }[] = [];
+    const model: AgentModel = {
+      async run() {
+        return {
+          output: { verdict: "OPERATOR REVIEW", summary: "halted" },
+          tokens: 4321,
+          model: "test",
+        };
+      },
+    };
+
+    await runAgent({
+      agentId: "agent-quarterly-cycle",
+      tenant: COMPLIANCE,
+      input: { trigger: "MANUAL", payload: {} },
+      deps,
+      model,
+      runLog,
+      meter: {
+        record: async (u) => {
+          usage.push({ source: u.source, tokens: u.tokens });
+        },
+        monthToDate: async () => 0,
+      },
+      modelBudget: 1_000_000,
+    });
+
+    // Spend is recorded even though the run fail-closed — tokens were consumed.
+    expect(usage).toEqual([{ source: "agent_run", tokens: 4321 }]);
+  });
 });

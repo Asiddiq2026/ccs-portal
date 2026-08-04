@@ -198,6 +198,19 @@ CREATE POLICY network_read ON "audit_event"
     coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
   );
 
+-- model_usage — ops/metering ledger: append-only, operator read (like agent_run).
+ALTER TABLE "model_usage" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "model_usage" FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON "model_usage" FROM ccs_app;
+DROP POLICY IF EXISTS append_only ON "model_usage";
+DROP POLICY IF EXISTS network_read ON "model_usage";
+CREATE POLICY append_only ON "model_usage"
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY network_read ON "model_usage"
+  FOR SELECT USING (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+  );
+
 -- agent_run
 ALTER TABLE "agent_run" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "agent_run" FORCE ROW LEVEL SECURITY;

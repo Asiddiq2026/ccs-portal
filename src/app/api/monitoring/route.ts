@@ -8,6 +8,8 @@ import {
   type AgentRunSummary,
   type AgentVerdict,
 } from "@/lib/monitoring/metrics";
+import { prismaMeter } from "@/lib/metering/prisma-adapter";
+import { parseMonthlyBudget } from "@/lib/metering/service";
 
 export const runtime = "nodejs";
 
@@ -57,12 +59,17 @@ export async function GET(): Promise<Response> {
     // them — consumers should treat `gates` as a declaration, not a finding.
     const gatesCleared = process.env.GATE5_CLEARED === "true" ? 5 : 4;
 
+    const now = new Date();
     const snapshot = buildSnapshot({
-      now: new Date(),
+      now,
       autonomous: autonomousEnabled(),
       gatesCleared,
       queue: queueItems,
       runs: runSummaries,
+      usage: {
+        monthTokens: await prismaMeter.monthToDate(now, tenant),
+        budget: parseMonthlyBudget(),
+      },
     });
     return NextResponse.json(snapshot, { status: 200 });
   } catch (err) {
