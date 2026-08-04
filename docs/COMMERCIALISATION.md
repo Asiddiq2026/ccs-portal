@@ -88,7 +88,8 @@ independent of architecture. Start it when the first real prospect exists.
    hardcodes + the Gate 1 constants). Low risk, unblocks everything.
 3. **Token metering + quotas** before any customer with agents enabled.
 4. **First external customers as single-tenant instances**, provisioned by
-   script (the `DEPLOY_AZURE.md` provisioning steps, automated).
+   script — `scripts/provision-instance.sh` (dry-run-verified only; see the
+   note at `DEPLOY_AZURE.md` §1 and the §7 risk register).
 5. **Certification track** (SOC 2 / pen test / DPA templates) in parallel from
    first prospect.
 6. **Revisit shared multi-tenancy only when the fleet is ~10+ instances** and

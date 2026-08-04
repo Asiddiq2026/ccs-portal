@@ -35,6 +35,13 @@ Entra ID (OIDC) ──▶ Next.js app (App Service / Container App, Node 20)
 
 ## 1. Provision
 
+> **Automated option:** `scripts/provision-instance.sh <instance> <region>` runs
+> steps 1–5 below as `az` commands (one single-tenant instance per principal —
+> the fleet model, COMMERCIALISATION.md §3). Always run it with `DRY_RUN=1`
+> first and review the printed plan. The script has **never been executed
+> against a real subscription** — it is syntax-checked and dry-run-verified
+> only, and the §7 risk register applies to it in full.
+
 1. **Resource group + region** — pick an FCA-appropriate region (UK South/West).
 2. **PostgreSQL Flexible Server** — create the `ccs` database. Create the
    application role:
