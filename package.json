@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "training:app": "node training-app/serve.mjs",
+    "verify:audit": "tsx scripts/verify-audit-chain.ts",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
