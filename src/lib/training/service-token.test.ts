@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  formatRegistryEntry,
   hashToken,
   parseTokenRegistry,
   resolveServiceToken,
@@ -27,6 +28,23 @@ describe("parseTokenRegistry", () => {
   it("returns an empty registry for missing/empty config (fail closed)", () => {
     expect(parseTokenRegistry(undefined).size).toBe(0);
     expect(parseTokenRegistry("").size).toBe(0);
+  });
+});
+
+describe("formatRegistryEntry", () => {
+  it("round-trips: a minted entry resolves the raw token to exactly its AR", () => {
+    // The write side (mint script) and read side (route auth) must agree.
+    // Multi-AR registry: each firm's token maps to its own firm, never another.
+    const sixRaw = "minted-six-token";
+    const drakeRaw = "minted-drakestar-token";
+    const reg = parseTokenRegistry(
+      [formatRegistryEntry("ar_six", sixRaw), formatRegistryEntry("ar_drakestar", drakeRaw)].join(","),
+    );
+    expect(reg.size).toBe(2);
+    expect(serviceTokenTenant(`Bearer ${sixRaw}`, reg)).toEqual({ role: "AR", arId: "ar_six" });
+    expect(serviceTokenTenant(`Bearer ${drakeRaw}`, reg)).toEqual({ role: "AR", arId: "ar_drakestar" });
+    // A token for one firm never resolves to another's context.
+    expect(serviceTokenTenant(`Bearer ${sixRaw}`, reg)?.arId).not.toBe("ar_drakestar");
   });
 });
 

@@ -159,8 +159,9 @@ cat <<NEXT
    set AUTH_ISSUER / AUTH_CLIENT_ID / AUTH_CLIENT_SECRET as vault references.
 5. Run the §4 smoke tests — ESPECIALLY the WORM overwrite/delete refusal and
    an SSO sign-in per role. Neither has ever been exercised (§7).
-6. Provision per-AR training tokens (hashes into TRAINING_INGEST_TOKENS) and
-   the training app's origin into TRAINING_CORS_ORIGINS, if used.
+6. Provision per-AR training tokens (npm run token:mint -- <arId> — prints the
+   raw once plus the hash entry for TRAINING_INGEST_TOKENS) and the training
+   app's origin into TRAINING_CORS_ORIGINS, if used.
 
 Fail-closed posture shipped by default: AGENTS_AUTONOMOUS=false,
 GATE5_CLEARED=false, model spend capped at 2,000,000 tokens/month.

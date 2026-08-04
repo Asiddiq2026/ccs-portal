@@ -78,7 +78,7 @@ Populate from `.env.example`. Production values:
 | `ANTHROPIC_API_KEY` | server-only; Key Vault reference |
 | `ANTHROPIC_MODEL` | pin per environment (e.g. `claude-sonnet-4-5`) |
 | `BLOB_ACCOUNT` / `BLOB_KEY` / `BLOB_CONTAINER` | container has immutability ON; **required in production** — the FP channel refuses to serve without it (fail closed) |
-| `TRAINING_INGEST_TOKENS` | machine tokens for `POST /api/training/*`. Store **SHA-256 hashes only**, as `arId:hash` entries — the raw token goes to the caller and the vault, never here. Each token is scoped to one AR. Empty = bearer ingest disabled (fails closed); operator import still works |
+| `TRAINING_INGEST_TOKENS` | machine tokens for `POST /api/training/*`. Mint with `npm run token:mint -- <arId>` (prints the raw once + the registry entry). Store **SHA-256 hashes only**, as `arId:hash` entries — the raw token goes to the caller and the vault, never here. Each token is scoped to one AR: verified live 2026-08-04 — a firm's token writes its own completions (201), is refused for another firm's body (403), and unknown tokens get 401 |
 | `AGENTS_AUTONOMOUS` | **`false`** until Gate 5 (see RUNBOOK §3) |
 | `GATE5_CLEARED` | `false` until SMF16/17 clear Gate 5 in writing. Note the dashboard labels gates as **declared**, not verified — the signed record lives outside the platform |
 | `NODE_ENV` | `production` |

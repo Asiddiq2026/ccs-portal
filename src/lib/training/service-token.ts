@@ -16,6 +16,15 @@ export function hashToken(raw: string): string {
   return createHash("sha256").update(raw.trim()).digest("hex").toLowerCase();
 }
 
+/**
+ * Format one TRAINING_INGEST_TOKENS registry entry for a raw token. This is
+ * the write side of parseTokenRegistry — scripts/mint-training-token.ts uses
+ * it so the stored format can never drift from what the parser accepts.
+ */
+export function formatRegistryEntry(arId: string, rawToken: string): string {
+  return `${arId}:${hashToken(rawToken)}`;
+}
+
 export interface ServiceTokenGrant {
   arId: string;
   capability: string;
