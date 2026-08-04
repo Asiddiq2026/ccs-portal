@@ -22,9 +22,16 @@ export interface CpdRow {
   modulesPassed: number;
 }
 
+export interface CertPack {
+  arId: string;
+  docs: { name: string; sha256: string; blobUrl: string; size: number }[];
+}
+
 export interface CpdConsoleProps {
   role: "AR" | "COMPLIANCE" | "SMF";
   rows: CpdRow[];
+  /** Stored certificate manifests per firm (operators only). */
+  certPacks?: CertPack[];
 }
 
 const STRIKE_TONE = ["text-status-success", "text-status-warn", "text-status-warn", "text-status-danger"];
@@ -33,7 +40,7 @@ function strikeLabel(n: number): string {
   return n === 0 ? "None" : `${n} of 3`;
 }
 
-export function CpdConsole({ role, rows }: CpdConsoleProps) {
+export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +49,45 @@ export function CpdConsole({ role, rows }: CpdConsoleProps) {
   const isOperator = role === "COMPLIANCE" || role === "SMF";
   const drifted = rows.filter((r) => r.drift).length;
   const atRisk = rows.filter((r) => r.derivedStrikes > 0).length;
+
+  async function gatherPack(pack: CertPack) {
+    setBusy(`pack:${pack.arId}`);
+    setError(null);
+    setNotice(null);
+    try {
+      // Deterministic path through the SAME single writeable surface the agents
+      // use: gather_docs via the tool gateway (whitelisted for
+      // agent-evidence-packer). No LLM run — the docs are already established
+      // WORM manifests. The pack lands PENDING in the sign-off queue as an
+      // approve-only artifact (never a register row).
+      const res = await fetch("/api/tools/invoke", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          agentId: "agent-evidence-packer",
+          tool: "gather_docs",
+          input: {
+            arId: pack.arId,
+            purpose: `CPD training certificates · ${pack.arId} · ${pack.docs.length} document${pack.docs.length === 1 ? "" : "s"}`,
+            docs: pack.docs,
+          },
+        }),
+      });
+      const data = (await res.json()) as { error?: string; result?: { id: string } };
+      if (!res.ok) {
+        setError(data.error ?? `Request failed (${res.status})`);
+        return;
+      }
+      setNotice(
+        `Evidence pack for ${pack.arId} (${pack.docs.length} certificate${pack.docs.length === 1 ? "" : "s"}) is PENDING in the sign-off queue — approve-only, no register row.`,
+      );
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function propose(r: CpdRow) {
     setBusy(`${r.arId}:${r.person}`);
@@ -189,6 +235,46 @@ export function CpdConsole({ role, rows }: CpdConsoleProps) {
         Hours are credited once per distinct passed module from the coded module map, never
         self-asserted by the training platform.
       </p>
+
+      {isOperator && certPacks.length > 0 && (
+        <div className="mt-6 bg-card border border-border shadow-card">
+          <div className="px-5 py-3 border-b border-border">
+            <span className="font-mono text-[9px] uppercase tracking-[1.4px] text-text-muted">
+              Certificate evidence · gather for sign-off
+            </span>
+          </div>
+          <ul>
+            {certPacks.map((p) => (
+              <li
+                key={p.arId}
+                className="px-5 py-3 border-t border-border first:border-t-0 flex items-center justify-between gap-4"
+              >
+                <div className="text-sm">
+                  <span className="font-mono text-[11px]">{p.arId}</span>
+                  <span className="text-text-secondary">
+                    {" "}
+                    · {p.docs.length} stored certificate{p.docs.length === 1 ? "" : "s"} (WORM,
+                    SHA-256 addressed)
+                  </span>
+                </div>
+                <button
+                  disabled={busy === `pack:${p.arId}`}
+                  onClick={() => gatherPack(p)}
+                  className="font-mono text-[9px] uppercase tracking-[1px] px-2.5 py-1.5 border border-accent text-accent hover:bg-[rgba(8,145,178,0.07)] disabled:opacity-50 transition-colors whitespace-nowrap"
+                >
+                  {busy === `pack:${p.arId}` ? "Gathering…" : "Gather evidence pack"}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="px-5 py-3 border-t border-border text-xs text-text-muted">
+            Runs <span className="font-mono text-[10px]">gather_docs</span> through the tool
+            gateway deterministically — no agent model involved. The pack is an approve-only
+            sign-off artifact referencing existing WORM manifests; nothing is uploaded or written
+            to a register.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
