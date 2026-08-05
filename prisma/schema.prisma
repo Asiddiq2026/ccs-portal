@@ -83,11 +83,14 @@ enum Severity {
   CRITICAL
 }
 
-// Sign-off queue item lifecycle. A draft is PENDING until an SMF acts on it.
+// Sign-off queue item lifecycle. A draft is PENDING until an SMF acts on it —
+// or until a NEWER draft for the same register identity replaces it, which
+// marks it SUPERSEDED so the SMF only ever decides the latest evidence once.
 enum SignOffStatus {
   PENDING
   SIGNED_OFF
   RETURNED
+  SUPERSEDED
 }
 
 // --------------------------------------------------------------------------

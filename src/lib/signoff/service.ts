@@ -12,7 +12,9 @@ import { validateRegisterPayload } from "./register-schemas";
 import { isArtifact, validateArtifactPayload } from "./artifacts";
 
 export type SignOffDecision = "SIGN_OFF" | "RETURN";
-export type SignOffStatus = "PENDING" | "SIGNED_OFF" | "RETURNED";
+// SUPERSEDED = replaced in the queue by a newer draft for the same register
+// identity before any SMF decided it. Terminal, like RETURNED; never decided.
+export type SignOffStatus = "PENDING" | "SIGNED_OFF" | "RETURNED" | "SUPERSEDED";
 
 /** Thrown for caller errors — mapped to an HTTP status by the route. */
 export class SignOffError extends Error {

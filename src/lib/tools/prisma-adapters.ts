@@ -4,6 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { withTenant } from "../db";
 import { appendAuditTx } from "../audit/append";
+import { draftIdentityKey } from "../signoff/register-schemas";
 import type { AuditWriter, RegisterStore, ToolDeps } from "./types";
 import { stubFeedScreener } from "./feeds";
 
@@ -37,7 +38,8 @@ export const prismaStore: RegisterStore = {
   async createPendingDraft(input, tenant) {
     return withTenant(tenant, async (tx) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const item = await (tx as any).signOffItem.create({
+      const anyTx = tx as any;
+      const item = await anyTx.signOffItem.create({
         data: {
           arId: input.arId,
           register: input.register,
@@ -48,6 +50,48 @@ export const prismaStore: RegisterStore = {
           status: "PENDING",
         },
       });
+
+      // Supersede OLDER pending drafts proposing an update to the SAME register
+      // row (identity per REGISTER_IDENTITY), so the SMF only decides the
+      // latest evidence once. Event streams (risk_score), artifacts and
+      // incomplete identities never match — they keep both drafts by design.
+      // Superseding is a recorded queue action, not a decision: no register
+      // write, and every superseded draft gets its own audit row.
+      const key = draftIdentityKey(input.register, input.payload);
+      if (key) {
+        const open = await anyTx.signOffItem.findMany({
+          where: {
+            status: "PENDING",
+            register: input.register,
+            arId: input.arId,
+            id: { not: item.id },
+          },
+        });
+        const now = new Date();
+        for (const old of open) {
+          if (draftIdentityKey(old.register, old.payload) !== key) continue;
+          const updated = await anyTx.signOffItem.updateMany({
+            // Status guard: if an SMF decided it mid-flight, leave it alone.
+            where: { id: old.id, status: "PENDING" },
+            data: {
+              status: "SUPERSEDED",
+              decidedBy: input.createdBy,
+              decidedAt: now,
+              notes: `superseded by newer draft ${item.id} for the same ${input.register} identity`,
+            },
+          });
+          if (updated.count === 1) {
+            await appendAuditTx(tx, {
+              id: `evt_${randomUUID()}`,
+              actor: input.createdBy,
+              action: `DRAFT SUPERSEDED by ${item.id}`,
+              entity: "sign_off_item",
+              entityId: old.id as string,
+            });
+          }
+        }
+      }
+
       return { id: item.id as string, status: "PENDING" as const };
     });
   },

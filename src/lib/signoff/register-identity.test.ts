@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   REGISTER_IDENTITY,
   REGISTER_SCHEMAS,
+  draftIdentityKey,
   identityWhere,
   type MaterialisableRegister,
 } from "./register-schemas";
@@ -68,5 +69,31 @@ describe("identityWhere", () => {
       certExpiry: "2026-12-31",
     });
     expect(where).toEqual({ arId: "ar_six", person: "Rob Tull" });
+  });
+});
+
+describe("draftIdentityKey (queue superseding)", () => {
+  it("two drafts updating the same register row share a key", () => {
+    const a = draftIdentityKey("person_cpd", { arId: "ar_six", person: "Rob Tull", cpdHours: 4 });
+    const b = draftIdentityKey("person_cpd", { arId: "ar_six", person: "Rob Tull", cpdHours: 9 });
+    expect(a).not.toBeNull();
+    expect(a).toBe(b); // differing non-identity fields still supersede
+  });
+
+  it("different identities never collide", () => {
+    const a = draftIdentityKey("person_cpd", { arId: "ar_six", person: "Rob Tull" });
+    const b = draftIdentityKey("person_cpd", { arId: "ar_six", person: "Craig Nelson" });
+    const c = draftIdentityKey("person_cpd", { arId: "ar_drakestar", person: "Rob Tull" });
+    expect(new Set([a, b, c]).size).toBe(3);
+  });
+
+  it("event streams, artifacts and incomplete identities never supersede", () => {
+    // risk_score history is the point — every assessment is its own fact.
+    expect(draftIdentityKey("risk_score", { arId: "ar_six", total: 9 })).toBeNull();
+    // Artifacts / unknown registers are not materialisable.
+    expect(draftIdentityKey("evidence_pack", { docs: [] })).toBeNull();
+    // Missing identity field fails closed to append (keep both drafts).
+    expect(draftIdentityKey("person_cpd", { arId: "ar_six" })).toBeNull();
+    expect(draftIdentityKey("person_cpd", null)).toBeNull();
   });
 });

@@ -133,6 +133,26 @@ export function identityWhere(
   return where;
 }
 
+/**
+ * Canonical identity key for a QUEUED draft, or null when drafts for this
+ * payload must never replace each other. Two PENDING drafts with the same key
+ * propose an update to the SAME register row — the newer one supersedes the
+ * older so an SMF only ever decides the latest evidence once (previously both
+ * sat in the queue and both cost a decision).
+ *
+ * Null — and therefore never superseding — for: event-stream registers
+ * (risk_score), artifacts and unknown registers, and payloads with an
+ * incomplete identity. Fail-closed: when in doubt, keep both drafts.
+ */
+export function draftIdentityKey(register: string, payload: unknown): string | null {
+  if (!isMaterialisable(register)) return null;
+  if (typeof payload !== "object" || payload === null) return null;
+  const where = identityWhere(register, payload as Record<string, unknown>);
+  if (!where) return null;
+  // REGISTER_IDENTITY field order is fixed per register, so key order is stable.
+  return `${register}|${JSON.stringify(where)}`;
+}
+
 export interface ValidatedPayload {
   ok: boolean;
   data?: Record<string, unknown>;
