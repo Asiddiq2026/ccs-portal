@@ -132,7 +132,11 @@ export default async function SignOffQueuePage() {
                   payload={r.payload}
                 />
 
-                <SignOffDecideForm draftId={r.id} canDecide={canDecide} />
+                <SignOffDecideForm
+                  draftId={r.id}
+                  label={`${r.register} · ${r.arId}`}
+                  canDecide={canDecide}
+                />
               </li>
             );
           })}

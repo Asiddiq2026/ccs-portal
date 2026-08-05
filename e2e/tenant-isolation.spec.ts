@@ -11,9 +11,11 @@ test("an AR sees only its own firm's breaches", async ({ page }) => {
   await page.goto("/breaches");
   await expect(page.getByRole("heading", { name: /data breaches/i })).toBeVisible();
 
-  // The dev AR session is scoped to ar_codrington. Any firm column rendered must
-  // be that firm and no other.
-  const otherFirms = page.getByText(/ar_six|ar_drakestar/);
+  // The dev AR session is scoped to ar_six (src/auth.ts DEV_USERS). Any firm
+  // column rendered must be that firm and no other — the original assertion
+  // excluded ar_six itself, so it could only pass while the table was empty
+  // and failed the moment this AR legitimately had a breach row.
+  const otherFirms = page.getByText(/ar_codrington|ar_drakestar/);
   await expect(otherFirms).toHaveCount(0);
 });
 
@@ -27,9 +29,12 @@ test("an AR logging a breach cannot attribute it to another firm", async ({ page
   await expect(page.getByPlaceholder(/ar_codrington/)).toHaveCount(0);
 
   await page.getByRole("button", { name: /log breach/i }).click();
-  // The breach lands, and it is theirs.
-  await expect(page.getByText(/ar_six|ar_drakestar/)).toHaveCount(0);
+  // Wait for the logged breach to render FIRST — asserting "no other firm"
+  // before the row appears is vacuously true on an empty table. The row must
+  // be attributed to the session's own firm (ar_six) and no other.
   await expect(page.locator("tbody tr").first()).toBeVisible();
+  await expect(page.locator("tbody").getByText("ar_six").first()).toBeVisible();
+  await expect(page.getByText(/ar_codrington|ar_drakestar/)).toHaveCount(0);
 });
 
 test("the AR portal carries Razlin branding, not CCS marks", async ({ page }) => {

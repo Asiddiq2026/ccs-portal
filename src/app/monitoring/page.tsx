@@ -76,7 +76,7 @@ export default async function MonitoringPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const anyTx = tx as any;
     const items = await anyTx.signOffItem.findMany({
-      select: { id: true, createdAt: true, decidedAt: true },
+      select: { id: true, register: true, arId: true, createdAt: true, decidedAt: true },
     });
     const agentRuns = await anyTx.agentRun.findMany({
       select: { id: true, output: true, ts: true },
@@ -87,8 +87,9 @@ export default async function MonitoringPage() {
   });
 
   const queueItems: QueueItem[] = queue.map(
-    (q: { id: string; createdAt: Date; decidedAt: Date | null }) => ({
+    (q: { id: string; register: string; arId: string; createdAt: Date; decidedAt: Date | null }) => ({
       ref: q.id,
+      label: `${q.register} · ${q.arId}`,
       enqueuedAt: q.createdAt,
       decidedAt: q.decidedAt,
     }),
@@ -206,7 +207,13 @@ export default async function MonitoringPage() {
           <ul className="space-y-2">
             {snap.queue.items.map((q) => (
               <li key={q.ref} className="flex items-center gap-3">
-                <span className="font-mono text-[10px] text-text-muted w-40 truncate">{q.ref}</span>
+                <a
+                  href="/signoff"
+                  className="font-mono text-[10px] text-text-secondary hover:text-accent w-40 truncate"
+                  title={q.ref}
+                >
+                  {q.label ?? q.ref}
+                </a>
                 <div className="flex-1 h-2 bg-panel">
                   <div
                     className={"h-2 " + BAND_BG[q.band]}

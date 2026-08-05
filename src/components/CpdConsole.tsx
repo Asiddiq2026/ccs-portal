@@ -6,6 +6,7 @@
 // update, which lands in the sign-off queue as a PENDING draft. Nothing here
 // writes the register; only an SMF sign-off does.
 import { useState } from "react";
+import { toast } from "./Toasts";
 import { useRouter } from "next/navigation";
 
 export interface CpdRow {
@@ -44,7 +45,6 @@ export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
   const isOperator = role === "COMPLIANCE" || role === "SMF";
   const drifted = rows.filter((r) => r.drift).length;
@@ -53,7 +53,6 @@ export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
   async function gatherPack(pack: CertPack) {
     setBusy(`pack:${pack.arId}`);
     setError(null);
-    setNotice(null);
     try {
       // Deterministic path through the SAME single writeable surface the agents
       // use: gather_docs via the tool gateway (whitelisted for
@@ -78,9 +77,11 @@ export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
         setError(data.error ?? `Request failed (${res.status})`);
         return;
       }
-      setNotice(
-        `Evidence pack for ${pack.arId} (${pack.docs.length} certificate${pack.docs.length === 1 ? "" : "s"}) is PENDING in the sign-off queue — approve-only, no register row.`,
-      );
+      toast({
+        title: "Evidence pack enqueued",
+        sub: `${pack.arId} · ${pack.docs.length} certificate${pack.docs.length === 1 ? "" : "s"} — PENDING in the sign-off queue, approve-only.`,
+        tone: "success",
+      });
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -92,7 +93,6 @@ export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
   async function propose(r: CpdRow) {
     setBusy(`${r.arId}:${r.person}`);
     setError(null);
-    setNotice(null);
     try {
       const res = await fetch("/api/cpd/propose", {
         method: "POST",
@@ -104,9 +104,11 @@ export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
         setError(data.error ?? `Request failed (${res.status})`);
         return;
       }
-      setNotice(
-        `Proposed ${data.creditedHours}h for ${r.person}. It is now in the sign-off queue awaiting an SMF.`,
-      );
+      toast({
+        title: `Proposed ${data.creditedHours}h for ${r.person}`,
+        sub: "Now PENDING in the sign-off queue awaiting an SMF.",
+        tone: "success",
+      });
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -147,12 +149,6 @@ export function CpdConsole({ role, rows, certPacks = [] }: CpdConsoleProps) {
           {error}
         </div>
       )}
-      {notice && (
-        <div className="mb-4 border border-[rgba(8,145,178,0.35)] bg-[rgba(8,145,178,0.07)] px-4 py-3 text-sm text-accent">
-          {notice}
-        </div>
-      )}
-
       <div className="bg-card border border-border shadow-card">
         <div className="px-5 py-3 border-b border-border">
           <span className="font-mono text-[9px] uppercase tracking-[1.4px] text-text-muted">

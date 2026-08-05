@@ -5,6 +5,7 @@
 // active state, on the CCS light theme tokens from tailwind.config.ts.
 import Link from "next/link";
 import { PRINCIPAL } from "@/lib/principal";
+import { ToastHost } from "./Toasts";
 
 const NAV_SECTIONS = [
   {
@@ -80,7 +81,8 @@ export function ConsoleShell({
   children,
 }: {
   role: string;
-  active: TabHref;
+  /** null = no tab highlighted (the operator home/overview). */
+  active: TabHref | null;
   children: React.ReactNode;
 }) {
   return (
@@ -147,6 +149,7 @@ export function ConsoleShell({
 
         <main className="px-8 py-7 overflow-x-hidden">{children}</main>
       </div>
+      <ToastHost />
     </div>
   );
 }

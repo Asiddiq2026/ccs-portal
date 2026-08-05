@@ -5,6 +5,7 @@
 // or reject. REJECT requires reviewer notes, surfaced to the AR to revise.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "./Toasts";
 
 interface AiReview {
   ref: string;
@@ -61,6 +62,11 @@ export function FpReviewPanel({ id, canDecide }: { id: string; canDecide: boolea
         setBusy(null);
         return;
       }
+      toast(
+        decision === "ADOPT"
+          ? { title: "Promotion adopted", sub: "The AR sees the adopted status.", tone: "success" }
+          : { title: "Promotion rejected", sub: "Your notes are surfaced to the AR to revise.", tone: "warn" },
+      );
       router.refresh();
     } catch (e) {
       setError((e as Error).message);

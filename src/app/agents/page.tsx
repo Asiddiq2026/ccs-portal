@@ -50,14 +50,6 @@ export default async function AgentsPage() {
     });
   });
 
-  const agents: AgentCard[] = AGENT_SPECS.map((a) => ({
-    id: a.id,
-    version: a.version,
-    trigger: a.trigger,
-    schedule: a.schedule,
-    description: a.description,
-  }));
-
   const recentRuns: RunRow[] = runs.map(
     (r: { id: string; agentId: string; output: unknown; tokens: number; ts: Date }) => ({
       id: r.id,
@@ -67,6 +59,16 @@ export default async function AgentsPage() {
       ts: r.ts.toISOString().slice(0, 16).replace("T", " "),
     }),
   );
+
+  const agents: AgentCard[] = AGENT_SPECS.map((a) => ({
+    id: a.id,
+    version: a.version,
+    trigger: a.trigger,
+    schedule: a.schedule,
+    description: a.description,
+    // runs are newest-first, so the first match is the latest run.
+    lastRun: recentRuns.find((r) => r.agentId === a.id) ?? null,
+  }));
 
   // Only COMPLIANCE/SMF reach here (guarded above), and operators are
   // network-wide, so leave the per-run arId input blank — they choose which AR

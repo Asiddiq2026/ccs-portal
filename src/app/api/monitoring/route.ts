@@ -33,7 +33,7 @@ export async function GET(): Promise<Response> {
   try {
     const { queue, runs } = await withTenant(tenant, async (tx) => {
       const items = await tx.signOffItem.findMany({
-        select: { id: true, createdAt: true, decidedAt: true },
+        select: { id: true, register: true, arId: true, createdAt: true, decidedAt: true },
       });
       const agentRuns = await tx.agentRun.findMany({
         select: { id: true, output: true, ts: true },
@@ -45,6 +45,7 @@ export async function GET(): Promise<Response> {
 
     const queueItems: QueueItem[] = queue.map((q) => ({
       ref: q.id,
+      label: `${q.register} · ${q.arId}`,
       enqueuedAt: q.createdAt,
       decidedAt: q.decidedAt,
     }));

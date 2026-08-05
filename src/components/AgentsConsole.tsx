@@ -8,20 +8,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export interface AgentCard {
-  id: string;
-  version: string;
-  trigger: string;
-  schedule: string;
-  description: string;
-}
-
 export interface RunRow {
   id: string;
   agentId: string;
   verdict: "DRAFT READY" | "OPERATOR REVIEW";
   ts: string;
   tokens: number;
+}
+
+export interface AgentCard {
+  id: string;
+  version: string;
+  trigger: string;
+  schedule: string;
+  description: string;
+  /** Latest logged run for this agent, or null if it has never run. */
+  lastRun?: RunRow | null;
 }
 
 interface RunResult {
@@ -85,7 +87,15 @@ function AgentRow({
     }
   }
 
-  const autoLabel = autonomous && agent.trigger !== "ON_DEMAND";
+  // Schedules are DECLARED in the spec, not wired to any scheduler. Until Gate 5
+  // clears (AGENTS_AUTONOMOUS=true) nothing runs unattended — saying "CRON Daily
+  // 06:00" alone would let an operator believe the run happens without them.
+  const scheduled = agent.trigger !== "ON_DEMAND";
+  const scheduleLabel = scheduled
+    ? autonomous
+      ? `${agent.schedule} · auto`
+      : `declared ${agent.schedule} — manual until Gate 5`
+    : agent.schedule;
 
   return (
     <div className="border border-border bg-card shadow-card p-4">
@@ -97,12 +107,14 @@ function AgentRow({
             <span className="font-mono text-[9px] px-1.5 py-0.5 border border-border text-text-secondary">
               {agent.trigger}
             </span>
-            <span className="font-mono text-[9px] text-text-muted">
-              {agent.schedule}
-              {autoLabel ? " · auto" : ""}
-            </span>
+            <span className="font-mono text-[9px] text-text-muted">{scheduleLabel}</span>
           </div>
           <p className="text-xs text-text-secondary mt-1">{agent.description}</p>
+          <p className="font-mono text-[9px] text-text-muted mt-1.5">
+            {agent.lastRun
+              ? `last run ${agent.lastRun.ts} · ${agent.lastRun.verdict}`
+              : "never run"}
+          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <input

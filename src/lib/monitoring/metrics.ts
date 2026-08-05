@@ -8,6 +8,9 @@
 /** A PENDING sign-off item awaiting a human decision. */
 export interface QueueItem {
   ref: string;
+  /** Human-readable identity, e.g. "person_cpd · ar_six" — operators act on
+   *  this; the ref alone is an opaque id nobody can route from. */
+  label?: string;
   enqueuedAt: Date;
   /** Set once an SMF decides; open items are those still null/undefined. */
   decidedAt?: Date | null;
@@ -26,6 +29,7 @@ export type QueueBand = "green" | "amber" | "red";
 
 export interface QueueAgeRow {
   ref: string;
+  label?: string;
   ageHours: number;
   band: QueueBand;
 }
@@ -60,7 +64,7 @@ export function openQueueAges(items: readonly QueueItem[], now: Date): QueueAgeR
     .filter((i) => !i.decidedAt)
     .map((i) => {
       const h = ageHours(i.enqueuedAt, now);
-      return { ref: i.ref, ageHours: h, band: ageBand(h) };
+      return { ref: i.ref, label: i.label, ageHours: h, band: ageBand(h) };
     })
     .sort((a, b) => b.ageHours - a.ageHours);
 }

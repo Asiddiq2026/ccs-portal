@@ -2,11 +2,22 @@
 
 // The decide control on each queued draft. Posts to /api/signoff/:id/decide
 // (SMF-only; the server enforces it). RETURN requires a rationale. On success we
-// refresh the server component so the item drops out of the PENDING list.
+// refresh the server component so the item drops out of the PENDING list, and a
+// toast confirms what just happened — the vanishing row alone is not feedback.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "./Toasts";
 
-export function SignOffDecideForm({ draftId, canDecide }: { draftId: string; canDecide: boolean }) {
+export function SignOffDecideForm({
+  draftId,
+  label,
+  canDecide,
+}: {
+  draftId: string;
+  /** Human identity of the draft, e.g. "person_cpd · ar_six" (for feedback). */
+  label?: string;
+  canDecide: boolean;
+}) {
   const router = useRouter();
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState<null | "SIGN_OFF" | "RETURN">(null);
@@ -31,6 +42,11 @@ export function SignOffDecideForm({ draftId, canDecide }: { draftId: string; can
         setBusy(null);
         return;
       }
+      toast(
+        decision === "SIGN_OFF"
+          ? { title: "Signed off → FINAL", sub: label ?? draftId, tone: "success" }
+          : { title: "Returned to drafter", sub: label ?? draftId, tone: "warn" },
+      );
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
