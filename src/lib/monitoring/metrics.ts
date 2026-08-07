@@ -23,6 +23,17 @@ export interface AgentRunSummary {
   id: string;
   verdict: AgentVerdict;
   ts: Date;
+  /** One-line halt reason from the run output — shown to the reviewing operator. */
+  summary?: string;
+  agentId?: string;
+}
+
+/** An open (unreviewed) fail-closed halt awaiting an operator disposition. */
+export interface FailClosedItem {
+  id: string;
+  agentId?: string;
+  summary?: string;
+  ts: string;
 }
 
 export type QueueBand = "green" | "amber" | "red";
@@ -69,9 +80,24 @@ export function openQueueAges(items: readonly QueueItem[], now: Date): QueueAgeR
     .sort((a, b) => b.ageHours - a.ageHours);
 }
 
-/** Count of agent runs that halted fail-closed (verdict OPERATOR REVIEW). */
-export function openFailClosedCount(runs: readonly AgentRunSummary[]): number {
-  return runs.filter((r) => r.verdict === "OPERATOR REVIEW").length;
+/**
+ * OPEN fail-closed halts: OPERATOR REVIEW runs that an operator has NOT yet
+ * dispositioned. `reviewed` is the set of run ids with a fail_closed_review.
+ * A reviewed halt is closed — the count is meant to reach zero, not only grow.
+ */
+export function openFailClosed(
+  runs: readonly AgentRunSummary[],
+  reviewed: ReadonlySet<string>,
+): AgentRunSummary[] {
+  return runs.filter((r) => r.verdict === "OPERATOR REVIEW" && !reviewed.has(r.id));
+}
+
+/** Backwards-compatible count wrapper (empty reviewed set = every halt is open). */
+export function openFailClosedCount(
+  runs: readonly AgentRunSummary[],
+  reviewed: ReadonlySet<string> = new Set(),
+): number {
+  return openFailClosed(runs, reviewed).length;
 }
 
 export interface MonitoringSnapshot {
@@ -86,7 +112,7 @@ export interface MonitoringSnapshot {
     breaching: number;
     items: QueueAgeRow[];
   };
-  failClosed: { open: number };
+  failClosed: { open: number; items: FailClosedItem[] };
   agentRuns: { total: number; draftReady: number; operatorReview: number };
   /** Structurally 0 — agents have no egress beyond enqueue_for_signoff. */
   agentEgress: number;
@@ -98,6 +124,8 @@ export interface SnapshotInput {
   gatesCleared: number;
   queue: readonly QueueItem[];
   runs: readonly AgentRunSummary[];
+  /** Run ids with a recorded fail-closed disposition (empty = none reviewed). */
+  reviewedRunIds?: ReadonlySet<string>;
   /** Model-token metering: month-to-date spend + the configured cap (null = unmetered). */
   usage?: { monthTokens: number; budget: number | null };
 }
@@ -105,7 +133,8 @@ export interface SnapshotInput {
 /** Assemble the full monitoring snapshot from loaded rows. */
 export function buildSnapshot(input: SnapshotInput): MonitoringSnapshot {
   const ages = openQueueAges(input.queue, input.now);
-  const operatorReview = openFailClosedCount(input.runs);
+  const reviewed = input.reviewedRunIds ?? new Set<string>();
+  const openHalts = openFailClosed(input.runs, reviewed);
   return {
     generatedAt: input.now.toISOString(),
     autonomous: input.autonomous,
@@ -118,11 +147,20 @@ export function buildSnapshot(input: SnapshotInput): MonitoringSnapshot {
       breaching: ages.filter((a) => a.ageHours > QUEUE_TARGET_HOURS).length,
       items: ages,
     },
-    failClosed: { open: operatorReview },
+    failClosed: {
+      open: openHalts.length,
+      items: openHalts.map((r) => ({
+        id: r.id,
+        agentId: r.agentId,
+        summary: r.summary,
+        ts: r.ts.toISOString(),
+      })),
+    },
     agentRuns: {
       total: input.runs.length,
       draftReady: input.runs.filter((r) => r.verdict === "DRAFT READY").length,
-      operatorReview,
+      // Total halts ever (not just open) — the review count is failClosed.open.
+      operatorReview: input.runs.filter((r) => r.verdict === "OPERATOR REVIEW").length,
     },
     agentEgress: 0,
   };

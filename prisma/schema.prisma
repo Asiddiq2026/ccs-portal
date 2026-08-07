@@ -340,3 +340,19 @@ model AgentRun {
   @@index([agentId])
   @@map("agent_run")
 }
+
+// Operator disposition of a fail-closed (OPERATOR REVIEW) agent run. agent_run
+// is append-only, so the review cannot be a flag ON the run — it is a separate
+// append-only record referencing it. A fail-closed halt is "open" until a
+// review row exists; the monitoring "open fail-closed" count is exactly the
+// OPERATOR REVIEW runs with no matching review here. One review per run
+// (runId unique) — the disposition is a single decision, not a thread.
+model FailClosedReview {
+  id        String   @id @default(cuid())
+  runId     String   @unique @map("run_id")
+  reviewer  String
+  rationale String
+  ts        DateTime @default(now())
+
+  @@map("fail_closed_review")
+}

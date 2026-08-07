@@ -55,6 +55,39 @@ describe("monitoring metrics", () => {
     expect(openFailClosedCount(runs)).toBe(2);
   });
 
+  it("a reviewed halt is no longer open — the count reaches zero", () => {
+    const runs: AgentRunSummary[] = [
+      { id: "1", verdict: "OPERATOR REVIEW", ts: NOW, summary: "budget exhausted" },
+      { id: "2", verdict: "OPERATOR REVIEW", ts: NOW },
+    ];
+    // One reviewed → one open; the open item carries its halt summary for the UI.
+    const snap = buildSnapshot({
+      now: NOW,
+      autonomous: false,
+      gatesCleared: 4,
+      queue: [],
+      runs,
+      reviewedRunIds: new Set(["2"]),
+    });
+    expect(snap.failClosed.open).toBe(1);
+    expect(snap.failClosed.items.map((i) => i.id)).toEqual(["1"]);
+    expect(snap.failClosed.items[0].summary).toBe("budget exhausted");
+    // Total halts (agentRuns.operatorReview) still counts both — review ≠ un-happened.
+    expect(snap.agentRuns.operatorReview).toBe(2);
+
+    // Both reviewed → none open.
+    const cleared = buildSnapshot({
+      now: NOW,
+      autonomous: false,
+      gatesCleared: 4,
+      queue: [],
+      runs,
+      reviewedRunIds: new Set(["1", "2"]),
+    });
+    expect(cleared.failClosed.open).toBe(0);
+    expect(cleared.failClosed.items).toEqual([]);
+  });
+
   it("builds a full snapshot matching the dashboard signals", () => {
     // Mirrors the reference queue-age fixture (38, 9, 31, 52, 17).
     const queue: QueueItem[] = [38, 9, 31, 52, 17].map((h, i) => ({

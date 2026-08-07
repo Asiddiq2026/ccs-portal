@@ -16,6 +16,8 @@ import {
 import { ConsoleShell, AccessPanel } from "@/components/ConsoleShell";
 import { prismaMeter } from "@/lib/metering/prisma-adapter";
 import { parseMonthlyBudget } from "@/lib/metering/service";
+import { reviewedRunIds } from "@/lib/failclosed/prisma-adapter";
+import { FailClosedReviewForm } from "@/components/FailClosedReviewForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +25,11 @@ export const dynamic = "force-dynamic";
 function verdictOf(output: unknown): AgentVerdict {
   const v = (output as { verdict?: unknown } | null)?.verdict;
   return v === "DRAFT READY" ? "DRAFT READY" : "OPERATOR REVIEW";
+}
+
+function summaryOf(output: unknown): string | undefined {
+  const s = (output as { summary?: unknown } | null)?.summary;
+  return typeof s === "string" ? s : undefined;
 }
 
 const BAND_BG: Record<QueueBand, string> = {
@@ -79,7 +86,7 @@ export default async function MonitoringPage() {
       select: { id: true, register: true, arId: true, createdAt: true, decidedAt: true },
     });
     const agentRuns = await anyTx.agentRun.findMany({
-      select: { id: true, output: true, ts: true },
+      select: { id: true, agentId: true, output: true, ts: true },
       orderBy: { ts: "desc" },
       take: 500,
     });
@@ -95,12 +102,20 @@ export default async function MonitoringPage() {
     }),
   );
   const runSummaries: AgentRunSummary[] = runs.map(
-    (r: { id: string; output: unknown; ts: Date }) => ({
+    (r: { id: string; agentId: string; output: unknown; ts: Date }) => ({
       id: r.id,
+      agentId: r.agentId,
       verdict: verdictOf(r.output),
+      summary: summaryOf(r.output),
       ts: r.ts,
     }),
   );
+  // Which fail-closed halts already have an operator disposition — so the open
+  // count reflects unreviewed halts only, not every halt ever.
+  const openHaltIds = runSummaries
+    .filter((r) => r.verdict === "OPERATOR REVIEW")
+    .map((r) => r.id);
+  const reviewed = await reviewedRunIds(openHaltIds, tenant);
 
   // DECLARED, not verified: gates 1-4 are assumed cleared per the design and
   // gate 5 is a deploy-time flag. The platform holds no evidence for any of
@@ -113,11 +128,13 @@ export default async function MonitoringPage() {
     gatesCleared,
     queue: queueItems,
     runs: runSummaries,
+    reviewedRunIds: reviewed,
     usage: {
       monthTokens: await prismaMeter.monthToDate(now, tenant),
       budget: parseMonthlyBudget(),
     },
   });
+  const canReview = tenant.role === "COMPLIANCE" || tenant.role === "SMF";
 
   return (
     <ConsoleShell role={tenant.role} active="/monitoring">
@@ -181,7 +198,7 @@ export default async function MonitoringPage() {
         <Stat
           label="Open fail-closed"
           value={String(snap.failClosed.open)}
-          sub="operator review pending"
+          sub={snap.failClosed.open > 0 ? "awaiting operator review below" : "all halts reviewed"}
           tone={snap.failClosed.open > 0 ? "text-status-danger" : "text-status-success"}
         />
         <Stat
@@ -228,6 +245,49 @@ export default async function MonitoringPage() {
           </ul>
         )}
       </section>
+
+      {snap.failClosed.items.length > 0 && (
+        <section className="border border-status-danger bg-[rgba(185,28,28,0.04)] shadow-card p-4 mb-8">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-heading font-semibold text-sm text-status-danger">
+              Open fail-closed halts
+            </h3>
+            <span className="font-mono text-[10px] text-text-muted">
+              {snap.failClosed.items.length} awaiting review
+            </span>
+          </div>
+          <p className="text-xs text-text-secondary mb-3">
+            An agent halted rather than act on error or ambiguity (Invariant 2). Fix the underlying
+            issue, re-trigger the run from the Agents console if needed, then record a review here so
+            the disposition is on the audit trail. Recording a review does not re-run anything.
+          </p>
+          <ul className="space-y-2">
+            {snap.failClosed.items.map((it) => (
+              <li key={it.id} className="border border-border bg-card p-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="font-mono text-[10px] text-text-secondary">
+                    {it.agentId ?? "agent"}
+                  </span>
+                  <span className="font-mono text-[9px] text-text-muted">
+                    {it.ts.slice(0, 16).replace("T", " ")}
+                  </span>
+                  <span className="font-mono text-[9px] text-text-muted">{it.id}</span>
+                </div>
+                {it.summary && (
+                  <p className="text-xs text-text-secondary mt-1">{it.summary}</p>
+                )}
+                {canReview ? (
+                  <FailClosedReviewForm runId={it.id} />
+                ) : (
+                  <p className="font-mono text-[10px] text-text-muted mt-2">
+                    Operator disposition required — you have read visibility only.
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="grid grid-cols-3 gap-4">
         <Stat label="Agent runs" value={String(snap.agentRuns.total)} sub="logged (last 500)" />

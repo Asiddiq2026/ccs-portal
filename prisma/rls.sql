@@ -223,3 +223,21 @@ CREATE POLICY network_read ON "agent_run"
   FOR SELECT USING (
     coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
   );
+
+-- fail_closed_review — operator disposition of a fail-closed run. Append-only
+-- (a disposition is immutable evidence), and operator-only for BOTH read and
+-- write: an AR never sees or writes agent-run dispositions. INSERT is gated on
+-- the operator role too (defence-in-depth behind the route's own check).
+ALTER TABLE "fail_closed_review" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "fail_closed_review" FORCE ROW LEVEL SECURITY;
+REVOKE UPDATE, DELETE, TRUNCATE ON "fail_closed_review" FROM ccs_app;
+DROP POLICY IF EXISTS operator_insert ON "fail_closed_review";
+DROP POLICY IF EXISTS operator_read ON "fail_closed_review";
+CREATE POLICY operator_insert ON "fail_closed_review"
+  FOR INSERT WITH CHECK (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+  );
+CREATE POLICY operator_read ON "fail_closed_review"
+  FOR SELECT USING (
+    coalesce(current_setting('app.role', true), '') IN ('COMPLIANCE', 'SMF')
+  );
